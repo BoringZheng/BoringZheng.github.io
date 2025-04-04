@@ -20,30 +20,32 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="做好当下的一切">
-<meta property="og:type" content="website">
-<meta property="og:title" content="TimeHouse">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="congestion_control_vegas_process_sendme 函数解析简介该函数实现了基于 Vegas 拥塞控制算法的 SENDME 处理逻辑。其核心目标是通过基于cwnd和BDP计算网络的拥塞情况，动态调整 cwnd 以优化数据传输，避免网络拥塞并提升带宽利用率。 函数目标1234567891011121314151617181920&#x2F;** * Process a SENDME">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tor的Vegas机制">
+<meta property="og:url" content="http://example.com/2025/04/02/Tor%E7%9A%84Vegas%E6%9C%BA%E5%88%B6/index.html">
 <meta property="og:site_name" content="TimeHouse">
-<meta property="og:description" content="做好当下的一切">
+<meta property="og:description" content="congestion_control_vegas_process_sendme 函数解析简介该函数实现了基于 Vegas 拥塞控制算法的 SENDME 处理逻辑。其核心目标是通过基于cwnd和BDP计算网络的拥塞情况，动态调整 cwnd 以优化数据传输，避免网络拥塞并提升带宽利用率。 函数目标1234567891011121314151617181920&#x2F;** * Process a SENDME">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-04-02T07:29:29.000Z">
+<meta property="article:modified_time" content="2025-04-03T14:39:12.310Z">
 <meta property="article:author" content="BoringZheng">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/">
+<link rel="canonical" href="http://example.com/2025/04/02/Tor%E7%9A%84Vegas%E6%9C%BA%E5%88%B6/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>TimeHouse</title>
+  <title>Tor的Vegas机制 | TimeHouse</title>
   
 
 
@@ -147,79 +149,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/04/05/2025-4-4/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="BoringZheng">
-      <meta itemprop="description" content="做好当下的一切">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="TimeHouse">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/04/05/2025-4-4/" class="post-title-link" itemprop="url">2025.4.4</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-04-05 00:07:56 / 修改时间：00:10:03" itemprop="dateCreated datePublished" datetime="2025-04-05T00:07:56+08:00">2025-04-05</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Logs/" itemprop="url" rel="index"><span itemprop="name">Logs</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
 
     
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>那天写了一半日志，然后好像就因为什么事情中断掉了。</p>
-<!-- no more -->
-<p>我尝试了很多次，重新打开那个文档，但是我做不到。我新开了这个文档，又想写点实际的东西，但是我也做不到。权当我在这里放个锚点，希望下周能约到心理咨询吧。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -235,10 +168,9 @@
       <meta itemprop="name" content="TimeHouse">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/04/02/Tor%E7%9A%84Vegas%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">Tor的Vegas机制</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          Tor的Vegas机制
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -268,7 +200,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="congestion-control-vegas-process-sendme-函数解析"><a href="#congestion-control-vegas-process-sendme-函数解析" class="headerlink" title="congestion_control_vegas_process_sendme 函数解析"></a><code>congestion_control_vegas_process_sendme</code> 函数解析</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a><strong>简介</strong></h2><p>该函数实现了基于 Vegas 拥塞控制算法的 <code>SENDME</code> 处理逻辑。其核心目标是通过基于<code>cwnd</code>和<code>BDP</code>计算网络的拥塞情况，动态调整 <code>cwnd</code> 以优化数据传输，避免网络拥塞并提升带宽利用率。</p>
+        <h1 id="congestion-control-vegas-process-sendme-函数解析"><a href="#congestion-control-vegas-process-sendme-函数解析" class="headerlink" title="congestion_control_vegas_process_sendme 函数解析"></a><code>congestion_control_vegas_process_sendme</code> 函数解析</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a><strong>简介</strong></h2><p>该函数实现了基于 Vegas 拥塞控制算法的 <code>SENDME</code> 处理逻辑。其核心目标是通过基于<code>cwnd</code>和<code>BDP</code>计算网络的拥塞情况，动态调整 <code>cwnd</code> 以优化数据传输，避免网络拥塞并提升带宽利用率。</p>
 <h2 id="函数目标"><a href="#函数目标" class="headerlink" title="函数目标"></a><strong>函数目标</strong></h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Process a SENDME <span class="keyword">and</span> update the congestion window according to the</span><br><span class="line"> * rules specified <span class="keyword">in</span> TOR_VEGAS of Proposal <span class="comment">#324.</span></span><br><span class="line"> *</span><br><span class="line"> * Essentially, this algorithm attempts to measure queue lengths on</span><br><span class="line"> * the circuit by subtracting the bandwidth-delay-product estimate</span><br><span class="line"> * <span class="keyword">from</span> the current congestion window.</span><br><span class="line"> *</span><br><span class="line"> * If the congestion window <span class="keyword">is</span> larger than the bandwidth-delay-product,</span><br><span class="line"> * then data <span class="keyword">is</span> assumed to be queuing. We reduce the congestion window</span><br><span class="line"> * <span class="keyword">in</span> that <span class="keyword">case</span>.</span><br><span class="line"> *</span><br><span class="line"> * If the congestion window <span class="keyword">is</span> smaller than the bandwidth-delay-product,</span><br><span class="line"> * then there <span class="keyword">is</span> spare bandwidth capacity on the circuit. We increase the</span><br><span class="line"> * congestion window <span class="keyword">in</span> that <span class="keyword">case</span>.</span><br><span class="line"> *</span><br><span class="line"> * The congestion window <span class="keyword">is</span> updated only once every congestion window worth of</span><br><span class="line"> * packets, even <span class="keyword">if</span> the signal persists. It <span class="keyword">is</span> also updated whenever the</span><br><span class="line"> * upstream orcon blocks, <span class="keyword">or</span> unblocks. This minimizes local client queues.</span><br><span class="line"> */</span><br></pre></td></tr></table></figure>
 <ul>
 <li>根据当前的网络状况动态调整拥塞窗口（<code>cwnd</code>）。</li>
@@ -377,657 +309,34 @@
 <li><code>cwnd</code> 不会小于最小值 <code>cwnd_min</code>，避免窗口过小导致网络不稳定。</li>
 </ul>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/27/2025-3-27%E6%97%A5%E5%BF%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="BoringZheng">
-      <meta itemprop="description" content="做好当下的一切">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="TimeHouse">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/03/27/2025-3-27%E6%97%A5%E5%BF%97/" class="post-title-link" itemprop="url">2025.3.27日志</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-03-27 09:19:39" itemprop="dateCreated datePublished" datetime="2025-03-27T09:19:39+08:00">2025-03-27</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-04-02 15:28:04" itemprop="dateModified" datetime="2025-04-02T15:28:04+08:00">2025-04-02</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Logs/" itemprop="url" rel="index"><span itemprop="name">Logs</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>又是一段很没时间的时间，所以又是很久没有写了，不过我倒是喜欢这个节奏，一直保持一种写东西的欲望，每次打开文档的时候都有东西可以写。</p>
-<!-- no more -->
-<p>上一次写东西到现在又是大半个月了，感觉经历了好多好多事情，首先是接了一个家教，然后是等了很久的尽调，接着是中期检查报告，以及好不容易没有错过很漂亮的南京的花期，最后是努力了很久很久的首半马。</p>
-<p>接家教接到了一个很远的地方，在南理工的对面，一个老小区，不过好在地铁过去很快，实际体验下来好像也就一个小时的样子。远是远，不过也给我提供了一个强制进城的契机，能让我的生活丰富一些，当然最重要的，报酬很丰厚。接到的小孩也很聪明，不过不太听话的样子，但是这不重要，聪明就已经不错了。</p>
-<p>尽职调查不太顺利， 那个审核人的拷打让我很不适，我不明白项目本身具有的这种天生的问题为什么会到这个环节来对我进行责问，不过也无所谓了，大不了这个项目到此为止，接下来拿去打大创赛就好了。不过倒是有不少私人身份的投资人想对我的公司直投，我觉得对我实在没有什么好处，于是都拒绝掉了，不过还是很感谢这些愿意信任我的人。</p>
-<p>中期报告写的过程确实非常drama，写的很头晕，主要是要写的东西太多，实在是不太想写了。然后还被出生搭档恶心了一手，真麻了。不过最后还是凑出来了19页pdf。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/11/2025-3-11%E6%97%A5%E5%BF%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="BoringZheng">
-      <meta itemprop="description" content="做好当下的一切">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="TimeHouse">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/03/11/2025-3-11%E6%97%A5%E5%BF%97/" class="post-title-link" itemprop="url">2025.3.11日志</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-03-11 01:55:32 / 修改时间：02:02:32" itemprop="dateCreated datePublished" datetime="2025-03-11T01:55:32+08:00">2025-03-11</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Logs/" itemprop="url" rel="index"><span itemprop="name">-Logs</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>很久很久又没有写东西了。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2025/03/11/2025-3-11%E6%97%A5%E5%BF%97/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
-    </div>
 
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/26/Conflux-Choose/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="BoringZheng">
-      <meta itemprop="description" content="做好当下的一切">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="TimeHouse">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/02/26/Conflux-Choose/" class="post-title-link" itemprop="url">Conflux_Choose</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-02-26 23:14:56 / 修改时间：23:15:32" itemprop="dateCreated datePublished" datetime="2025-02-26T23:14:56+08:00">2025-02-26</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Tor/" itemprop="url" rel="index"><span itemprop="name">Tor</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Tor-入口节点-Conflux-机制分析报告"><a href="#Tor-入口节点-Conflux-机制分析报告" class="headerlink" title="Tor 入口节点 Conflux 机制分析报告"></a>Tor 入口节点 Conflux 机制分析报告</h1><h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p>Tor 的 Conflux 机制允许客户端在多个电路（circuits）之间分流流量，以提高抗审查性和网络性能。本报告分析入口节点在发送数据时，如何决定是否启用 Conflux 机制，以及在 Conflux 机制下，如何选择合适的电路进行数据传输。</p>
-<h2 id="2-入口节点如何决定是否启用-Conflux-机制"><a href="#2-入口节点如何决定是否启用-Conflux-机制" class="headerlink" title="2. 入口节点如何决定是否启用 Conflux 机制"></a>2. 入口节点如何决定是否启用 Conflux 机制</h2><p>在 Tor 入口节点发送数据时，会调用 <code>circuit_establish_circuit_conflux</code> 来建立 Conflux 电路，该函数的主要流程如下：</p>
-<ol>
-<li><p><strong>验证 Conflux 目的</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tor_assert(purpose == CIRCUIT_PURPOSE_CONFLUX_UNLINKED);</span><br></pre></td></tr></table></figure>
-<p>入口节点仅在 CIRCUIT_PURPOSE_CONFLUX_UNLINKED 目的时才会使用 Conflux。</p>
-</li>
-<li><p><strong>初始化电路</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">circ = origin_circuit_init(purpose, flags);</span><br><span class="line">TO_CIRCUIT(circ)-&gt;conflux_pending_nonce =</span><br><span class="line">  tor_memdup(conflux_nonce, DIGEST256_LEN);</span><br></pre></td></tr></table></figure>
-<p>这里初始化了 Conflux 电路并存储了 <code>conflux_nonce</code>。</p>
-</li>
-<li><p><strong>选择出口节点</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (onion_pick_cpath_exit(circ, exit_ei, <span class="number">0</span>) &lt; <span class="number">0</span> ||</span><br><span class="line">    onion_populate_cpath(circ) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">  circuit_mark_for_close(TO_CIRCUIT(circ), END_CIRC_REASON_NOPATH);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>若无法选择合适的出口节点，则直接关闭该电路。</p>
-</li>
-<li><p><strong>建立连接</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((err_reason = circuit_handle_first_hop(circ)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">  circuit_mark_for_close(TO_CIRCUIT(circ), -err_reason);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这里尝试连接到第一跳的 OR（Onion Router），如果失败则关闭电路。</p>
-</li>
-</ol>
-<h2 id="3-入口节点如何决定是否切换电路"><a href="#3-入口节点如何决定是否切换电路" class="headerlink" title="3. 入口节点如何决定是否切换电路"></a>3. 入口节点如何决定是否切换电路</h2><p>当入口节点决定通过 Conflux 机制发送数据时，会调用 <code>conflux_decide_circ_for_send</code> 选择合适的电路。该函数的逻辑如下：</p>
-<h3 id="3-1-判断是否需要多路复用"><a href="#3-1-判断是否需要多路复用" class="headerlink" title="3.1 判断是否需要多路复用"></a>3.1 判断是否需要多路复用</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!conflux_should_multiplex(relay_command)) &#123;</span><br><span class="line">  <span class="keyword">return</span> orig_circ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果当前的 <code>relay_command</code> 不支持多路复用，则直接使用原始电路。</p>
-<h3 id="3-2-选择下一个电路"><a href="#3-2-选择下一个电路" class="headerlink" title="3.2 选择下一个电路"></a>3.2 选择下一个电路</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">circuit_t</span> *new_circ = conflux_decide_next_circ(cfx);</span><br></pre></td></tr></table></figure>
-<p>调用 <code>conflux_decide_next_circ</code> 选择下一个电路。</p>
-<h3 id="3-3-处理非数据命令"><a href="#3-3-处理非数据命令" class="headerlink" title="3.3 处理非数据命令"></a>3.3 处理非数据命令</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!new_circ &amp;&amp; relay_command != RELAY_COMMAND_DATA) &#123;</span><br><span class="line">  <span class="keyword">if</span> (!cfx-&gt;curr_leg) &#123;</span><br><span class="line">    log_warn(LD_BUG, <span class="string">&quot;No current leg for conflux with relay command %d&quot;</span>, relay_command);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> cfx-&gt;curr_leg-&gt;circ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果当前无可用电路，但命令不是 <code>RELAY_COMMAND_DATA</code>，则继续使用当前电路。</p>
-<h3 id="3-4-发送切换命令"><a href="#3-4-发送切换命令" class="headerlink" title="3.4 发送切换命令"></a>3.4 发送切换命令</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (new_circ) &#123;</span><br><span class="line">  <span class="type">conflux_leg_t</span> *new_leg = conflux_get_leg(cfx, new_circ);</span><br><span class="line">  tor_assert(cfx-&gt;curr_leg);</span><br><span class="line">  <span class="keyword">if</span> (new_circ != cfx-&gt;curr_leg-&gt;circ) &#123;</span><br><span class="line">    <span class="type">uint64_t</span> relative_seq = cfx-&gt;prev_leg-&gt;last_seq_sent - cfx-&gt;curr_leg-&gt;last_seq_sent;</span><br><span class="line">    conflux_send_switch_command(cfx-&gt;curr_leg-&gt;circ, relative_seq);</span><br><span class="line">    cfx-&gt;curr_leg-&gt;last_seq_sent = cfx-&gt;prev_leg-&gt;last_seq_sent;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果决定切换电路，则计算 <code>relative_seq</code> 并发送 <code>SWITCH</code> 命令。</p>
-<h2 id="4-选择下一个电路的逻辑-conflux-decide-next-circ"><a href="#4-选择下一个电路的逻辑-conflux-decide-next-circ" class="headerlink" title="4. 选择下一个电路的逻辑 (conflux_decide_next_circ)"></a>4. 选择下一个电路的逻辑 (<code>conflux_decide_next_circ</code>)</h2><p>在 <code>conflux_decide_circ_for_send</code> 中调用 <code>conflux_decide_next_circ</code> 选择下一个电路，该函数的逻辑如下：</p>
-<ol>
-<li><p><strong>检查是否正在关闭</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (cfx-&gt;in_full_teardown) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果 Conflux 机制正在关闭，则不再选择新的电路。</p>
-</li>
-<li><p><strong>初始化当前电路</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!cfx-&gt;curr_leg) &#123;</span><br><span class="line">  <span class="keyword">if</span> (!conflux_pick_first_leg(cfx))</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果当前没有电路，则尝试选择第一个电路。</p>
-</li>
-<li><p><strong>判断是否允许切换</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!conflux_can_switch(cfx)) &#123;</span><br><span class="line">  <span class="keyword">return</span> cfx-&gt;curr_leg-&gt;circ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果不能切换，则返回当前电路。</p>
-</li>
-<li><p><strong>根据不同策略选择电路</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> (cfx-&gt;params.alg) &#123;</span><br><span class="line">  <span class="keyword">case</span> CONFLUX_ALG_MINRTT:</span><br><span class="line">    <span class="keyword">return</span> (<span class="type">circuit_t</span>*)conflux_decide_circ_minrtt(cfx);</span><br><span class="line">  <span class="keyword">case</span> CONFLUX_ALG_LOWRTT:</span><br><span class="line">    <span class="keyword">return</span> (<span class="type">circuit_t</span>*)conflux_decide_circ_lowrtt(cfx);</span><br><span class="line">  <span class="keyword">case</span> CONFLUX_ALG_CWNDRTT:</span><br><span class="line">    <span class="keyword">return</span> (<span class="type">circuit_t</span>*)conflux_decide_circ_cwndrtt(cfx);</span><br><span class="line">  <span class="keyword">default</span>:</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>其中：</p>
-<ul>
-<li><code>CONFLUX_ALG_MINRTT</code> 选择 RTT 最低的电路。</li>
-<li><code>CONFLUX_ALG_LOWRTT</code> 选择高吞吐量但可能有乱序的电路。</li>
-<li><code>CONFLUX_ALG_CWNDRTT</code> 选择考虑拥塞窗口的电路，以降低乱序问题。</li>
-</ul>
-</li>
-</ol>
-<h2 id="5-结论"><a href="#5-结论" class="headerlink" title="5. 结论"></a>5. 结论</h2><p>Tor 入口节点在发送数据时，会根据目的和当前网络状况决定是否启用 Conflux 机制。如果 Conflux 机制被启用，则节点会基于 RTT、吞吐量或拥塞窗口选择最优的电路，并在合适的时机发送 <code>SWITCH</code> 命令以切换电路。通过这些策略，Tor 能够提高匿名性和数据传输效率。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/15/2025-2-14%E6%97%A5%E5%BF%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="BoringZheng">
-      <meta itemprop="description" content="做好当下的一切">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="TimeHouse">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/02/15/2025-2-14%E6%97%A5%E5%BF%97/" class="post-title-link" itemprop="url">2025.2.14日志</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-02-15 00:33:06 / 修改时间：00:45:03" itemprop="dateCreated datePublished" datetime="2025-02-15T00:33:06+08:00">2025-02-15</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          Here's something encrypted, password is required to continue reading.
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2025/02/15/2025-2-14%E6%97%A5%E5%BF%97/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/03/27/2025-3-27%E6%97%A5%E5%BF%97/" rel="prev" title="2025.3.27日志">
+      <i class="fa fa-chevron-left"></i> 2025.3.27日志
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/04/05/2025-4-4/" rel="next" title="2025.4.4">
+      2025.4.4 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
       </footer>
+    
   </article>
   
   
   
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/10/2024-2-10%E6%97%A5%E5%BF%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="BoringZheng">
-      <meta itemprop="description" content="做好当下的一切">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="TimeHouse">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/02/10/2024-2-10%E6%97%A5%E5%BF%97/" class="post-title-link" itemprop="url">2024.2.10日志</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-02-10 00:28:23 / 修改时间：00:52:17" itemprop="dateCreated datePublished" datetime="2025-02-10T00:28:23+08:00">2025-02-10</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>又是一周过去了，时间过得比想象的快许多。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2025/02/10/2024-2-10%E6%97%A5%E5%BF%97/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/02/%E6%95%85%E5%9C%B0%E9%87%8D%E6%B8%B8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="BoringZheng">
-      <meta itemprop="description" content="做好当下的一切">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="TimeHouse">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/02/02/%E6%95%85%E5%9C%B0%E9%87%8D%E6%B8%B8/" class="post-title-link" itemprop="url">故地重游</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-02-02 23:14:19 / 修改时间：23:32:37" itemprop="dateCreated datePublished" datetime="2025-02-02T23:14:19+08:00">2025-02-02</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Memories/" itemprop="url" rel="index"><span itemprop="name">Memories</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>吃完晚饭其实很困，因为下午还跑了一个强度，但是某一个瞬间觉得不能躺着，所以就出去散步了。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2025/02/02/%E6%95%85%E5%9C%B0%E9%87%8D%E6%B8%B8/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/01/2025-2-1%E6%97%A5%E5%BF%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="BoringZheng">
-      <meta itemprop="description" content="做好当下的一切">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="TimeHouse">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/02/01/2025-2-1%E6%97%A5%E5%BF%97/" class="post-title-link" itemprop="url">2025.2.1日志</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-02-01 23:32:01 / 修改时间：23:46:39" itemprop="dateCreated datePublished" datetime="2025-02-01T23:32:01+08:00">2025-02-01</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Logs/" itemprop="url" rel="index"><span itemprop="name">Logs</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          Here's something encrypted, password is required to continue reading.
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2025/02/01/2025-2-1%E6%97%A5%E5%BF%97/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/01/25/2025-1-24%E6%97%A5%E5%BF%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="BoringZheng">
-      <meta itemprop="description" content="做好当下的一切">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="TimeHouse">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/01/25/2025-1-24%E6%97%A5%E5%BF%97/" class="post-title-link" itemprop="url">2025.1.24日志</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-01-25 00:08:13 / 修改时间：10:06:04" itemprop="dateCreated datePublished" datetime="2025-01-25T00:08:13+08:00">2025-01-25</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Logs/" itemprop="url" rel="index"><span itemprop="name">Logs</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          Here's something encrypted, password is required to continue reading.
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2025/01/25/2025-1-24%E6%97%A5%E5%BF%97/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-
-  
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
-  </nav>
 
 
 
@@ -1079,6 +388,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#congestion-control-vegas-process-sendme-%E5%87%BD%E6%95%B0%E8%A7%A3%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">congestion_control_vegas_process_sendme 函数解析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E7%9B%AE%E6%A0%87"><span class="nav-number">1.2.</span> <span class="nav-text">函数目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%A6%E7%BB%86%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="nav-number">1.3.</span> <span class="nav-text">详细代码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%85%A5%E5%8F%A3%E6%A3%80%E6%9F%A5"><span class="nav-number">1.3.1.</span> <span class="nav-text">1. 入口检查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%9B%B4%E6%96%B0%E4%BA%8B%E4%BB%B6%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="nav-number">1.3.2.</span> <span class="nav-text">2. 更新事件计数器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%9B%B4%E6%96%B0%E7%94%B5%E8%B7%AF%E4%BC%B0%E7%AE%97%E5%80%BC"><span class="nav-number">1.3.3.</span> <span class="nav-text">3. 更新电路估算值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%AE%A1%E7%AE%97%E9%98%9F%E5%88%97%E9%95%BF%E5%BA%A6"><span class="nav-number">1.3.4.</span> <span class="nav-text">4. 计算队列长度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%A4%84%E7%90%86%E6%85%A2%E5%90%AF%E5%8A%A8%E9%98%B6%E6%AE%B5-Slow-Start"><span class="nav-number">1.3.5.</span> <span class="nav-text">5. 处理慢启动阶段 (Slow Start)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#a-%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E5%A2%9E%E5%8A%A0%E6%8B%A5%E5%A1%9E%E7%AA%97%E5%8F%A3"><span class="nav-number">1.3.5.1.</span> <span class="nav-text">a. 判断是否增加拥塞窗口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#b-%E5%A6%82%E6%9E%9C%E8%BE%BE%E5%88%B0-cwnd-%E6%9C%80%E5%A4%A7%E5%80%BC%EF%BC%8C%E9%80%80%E5%87%BA%E6%85%A2%E5%90%AF%E5%8A%A8"><span class="nav-number">1.3.5.2.</span> <span class="nav-text">b. 如果达到 cwnd 最大值，退出慢启动</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#c-%E5%A6%82%E6%9E%9C%E9%98%9F%E5%88%97%E5%B7%B2%E6%BB%A1%EF%BC%8C%E5%88%99%E5%87%8F%E5%B0%91-cwnd"><span class="nav-number">1.3.5.3.</span> <span class="nav-text">c. 如果队列已满，则减少 cwnd</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E8%BF%9B%E5%85%A5%E7%A8%B3%E6%80%81%E9%98%B6%E6%AE%B5-Congestion-Avoidance"><span class="nav-number">1.3.6.</span> <span class="nav-text">6. 进入稳态阶段 (Congestion Avoidance)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#a-%E9%98%9F%E5%88%97%E9%95%BF%E5%BA%A6%E5%A4%A7%E4%BA%8E-delta%EF%BC%8C%E5%87%8F%E5%B0%91-cwnd"><span class="nav-number">1.3.6.1.</span> <span class="nav-text">a. 队列长度大于 delta，减少 cwnd</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#b-%E9%98%9F%E5%88%97%E9%95%BF%E5%BA%A6%E5%A4%A7%E4%BA%8E-beta-%E6%88%96%E8%80%85%E9%80%9A%E9%81%93%E8%A2%AB%E9%98%BB%E5%A1%9E%EF%BC%8C%E5%87%8F%E5%B0%8F-cwnd"><span class="nav-number">1.3.6.2.</span> <span class="nav-text">b. 队列长度大于 beta 或者通道被阻塞，减小 cwnd</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#c-%E9%98%9F%E5%88%97%E9%95%BF%E5%BA%A6%E5%B0%8F%E4%BA%8E-alpha-%E4%B8%94-cwnd-%E5%B7%B2%E6%BB%A1%EF%BC%8C%E5%A2%9E%E5%A4%A7-cwnd"><span class="nav-number">1.3.6.3.</span> <span class="nav-text">c. 队列长度小于 alpha 且 cwnd 已满，增大 cwnd</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E5%85%B6%E4%BB%96%E5%A4%84%E7%90%86"><span class="nav-number">1.3.7.</span> <span class="nav-text">7. 其他处理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#a-%E7%A1%AE%E4%BF%9D-cwnd-%E4%B8%8D%E5%B0%8F%E4%BA%8E%E6%9C%80%E5%B0%8F%E5%80%BC"><span class="nav-number">1.3.7.1.</span> <span class="nav-text">a. 确保 cwnd 不小于最小值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#b-%E8%AE%B0%E5%BD%95%E6%97%A5%E5%BF%97"><span class="nav-number">1.3.7.2.</span> <span class="nav-text">b. 记录日志</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#c-%E6%9B%B4%E6%96%B0%E4%BA%8B%E4%BB%B6%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="nav-number">1.3.7.3.</span> <span class="nav-text">c. 更新事件计数器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#d-%E9%87%8D%E7%BD%AE-cwnd-full-%E7%8A%B6%E6%80%81"><span class="nav-number">1.3.7.4.</span> <span class="nav-text">d. 重置 cwnd_full 状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-%E6%9B%B4%E6%96%B0%E6%AD%A3%E5%9C%A8%E4%BC%A0%E8%BE%93%E7%9A%84%E6%95%B0%E6%8D%AE%E5%8C%85%E6%95%B0%E9%87%8F"><span class="nav-number">1.3.7.5.</span> <span class="nav-text">e. 更新正在传输的数据包数量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9Acwnd-%E7%9A%84%E5%8F%98%E5%8C%96%E8%BF%87%E7%A8%8B"><span class="nav-number">1.4.</span> <span class="nav-text">总结：cwnd 的变化过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%85%A2%E5%90%AF%E5%8A%A8%E9%98%B6%E6%AE%B5"><span class="nav-number">1.4.1.</span> <span class="nav-text">1. 慢启动阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%A8%B3%E6%80%81%E9%98%B6%E6%AE%B5"><span class="nav-number">1.4.2.</span> <span class="nav-text">2. 稳态阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%9C%80%E5%B0%8F%E5%80%BC%E4%BF%9D%E6%8A%A4"><span class="nav-number">1.4.3.</span> <span class="nav-text">3. 最小值保护</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
