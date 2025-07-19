@@ -36,7 +36,7 @@
 <meta property="og:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/IMG_20250202_210944.jpg">
 <meta property="og:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/IMG_20250202_211406.jpg">
 <meta property="article:published_time" content="2025-02-02T15:14:19.000Z">
-<meta property="article:modified_time" content="2025-02-02T15:32:37.041Z">
+<meta property="article:modified_time" content="2025-07-19T20:09:16.122Z">
 <meta property="article:author" content="BoringZheng">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/IMG_20250202_203054.jpg">
@@ -182,10 +182,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2025-02-02 23:14:19 / 修改时间：23:32:37" itemprop="dateCreated datePublished" datetime="2025-02-02T23:14:19+08:00">2025-02-02</time>
+              <time title="创建时间：2025-02-02 23:14:19" itemprop="dateCreated datePublished" datetime="2025-02-02T23:14:19+08:00">2025-02-02</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-07-20 04:09:16" itemprop="dateModified" datetime="2025-07-20T04:09:16+08:00">2025-07-20</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -259,39 +265,21 @@
 
           </div>
           
+  <!-- 强制插入 Waline -->
+  <link rel="stylesheet" href="/css/custom-waline.css">
 
-<script>
-  window.addEventListener('tabs:register', () => {
-    let { activeClass } = CONFIG.comments;
-    if (CONFIG.comments.storage) {
-      activeClass = localStorage.getItem('comments_active') || activeClass;
-    }
-    if (activeClass) {
-      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
-      if (activeTab) {
-        activeTab.click();
-      }
-    }
-  });
-  if (CONFIG.comments.storage) {
-    window.addEventListener('tabs:click', event => {
-      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
-      let commentClass = event.target.classList[1];
-      localStorage.setItem('comments_active', commentClass);
-    });
-  }
-</script>
+  <div id="waline"></div>
 
-<div id="waline"></div>
-<script src="https://unpkg.com/@waline/client/dist/waline.umd.js"></script>
-<script>
-  window.addEventListener('DOMContentLoaded', function () {
+  <script src="https://unpkg.com/@waline/client/dist/waline.umd.js"></script>
+  <script>
     Waline.init({
       el: '#waline',
-      serverURL: 'https://waline-mu-pearl.vercel.app'
+      serverURL: 'https://waline-comments-fawn.vercel.app',
+      lang: 'zh-CN',
+      emoji: [],
+      search: false
     });
-  });
-</script>
+  </script>
 
         </div>
           

@@ -217,39 +217,6 @@
           </div>
           
 
-<script>
-  window.addEventListener('tabs:register', () => {
-    let { activeClass } = CONFIG.comments;
-    if (CONFIG.comments.storage) {
-      activeClass = localStorage.getItem('comments_active') || activeClass;
-    }
-    if (activeClass) {
-      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
-      if (activeTab) {
-        activeTab.click();
-      }
-    }
-  });
-  if (CONFIG.comments.storage) {
-    window.addEventListener('tabs:click', event => {
-      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
-      let commentClass = event.target.classList[1];
-      localStorage.setItem('comments_active', commentClass);
-    });
-  }
-</script>
-
-<div id="waline"></div>
-<script src="https://unpkg.com/@waline/client/dist/waline.umd.js"></script>
-<script>
-  window.addEventListener('DOMContentLoaded', function () {
-    Waline.init({
-      el: '#waline',
-      serverURL: 'https://waline-mu-pearl.vercel.app'
-    });
-  });
-</script>
-
         </div>
           
   
