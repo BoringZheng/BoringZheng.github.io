@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"waline","storage":true,"lazyload":false,"nav":{"waline":{"text":"Load waline","order":0}}},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="时间复杂度">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构期末复习">
+<meta property="og:url" content="http://example.com/2025/01/13/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/index.html">
+<meta property="og:site_name" content="TimeHouse">
+<meta property="og:description" content="时间复杂度">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-01-13T11:02:43.000Z">
+<meta property="article:modified_time" content="2025-07-04T11:33:47.716Z">
+<meta property="article:author" content="BoringZheng">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2025/01/13/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据结构期末复习 | TimeHouse</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.css" integrity="sha256-TThEtR+XalhWKkfF383YLOrI50NGNeIqrzS+q08afrY=" crossorigin="anonymous"><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">TimeHouse</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Boring</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/01/13/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="BoringZheng">
+      <meta itemprop="description" content="做好当下的一切">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="TimeHouse">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据结构期末复习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-01-13 19:02:43" itemprop="dateCreated datePublished" datetime="2025-01-13T19:02:43+08:00">2025-01-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-07-04 19:33:47" itemprop="dateModified" datetime="2025-07-04T19:33:47+08:00">2025-07-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithms/" itemprop="url" rel="index"><span itemprop="name">Algorithms</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="时间复杂度"><a href="#时间复杂度" class="headerlink" title="时间复杂度"></a>时间复杂度</h1><span id="more"></span>
+<p>平均时间复杂度：典型情况性能<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Θ</mi></mrow><annotation encoding="application/x-tex">\Theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Θ</span></span></span></span></p>
+<p>最坏时间复杂度：最坏情况性能<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi></mrow><annotation encoding="application/x-tex">O</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span></span></span></span></p>
+<h1 id="分治"><a href="#分治" class="headerlink" title="分治"></a>分治</h1><h2 id="Merge-Sort"><a href="#Merge-Sort" class="headerlink" title="Merge Sort"></a>Merge Sort</h2><h2 id="MinMax-Problem"><a href="#MinMax-Problem" class="headerlink" title="MinMax Problem"></a>MinMax Problem</h2><p>二分答案+验证可行性，题目中一般有关键信息：某个值Val越大越容易使某种情况成立，求某种情况成立的最小的Val</p>
+<h2 id="Closeset-Pair-Problem"><a href="#Closeset-Pair-Problem" class="headerlink" title="Closeset Pair Problem"></a>Closeset Pair Problem</h2><p>给定一个平面，有n个已知坐标的点，求最近的点对。</p>
+<p>朴素想法1：根据x坐标进行二分，有了朴素想法1之后看到难点：怎么在n的复杂度内考虑完跨越边界的点</p>
+<p>朴素想法2：根据两边已经产生的答案来进行一个限制，x和y同时限制之后，对于每个点只需要枚举不超过7个点</p>
+<h2 id="Convex-Hull-Problem"><a href="#Convex-Hull-Problem" class="headerlink" title="Convex Hull Problem"></a>Convex Hull Problem</h2><p>平面上有n个已知坐标的点，求他们的凸包</p>
+<p>根据x坐标进行二分，合并的时候找上边的共线（斜率一样）和下边的共线，然后进行合并</p>
+<h1 id="DP"><a href="#DP" class="headerlink" title="DP"></a>DP</h1><h2 id="LCS"><a href="#LCS" class="headerlink" title="LCS"></a>LCS</h2><h2 id="Knapsack"><a href="#Knapsack" class="headerlink" title="Knapsack"></a>Knapsack</h2><p>01背包</p>
+<p>1个背包，给定容量，放价值最大的东西</p>
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">dp[i][j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">p</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span>表示前<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span>个物品一共消耗了<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span>容量的最大价值，只需要考虑第<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span>个物品取或者不取
+
+进一步优化（背包问题的核心思想）：每一个物品只能取一次
+
+用<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">dp[i]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">p</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span></span></span></span>表示消耗容量<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span>的情况下获取的最大价值，仍然遍历物品，但是在转移时，直接从<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">C_{max}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ma</span><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>转移到<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">C_{min}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">min</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，不会出现取多次的情况  
+
+<br>
+
+完全背包
+
+每个物品变为无数个，01背包转移的时候枚举数量。  
+
+<br>
+
+双背包
+
+背包变为2个，转移的时候将容量扩展一维，都从大到小遍历即可。 
+
+<br>
+
+多重背包
+
+每种物品有<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">s_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>种
+
+朴素想法：直接转化为01背包来做
+
+优化：做一个把每一个<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">s_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>转化成二进制的形式，二进制的每一位变成一种。<br>
+
+
+
+# 搜索
+
+## 搜索
+
+### 深度优先
+
+### 广度优先
+
+### 迭代加深
+
+逐渐增加允许搜索的深度，找到最浅完备解，防止死循环
+
+### 一致代价搜索
+
+优先扩展当前路径代价最小的点（很容易联想到Dijkstra）
+
+##  启发式搜索
+
+启发函数h(n)要保证估计成本不能高于实际成本
+
+### 贪心最佳优先搜索
+
+考虑一个函数h(n)来评估预计n到目的点的距离，每次走n最小的
+
+不保证最优解，而且有可能绕路
+
+### A*算法
+
+考虑一个函数<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>g</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>+</mo><mi>h</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f(n)=g(n)+h(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">h</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>来评估，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">g(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>表示当前已经花费的探索成本，由此来取得一个平衡
+
+能够保证最优解，但是空间复杂度非常吓人
+
+## Online Algorithms
+
+### ALG/OPT
+
+ALG表示在线算法的性能
+
+OPT表示离线算法的性能
+
+### 竞争比（Competitive Ratio）
+
+竞争比是衡量在线算法性能的重要指标，用于比较在线算法与最优离线算法的结果。
+
+#### **定义**
+
+对于一个在线算法 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext>ALG</mtext></mrow><annotation encoding="application/x-tex">\text{ALG}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">ALG</span></span></span></span></span>，其竞争比定义为：
+
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>R</mi><mo>=</mo><msub><mrow><mi>sup</mi><mo>⁡</mo></mrow><mi>I</mi></msub><mfrac><mrow><mtext>ALG</mtext><mo stretchy="false">(</mo><mi>I</mi><mo stretchy="false">)</mo></mrow><mrow><mtext>OPT</mtext><mo stretchy="false">(</mo><mi>I</mi><mo stretchy="false">)</mo></mrow></mfrac><mspace width="1em"/><mtext>(对于收益最大化问题)</mtext></mrow><annotation encoding="application/x-tex">CR = \sup_I \frac{\text{ALG}(I)}{\text{OPT}(I)} \quad \text{(对于收益最大化问题)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">CR</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.53em;vertical-align:-0.52em;"></span><span class="mop"><span class="mop">sup</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2342em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.07847em;">I</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">OPT</span></span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.07847em;">I</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">ALG</span></span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.07847em;">I</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.52em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mord text"><span class="mord">(</span><span class="mord cjk_fallback">对于收益最大化问题</span><span class="mord">)</span></span></span></span></span>
+<p>其中：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>R</mi><mo>≥</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">CR \geq 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8193em;vertical-align:-0.136em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">CR</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>，竞争比越接近 1，在线算法的性能越接近最优离线算法。</p>
+<ul>
+<li><strong>问题描述</strong>：<ul>
+<li>每天可以选择租滑雪板（每天花费$ 10）或直接购买滑雪板（一次性花费 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>100</mn><mtext>）。</mtext></mrow><annotation encoding="application/x-tex">100）。</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">100</span><span class="mord cjk_fallback">）。</span></span></span></span>  - 问题是你不知道总共需要滑雪多少天。</li>
+</ul>
+</li>
+<li><strong>分析</strong>：<ul>
+<li>ALG：在线算法的策略，租到第 10 天时购买。</li>
+<li>OPT：最优离线算法的策略，知道总天数 n，如果 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≥</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">n \geq 10</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7719em;vertical-align:-0.136em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">10</span></span></span></span>，直接购买，否则每天租用。</li>
+</ul>
+</li>
+</ul>
+<h4 id="在线缓存问题（Caching-Problem）"><a href="#在线缓存问题（Caching-Problem）" class="headerlink" title="在线缓存问题（Caching Problem）"></a>在线缓存问题（Caching Problem）</h4><ul>
+<li>问题描述<ul>
+<li>有一个容量为 k 的缓存，用于存储最近访问的 k 个数据。</li>
+<li>数据访问请求是按序列到达的，如果请求的数据不在缓存中（缓存未命中），需要替换一个缓存数据。</li>
+</ul>
+</li>
+<li>分析<ul>
+<li>ALG：在线算法的缓存替换策略， LRU（最近最少使用） 或 FIFO（先进先出）。</li>
+<li>OPT：离线算法知道所有未来请求序列，能够选择最优替换策略（通常是 Belady 算法）。</li>
+</ul>
+</li>
+<li>竞争比<ul>
+<li>在线缓存替换算法的竞争比一般为CR = O(k)。</li>
+</ul>
+</li>
+</ul>
+<h2 id="NP-Completeness"><a href="#NP-Completeness" class="headerlink" title="NP-Completeness"></a>NP-Completeness</h2><h3 id="P和NP"><a href="#P和NP" class="headerlink" title="P和NP"></a>P和NP</h3><p>P是可以在多项式时间复杂度内由确定性算法解决的问题</p>
+<p>NP是可以在多项式时间复杂度内验证解正确性的问题</p>
+<h3 id="NP-Complete问题"><a href="#NP-Complete问题" class="headerlink" title="NP-Complete问题"></a>NP-Complete问题</h3><p>属于NP，而且是NP中最难得问题</p>
+<p>如果某个NP完全问题能够在多项式时间内解决，则所有NP问题都可以在多项式时间内解决</p>
+<h3 id="NP-Hard"><a href="#NP-Hard" class="headerlink" title="NP-Hard"></a>NP-Hard</h3><p>至少与NP完全问题一样难，但是不一定是NP类问题</p>
+<h3 id="常见NP完全问题"><a href="#常见NP完全问题" class="headerlink" title="常见NP完全问题"></a>常见NP完全问题</h3><p>SAT和3-SAT：布尔公式赋值</p>
+<p>旅行商问题：带权图中寻找经过所有城市一次且仅一次的最小总权重</p>
+<p>定点覆盖问题：判断是否存在一个大小为k的定点集合，使得每一条边都至少一个端点在S中</p>
+<p>哈密顿回路问题：无向图中判断是否存在一条回路，经过每个顶点一次且仅一次，最终回到起点</p>
+<p>子集和问题：判断是否存在一个子集，子集中的元素和等于一个给定值</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/01/12/%E6%9C%9F%E6%9C%AB%E5%91%A8%E6%97%A5%E5%BF%97/" rel="prev" title="期末周日志">
+      <i class="fa fa-chevron-left"></i> 期末周日志
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/01/22/2025-1-22%E6%97%A5%E5%BF%97/" rel="next" title="2025.1.22日志">
+      2025.1.22日志 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+<div id="waline"></div>
+<script src="https://unpkg.com/@waline/client/dist/waline.umd.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    Waline.init({
+      el: '#waline',
+      serverURL: 'https://waline-mu-pearl.vercel.app'
+    });
+  });
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="nav-number">1.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E6%B2%BB"><span class="nav-number">2.</span> <span class="nav-text">分治</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Merge-Sort"><span class="nav-number">2.1.</span> <span class="nav-text">Merge Sort</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MinMax-Problem"><span class="nav-number">2.2.</span> <span class="nav-text">MinMax Problem</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Closeset-Pair-Problem"><span class="nav-number">2.3.</span> <span class="nav-text">Closeset Pair Problem</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Convex-Hull-Problem"><span class="nav-number">2.4.</span> <span class="nav-text">Convex Hull Problem</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#DP"><span class="nav-number">3.</span> <span class="nav-text">DP</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#LCS"><span class="nav-number">3.1.</span> <span class="nav-text">LCS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Knapsack"><span class="nav-number">3.2.</span> <span class="nav-text">Knapsack</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E7%BC%93%E5%AD%98%E9%97%AE%E9%A2%98%EF%BC%88Caching-Problem%EF%BC%89"><span class="nav-number">3.2.0.1.</span> <span class="nav-text">在线缓存问题（Caching Problem）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NP-Completeness"><span class="nav-number">3.3.</span> <span class="nav-text">NP-Completeness</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#P%E5%92%8CNP"><span class="nav-number">3.3.1.</span> <span class="nav-text">P和NP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NP-Complete%E9%97%AE%E9%A2%98"><span class="nav-number">3.3.2.</span> <span class="nav-text">NP-Complete问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NP-Hard"><span class="nav-number">3.3.3.</span> <span class="nav-text">NP-Hard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81NP%E5%AE%8C%E5%85%A8%E9%97%AE%E9%A2%98"><span class="nav-number">3.3.4.</span> <span class="nav-text">常见NP完全问题</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">BoringZheng</p>
+  <div class="site-description" itemprop="description">做好当下的一切</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">39</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">BoringZheng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
