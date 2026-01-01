@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 8.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="提前 SENDME、cwnd、alpha&#x3D;186 与发包速率关系分析1. Tor 新拥塞控制的核心公式与行为在新拥塞控制中，电路的发送窗口由以下公式决定：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="提前 SENDME、cwnd、alpha&#x3D;186 与发包速率关系分析">
+<meta property="og:url" content="http://example.com/2025/11/13/%E6%8F%90%E5%89%8D%20SENDME%E3%80%81cwnd%E3%80%81alpha=186%20%E4%B8%8E%E5%8F%91%E5%8C%85%E9%80%9F%E7%8E%87%E5%85%B3%E7%B3%BB%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="提前 SENDME、cwnd、alpha&#x3D;186 与发包速率关系分析1. Tor 新拥塞控制的核心公式与行为在新拥塞控制中，电路的发送窗口由以下公式决定：">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-11-13T11:53:42.000Z">
+<meta property="article:modified_time" content="2026-01-01T18:21:05.851Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2025/11/13/%E6%8F%90%E5%89%8D%20SENDME%E3%80%81cwnd%E3%80%81alpha=186%20%E4%B8%8E%E5%8F%91%E5%8C%85%E9%80%9F%E7%8E%87%E5%85%B3%E7%B3%BB%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>提前 SENDME、cwnd、alpha=186 与发包速率关系分析 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/11/13/%E6%8F%90%E5%89%8D%20SENDME%E3%80%81cwnd%E3%80%81alpha=186%20%E4%B8%8E%E5%8F%91%E5%8C%85%E9%80%9F%E7%8E%87%E5%85%B3%E7%B3%BB%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          提前 SENDME、cwnd、alpha=186 与发包速率关系分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-11-13 19:53:42" itemprop="dateCreated datePublished" datetime="2025-11-13T19:53:42+08:00">2025-11-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2026-01-02 02:21:05" itemprop="dateModified" datetime="2026-01-02T02:21:05+08:00">2026-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Research/" itemprop="url" rel="index"><span itemprop="name">Research</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="提前-SENDME、cwnd、alpha-186-与发包速率关系分析"><a href="#提前-SENDME、cwnd、alpha-186-与发包速率关系分析" class="headerlink" title="提前 SENDME、cwnd、alpha&#x3D;186 与发包速率关系分析"></a>提前 SENDME、cwnd、alpha&#x3D;186 与发包速率关系分析</h1><h1 id="1-Tor-新拥塞控制的核心公式与行为"><a href="#1-Tor-新拥塞控制的核心公式与行为" class="headerlink" title="1. Tor 新拥塞控制的核心公式与行为"></a>1. Tor 新拥塞控制的核心公式与行为</h1><p>在新拥塞控制中，电路的发送窗口由以下公式决定：</p>
+<span id="more"></span>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">window = cwnd - inflight</span><br></pre></td></tr></table></figure>
+
+<p>调度器在发送 DATA cell 前会调用：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">allowed = congestion_control_get_package_window(circ, layer_hint);</span><br></pre></td></tr></table></figure>
+
+<p>该函数本质上返回：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">allowed ≈ max(cwnd - inflight, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>当：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cwnd &lt;= inflight</span><br><span class="line">→ allowed = 0 → 电路停止发包（stall）</span><br></pre></td></tr></table></figure>
+
+<p><strong>这才是真正的流控点。</strong></p>
+<hr>
+<h1 id="2-BDP-alpha-的构成（代码机制）"><a href="#2-BDP-alpha-的构成（代码机制）" class="headerlink" title="2. BDP + alpha 的构成（代码机制）"></a>2. BDP + alpha 的构成（代码机制）</h1><p>在 Tor 的 cc 中，<code>cwnd</code> 会被调整为接近：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cwnd_target ≈ bdp + alpha</span><br></pre></td></tr></table></figure>
+
+<p>其中 alpha 默认值为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> CC_PARAM_ALPHA 186</span></span><br></pre></td></tr></table></figure>
+
+<p>代码中你会看到类似逻辑（不同版本略有差异）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cwnd = bdp + alpha;</span><br></pre></td></tr></table></figure>
+
+<p>随着时间推移：</p>
+<ul>
+<li><p>RTT 被更新；</p>
+</li>
+<li><p>throughput 推动 BDP 更新；</p>
+</li>
+<li><p>cwnd 会向该“目标值”收敛。</p>
+</li>
+</ul>
+<p>因此在稳定阶段（steady state），会出现：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cwnd ≈ bdp + 186</span><br><span class="line">inflight ≈ bdp</span><br><span class="line">→ cwnd - inflight ≈ 186</span><br></pre></td></tr></table></figure>
+
+<p>也就是说：</p>
+<blockquote>
+<p>Tor 默认设计了一个“允许比 BDP 多塞 186 个 cell 的松弛窗口”。</p>
+</blockquote>
+<hr>
+<h1 id="3-sendme-inc-32-对窗口的影响被-alpha-186-放大稀释"><a href="#3-sendme-inc-32-对窗口的影响被-alpha-186-放大稀释" class="headerlink" title="3. sendme_inc&#x3D;32 对窗口的影响被 alpha&#x3D;186 放大稀释"></a>3. sendme_inc&#x3D;32 对窗口的影响被 alpha&#x3D;186 放大稀释</h1><p>每收到 32 个 DATA cell，对端会发回一个 SENDME（电路级）：</p>
+<p>在 <code>sendme_process_circuit_level()</code> 中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">inflight -= <span class="number">32</span>;   <span class="comment">// 确认了 32 个 cell</span></span><br><span class="line">cwnd += <span class="number">1</span>;        <span class="comment">// additive increase</span></span><br></pre></td></tr></table></figure>
+
+<p>于是WINDOW变化：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">window_new = (cwnd + 1) - (inflight - 32)</span><br><span class="line">≈ window_old + 33</span><br></pre></td></tr></table></figure>
+
+<p>但 steady state 下窗口大小是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">window ≈ 186</span><br></pre></td></tr></table></figure>
+
+<p>因此 SENDME 带来的 +33 相对于 +186 来说是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">33 &lt;&lt; 186  （远远小得多）</span><br></pre></td></tr></table></figure>
+
+<p>这意味着：</p>
+<blockquote>
+<p><strong>一次 SENDME 对 window 的影响非常有限，不足以让电路频繁进入 window&#x3D;0 的“强流控点”。</strong></p>
+</blockquote>
+<p>换句话说：</p>
+<h3 id="alpha-186-让-cwnd-inflight-在绝大多数时间里都远大于零，"><a href="#alpha-186-让-cwnd-inflight-在绝大多数时间里都远大于零，" class="headerlink" title="alpha=186 让 cwnd - inflight 在绝大多数时间里都远大于零，"></a><code>alpha=186</code> 让 <code>cwnd - inflight</code> 在绝大多数时间里都远大于零，</h3><h3 id="电路不会因为-cwnd-耗尽而停住。"><a href="#电路不会因为-cwnd-耗尽而停住。" class="headerlink" title="电路不会因为 cwnd 耗尽而停住。"></a>电路不会因为 cwnd 耗尽而停住。</h3><p>这也解释了你观察到的现象：</p>
+<blockquote>
+<p>“发 DATA 时几乎不会出现 cwnd &lt; inflight，电路几乎不会 stall。”</p>
+</blockquote>
+<hr>
+<h1 id="4-这说明什么？——电路级拥塞控制在默认参数下是“软控”而非“硬控”"><a href="#4-这说明什么？——电路级拥塞控制在默认参数下是“软控”而非“硬控”" class="headerlink" title="4. 这说明什么？——电路级拥塞控制在默认参数下是“软控”而非“硬控”"></a>4. 这说明什么？——电路级拥塞控制在默认参数下是“软控”而非“硬控”</h1><p>在这种配置下：</p>
+<ul>
+<li><p>电路级窗口 <strong>几乎不会真正约束发送速率</strong>；</p>
+</li>
+<li><p>cwnd &#x2F; inflight 的差值（window）始终保持在一个较大的余量；</p>
+</li>
+<li><p>流控更多依赖：</p>
+<ul>
+<li><p>stream-level SENDME；</p>
+</li>
+<li><p>KIST 调度；</p>
+</li>
+<li><p>TCP 排队与瓶颈；</p>
+</li>
+<li><p>全局写队列限制；</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>也就是说：</p>
+<blockquote>
+<p><strong>电路级 CC 在 alpha&#x3D;186 时不是阻断性约束，而是一个“方向性”调节机制。</strong></p>
+</blockquote>
+<p>它让 cwnd 跟随 BDP，但不强制限制发包速率。</p>
+<hr>
+<h1 id="5-那为什么你仍能看到“每-100-cells-耗时”有明显起伏？"><a href="#5-那为什么你仍能看到“每-100-cells-耗时”有明显起伏？" class="headerlink" title="5. 那为什么你仍能看到“每 100 cells 耗时”有明显起伏？"></a>5. 那为什么你仍能看到“每 100 cells 耗时”有明显起伏？</h1><p>尽管电路级不会进入真正的 stall（window&#x3D;0），但<strong>其它更高层的因素</strong>仍会造成周期性抖动：</p>
+<h3 id="1-Stream-level-窗口耗尽"><a href="#1-Stream-level-窗口耗尽" class="headerlink" title="(1) Stream-level 窗口耗尽"></a>(1) Stream-level 窗口耗尽</h3><p>在 <code>sendme_note_stream_data_packaged()</code> 中可以看到：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conn-&gt;package_window--;</span><br></pre></td></tr></table></figure>
+
+<p>如果 stream SENDME 没及时回来，stream 会被暂停，导致 DATA 发不出去。</p>
+<p>即使电路级窗口很大，<strong>单条 stream 也会 stall</strong>。</p>
+<hr>
+<h3 id="2-TCP-层排队-RTT-抖动"><a href="#2-TCP-层排队-RTT-抖动" class="headerlink" title="(2) TCP 层排队 &#x2F; RTT 抖动"></a>(2) TCP 层排队 &#x2F; RTT 抖动</h3><p>100 个 cell 跨越一个 RTT 抖动区间时，你统计的时延就自然起伏。</p>
+<hr>
+<h3 id="3-KIST-调度器的分配时间片"><a href="#3-KIST-调度器的分配时间片" class="headerlink" title="(3) KIST 调度器的分配时间片"></a>(3) KIST 调度器的分配时间片</h3><p>Tor 的 KIST（Kernel-Informed Socket Transport）会为不同 ORConn 做调度：</p>
+<ul>
+<li><p>某循环中不给这条电路发；</p>
+</li>
+<li><p>下一循环又重新允许发；</p>
+</li>
+</ul>
+<p>这会导致你看到的 100-cell 耗时类似“波浪形”。</p>
+<hr>
+<h3 id="因此："><a href="#因此：" class="headerlink" title="因此："></a>因此：</h3><blockquote>
+<p>100-cell 的曲线起伏并不等价于“cwnd 打满”，<br>而是多层调度&#x2F;网络因素叠加导致的抖动。</p>
+</blockquote>
+<hr>
+<h1 id="6-提前-SENDME-在这种参数下是否会提升速率？"><a href="#6-提前-SENDME-在这种参数下是否会提升速率？" class="headerlink" title="6. 提前 SENDME 在这种参数下是否会提升速率？"></a>6. 提前 SENDME 在这种参数下是否会提升速率？</h1><h3 id="答案：对“瞬时速率”影响很小，但会改变-cwnd-BDP-收敛曲线和微观-stall-时刻。"><a href="#答案：对“瞬时速率”影响很小，但会改变-cwnd-BDP-收敛曲线和微观-stall-时刻。" class="headerlink" title="答案：对“瞬时速率”影响很小，但会改变 cwnd&#x2F;BDP 收敛曲线和微观 stall 时刻。"></a>答案：<strong>对“瞬时速率”影响很小，但会改变 cwnd&#x2F;BDP 收敛曲线和微观 stall 时刻。</strong></h3><p>原因如下：</p>
+<h2 id="1-窗口永远不会打满-→-提前解锁-SENDME-无法显著减少-stall"><a href="#1-窗口永远不会打满-→-提前解锁-SENDME-无法显著减少-stall" class="headerlink" title="(1) 窗口永远不会打满 → 提前解锁 SENDME 无法显著减少 stall"></a>(1) 窗口永远不会打满 → 提前解锁 SENDME 无法显著减少 stall</h2><p>因为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">window ≈ 186 &gt;&gt; sendme_inc(32)</span><br></pre></td></tr></table></figure>
+
+<p>你提前 SENDME 做的是：</p>
+<ul>
+<li><p>inflight 更早减 32；</p>
+</li>
+<li><p>cwnd 更早加 1；</p>
+</li>
+</ul>
+<p>但：</p>
+<ul>
+<li><p>window 本来就大于 150；</p>
+</li>
+<li><p>本来就不会因为 window&#x3D;0 停止发包；</p>
+</li>
+</ul>
+<p>因此提前 SENDME ：</p>
+<blockquote>
+<p>✔ 会使 cwnd 收敛稍微更快<br>✘ 不会显著提高瞬时发包速率</p>
+</blockquote>
+<hr>
+<h2 id="2-平均速率改善有限"><a href="#2-平均速率改善有限" class="headerlink" title="(2) 平均速率改善有限"></a>(2) 平均速率改善有限</h2><p>因为发包主要受：</p>
+<ul>
+<li><p>TCP 带宽上限；</p>
+</li>
+<li><p>stream-level 流控；</p>
+</li>
+<li><p>ORConn 写队列；</p>
+</li>
+<li><p>CPU 和调度器时间片；</p>
+</li>
+</ul>
+<p>而不是 <code>cwnd</code> 限速。</p>
+<p><strong>在 window 足够大时，cwnd 不再是瓶颈。</strong></p>
+<hr>
+<h1 id="7-如何设计一个能明显观察到“提前-SENDME-提速”的实验？"><a href="#7-如何设计一个能明显观察到“提前-SENDME-提速”的实验？" class="headerlink" title="7. 如何设计一个能明显观察到“提前 SENDME 提速”的实验？"></a>7. 如何设计一个能明显观察到“提前 SENDME 提速”的实验？</h1><p>要观察显著效果，你需要让 <strong>cwnd 真正成为瓶颈</strong>，即必须达到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">inflight → 接近 cwnd</span><br><span class="line">window → 经常变成 0</span><br><span class="line">电路频繁 stall</span><br></pre></td></tr></table></figure>
+
+<p>要做到这一点：</p>
+<h2 id="1-把-alpha-调小"><a href="#1-把-alpha-调小" class="headerlink" title="(1) 把 alpha 调小"></a>(1) 把 alpha 调小</h2><p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alpha = 16 或 alpha = 32</span><br></pre></td></tr></table></figure>
+
+<p>此时 steady state：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cwnd ≈ bdp + 16</span><br></pre></td></tr></table></figure>
+
+<p>sendme_inc&#x3D;32 会更频繁使 window 打到 0。</p>
+<hr>
+<h2 id="2-强调单条电路高负载"><a href="#2-强调单条电路高负载" class="headerlink" title="(2) 强调单条电路高负载"></a>(2) 强调单条电路高负载</h2><p>必须保证：</p>
+<ul>
+<li><p>inflight 逼近 cwnd；</p>
+</li>
+<li><p>Exit 发得足够快（你的私网环境已经满足）。</p>
+</li>
+</ul>
+<hr>
+<h2 id="3-打-log：window-0-的时刻"><a href="#3-打-log：window-0-的时刻" class="headerlink" title="(3) 打 log：window&#x3D;0 的时刻"></a>(3) 打 log：window&#x3D;0 的时刻</h2><p>在 <code>congestion_control_get_package_window()</code> 中加：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (window == <span class="number">0</span>) &#123;</span><br><span class="line">  log_info(LD_EXIT, <span class="string">&quot;Circuit %p stalled by cwnd: cwnd=%d inflight=%d&quot;</span>, ...);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再对比提前 SENDME 后：</p>
+<ul>
+<li><p>stall 次数变少；</p>
+</li>
+<li><p>每 1000 cell 耗时减少；</p>
+</li>
+<li><p>cwnd 更快收敛；</p>
+</li>
+</ul>
+<p>你就能清楚看到提前 SENDME 的加速效果。</p>
+<hr>
+<h1 id="8-最终总结"><a href="#8-最终总结" class="headerlink" title="8. 最终总结"></a>8. 最终总结</h1><h2 id="在默认参数-alpha-186-下："><a href="#在默认参数-alpha-186-下：" class="headerlink" title="在默认参数 alpha&#x3D;186 下："></a>在默认参数 alpha&#x3D;186 下：</h2><ul>
+<li><p>cwnd 很少真正成为瓶颈；</p>
+</li>
+<li><p>window 始终远大于 0；</p>
+</li>
+<li><p>电路级流控是“软控”而非“硬控”；</p>
+</li>
+<li><p>sendme_inc&#x3D;32 的影响被大 alpha 严重稀释；</p>
+</li>
+<li><p>提前 SENDME 对瞬时速率提升几乎看不到；</p>
+</li>
+<li><p>100-cell 起伏主要来自 TCP &#x2F; stream-level &#x2F; 调度抖动。</p>
+</li>
+</ul>
+<h2 id="如果想实验“提前-SENDME-让发包显著变快”："><a href="#如果想实验“提前-SENDME-让发包显著变快”：" class="headerlink" title="如果想实验“提前 SENDME 让发包显著变快”："></a>如果想实验“提前 SENDME 让发包显著变快”：</h2><ul>
+<li><p>必须减小 alpha，使 cwnd 经常逼近 inflight；</p>
+</li>
+<li><p>让电路频繁在 window&#x3D;0 附近运行；</p>
+</li>
+<li><p>然后提前 SENDME 才能明显减少 stall，并提升平均发送速率。</p>
+</li>
+</ul>
+<p>换句话说：</p>
+<blockquote>
+<p><strong>默认的 Tor CC 参数刻意避免让 cwnd 成为硬瓶颈，所以提前 SENDME 很难“立刻提速”。<br>如果你想让 cc 真正限制速率，就要把 alpha 调小。</strong></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/10/21/2025-10-21%E6%97%A5%E5%BF%97/" rel="prev" title="2025-10-21日志">
+      <i class="fa fa-chevron-left"></i> 2025-10-21日志
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/11/13/2025-11-13%20%E7%BB%84%E4%BC%9A%E6%B1%87%E6%8A%A5/" rel="next" title="2025-11-13 组会汇报">
+      2025-11-13 组会汇报 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8F%90%E5%89%8D-SENDME%E3%80%81cwnd%E3%80%81alpha-186-%E4%B8%8E%E5%8F%91%E5%8C%85%E9%80%9F%E7%8E%87%E5%85%B3%E7%B3%BB%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">提前 SENDME、cwnd、alpha&#x3D;186 与发包速率关系分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#1-Tor-%E6%96%B0%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%9A%84%E6%A0%B8%E5%BF%83%E5%85%AC%E5%BC%8F%E4%B8%8E%E8%A1%8C%E4%B8%BA"><span class="nav-number">2.</span> <span class="nav-text">1. Tor 新拥塞控制的核心公式与行为</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-BDP-alpha-%E7%9A%84%E6%9E%84%E6%88%90%EF%BC%88%E4%BB%A3%E7%A0%81%E6%9C%BA%E5%88%B6%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">2. BDP + alpha 的构成（代码机制）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-sendme-inc-32-%E5%AF%B9%E7%AA%97%E5%8F%A3%E7%9A%84%E5%BD%B1%E5%93%8D%E8%A2%AB-alpha-186-%E6%94%BE%E5%A4%A7%E7%A8%80%E9%87%8A"><span class="nav-number">4.</span> <span class="nav-text">3. sendme_inc&#x3D;32 对窗口的影响被 alpha&#x3D;186 放大稀释</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#alpha-186-%E8%AE%A9-cwnd-inflight-%E5%9C%A8%E7%BB%9D%E5%A4%A7%E5%A4%9A%E6%95%B0%E6%97%B6%E9%97%B4%E9%87%8C%E9%83%BD%E8%BF%9C%E5%A4%A7%E4%BA%8E%E9%9B%B6%EF%BC%8C"><span class="nav-number">4.1.</span> <span class="nav-text">alpha&#x3D;186 让 cwnd - inflight 在绝大多数时间里都远大于零，</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%B5%E8%B7%AF%E4%B8%8D%E4%BC%9A%E5%9B%A0%E4%B8%BA-cwnd-%E8%80%97%E5%B0%BD%E8%80%8C%E5%81%9C%E4%BD%8F%E3%80%82"><span class="nav-number">4.2.</span> <span class="nav-text">电路不会因为 cwnd 耗尽而停住。</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E8%BF%99%E8%AF%B4%E6%98%8E%E4%BB%80%E4%B9%88%EF%BC%9F%E2%80%94%E2%80%94%E7%94%B5%E8%B7%AF%E7%BA%A7%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E5%9C%A8%E9%BB%98%E8%AE%A4%E5%8F%82%E6%95%B0%E4%B8%8B%E6%98%AF%E2%80%9C%E8%BD%AF%E6%8E%A7%E2%80%9D%E8%80%8C%E9%9D%9E%E2%80%9C%E7%A1%AC%E6%8E%A7%E2%80%9D"><span class="nav-number">5.</span> <span class="nav-text">4. 这说明什么？——电路级拥塞控制在默认参数下是“软控”而非“硬控”</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E9%82%A3%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%A0%E4%BB%8D%E8%83%BD%E7%9C%8B%E5%88%B0%E2%80%9C%E6%AF%8F-100-cells-%E8%80%97%E6%97%B6%E2%80%9D%E6%9C%89%E6%98%8E%E6%98%BE%E8%B5%B7%E4%BC%8F%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">5. 那为什么你仍能看到“每 100 cells 耗时”有明显起伏？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Stream-level-%E7%AA%97%E5%8F%A3%E8%80%97%E5%B0%BD"><span class="nav-number">6.1.</span> <span class="nav-text">(1) Stream-level 窗口耗尽</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-TCP-%E5%B1%82%E6%8E%92%E9%98%9F-RTT-%E6%8A%96%E5%8A%A8"><span class="nav-number">6.2.</span> <span class="nav-text">(2) TCP 层排队 &#x2F; RTT 抖动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-KIST-%E8%B0%83%E5%BA%A6%E5%99%A8%E7%9A%84%E5%88%86%E9%85%8D%E6%97%B6%E9%97%B4%E7%89%87"><span class="nav-number">6.3.</span> <span class="nav-text">(3) KIST 调度器的分配时间片</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%A0%E6%AD%A4%EF%BC%9A"><span class="nav-number">6.4.</span> <span class="nav-text">因此：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%8F%90%E5%89%8D-SENDME-%E5%9C%A8%E8%BF%99%E7%A7%8D%E5%8F%82%E6%95%B0%E4%B8%8B%E6%98%AF%E5%90%A6%E4%BC%9A%E6%8F%90%E5%8D%87%E9%80%9F%E7%8E%87%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">6. 提前 SENDME 在这种参数下是否会提升速率？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AD%94%E6%A1%88%EF%BC%9A%E5%AF%B9%E2%80%9C%E7%9E%AC%E6%97%B6%E9%80%9F%E7%8E%87%E2%80%9D%E5%BD%B1%E5%93%8D%E5%BE%88%E5%B0%8F%EF%BC%8C%E4%BD%86%E4%BC%9A%E6%94%B9%E5%8F%98-cwnd-BDP-%E6%94%B6%E6%95%9B%E6%9B%B2%E7%BA%BF%E5%92%8C%E5%BE%AE%E8%A7%82-stall-%E6%97%B6%E5%88%BB%E3%80%82"><span class="nav-number">7.1.</span> <span class="nav-text">答案：对“瞬时速率”影响很小，但会改变 cwnd&#x2F;BDP 收敛曲线和微观 stall 时刻。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%AA%97%E5%8F%A3%E6%B0%B8%E8%BF%9C%E4%B8%8D%E4%BC%9A%E6%89%93%E6%BB%A1-%E2%86%92-%E6%8F%90%E5%89%8D%E8%A7%A3%E9%94%81-SENDME-%E6%97%A0%E6%B3%95%E6%98%BE%E8%91%97%E5%87%8F%E5%B0%91-stall"><span class="nav-number">7.2.</span> <span class="nav-text">(1) 窗口永远不会打满 → 提前解锁 SENDME 无法显著减少 stall</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%B9%B3%E5%9D%87%E9%80%9F%E7%8E%87%E6%94%B9%E5%96%84%E6%9C%89%E9%99%90"><span class="nav-number">7.3.</span> <span class="nav-text">(2) 平均速率改善有限</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E8%83%BD%E6%98%8E%E6%98%BE%E8%A7%82%E5%AF%9F%E5%88%B0%E2%80%9C%E6%8F%90%E5%89%8D-SENDME-%E6%8F%90%E9%80%9F%E2%80%9D%E7%9A%84%E5%AE%9E%E9%AA%8C%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">7. 如何设计一个能明显观察到“提前 SENDME 提速”的实验？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%8A%8A-alpha-%E8%B0%83%E5%B0%8F"><span class="nav-number">8.1.</span> <span class="nav-text">(1) 把 alpha 调小</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%BC%BA%E8%B0%83%E5%8D%95%E6%9D%A1%E7%94%B5%E8%B7%AF%E9%AB%98%E8%B4%9F%E8%BD%BD"><span class="nav-number">8.2.</span> <span class="nav-text">(2) 强调单条电路高负载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%89%93-log%EF%BC%9Awindow-0-%E7%9A%84%E6%97%B6%E5%88%BB"><span class="nav-number">8.3.</span> <span class="nav-text">(3) 打 log：window&#x3D;0 的时刻</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E6%9C%80%E7%BB%88%E6%80%BB%E7%BB%93"><span class="nav-number">9.</span> <span class="nav-text">8. 最终总结</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8%E9%BB%98%E8%AE%A4%E5%8F%82%E6%95%B0-alpha-186-%E4%B8%8B%EF%BC%9A"><span class="nav-number">9.1.</span> <span class="nav-text">在默认参数 alpha&#x3D;186 下：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E6%9E%9C%E6%83%B3%E5%AE%9E%E9%AA%8C%E2%80%9C%E6%8F%90%E5%89%8D-SENDME-%E8%AE%A9%E5%8F%91%E5%8C%85%E6%98%BE%E8%91%97%E5%8F%98%E5%BF%AB%E2%80%9D%EF%BC%9A"><span class="nav-number">9.2.</span> <span class="nav-text">如果想实验“提前 SENDME 让发包显著变快”：</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

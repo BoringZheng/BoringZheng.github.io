@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 8.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="sendme_pending_timestamps 每个待确认数据包发送时的时间戳">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tor的Vegas机制源码解析">
+<meta property="og:url" content="http://example.com/2025/04/09/Tor%E7%9A%84Vegas%E6%9C%BA%E5%88%B6%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="sendme_pending_timestamps 每个待确认数据包发送时的时间戳">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-04-09T14:25:51.000Z">
+<meta property="article:modified_time" content="2025-07-04T11:32:57.000Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2025/04/09/Tor%E7%9A%84Vegas%E6%9C%BA%E5%88%B6%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Tor的Vegas机制源码解析 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/04/09/Tor%E7%9A%84Vegas%E6%9C%BA%E5%88%B6%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Tor的Vegas机制源码解析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-04-09 22:25:51" itemprop="dateCreated datePublished" datetime="2025-04-09T22:25:51+08:00">2025-04-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-07-04 19:32:57" itemprop="dateModified" datetime="2025-07-04T19:32:57+08:00">2025-07-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Research/" itemprop="url" rel="index"><span itemprop="name">Research</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code> sendme_pending_timestamps</code> 每个待确认数据包发送时的时间戳</p>
+<span id="more"></span>
+
+<p><code>inflight</code> 已发送但未收到<code>SENDME</code>的cell数</p>
+<p><code>cwnd</code>当前允许飞行的最大cell数</p>
+<p><code>cwnd_min</code>拥塞窗口下限，至少为<code>sendme_inc</code></p>
+<p><code>cwnd_inc</code>稳态阶段每次允许增长的<code>cwnd</code>单位</p>
+<p><code>cwnd_inc_rate</code>每多少个<code>SENDME</code>更新一次<code>cwnd</code></p>
+<p><code>next_cc_event</code>剩余多少个<code>SENDME</code> ack后允许执行一次拥塞检测</p>
+<p><code>next_cwnd_event</code>剩余多少个<code>SENDME</code> ack后判断cwnd是否满</p>
+<p><code>in_slow_start</code>是否处于慢启动阶段</p>
+<p><code>cwnd_full</code> 最近是否发生过窗口满的情况</p>
+<p><code>blocked_chan</code>当前电路是否因为本地拥堵被block</p>
+<p><code>sendme_inc</code>每个<code>SENDME</code>确认多少个cells</p>
+<p><code>vegas_params</code>：</p>
+<ul>
+<li><code>alphas</code>空闲信号阈值</li>
+<li><code>beta</code>中度拥塞</li>
+<li><code>gamma</code>慢启动退出阈值</li>
+<li><code>delta</code>重度拥塞阈值</li>
+<li><code>ss_cwnd_max</code>慢启动阶段最大cwnd</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Update ack counter until next congestion signal event is allowed */</span></span><br><span class="line"><span class="keyword">if</span> (cc-&gt;next_cc_event)</span><br><span class="line">  cc-&gt;next_cc_event--;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Update ack counter until a full cwnd is processed */</span></span><br><span class="line"><span class="keyword">if</span> (cc-&gt;next_cwnd_event)</span><br><span class="line">  cc-&gt;next_cwnd_event--;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Compute BDP and RTT. If we did not update, don&#x27;t run the alg */</span></span><br><span class="line"><span class="keyword">if</span> (!<span class="built_in">congestion_control_update_circuit_estimates</span>(cc, circ)) &#123;</span><br><span class="line">  cc-&gt;inflight = cc-&gt;inflight - cc-&gt;sendme_inc;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* The queue use is the amount in which our cwnd is above BDP;</span></span><br><span class="line"><span class="comment"> * if it is below, then 0 queue use. */</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">vegas_bdp</span>(cc) &gt; cc-&gt;cwnd)</span><br><span class="line">  queue_use = <span class="number">0</span>; <span class="comment">// This should not happen anymore..</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  queue_use = cc-&gt;cwnd - <span class="built_in">vegas_bdp</span>(cc);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Update the full state */</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">cwnd_became_full</span>(cc))</span><br><span class="line">  cc-&gt;cwnd_full = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">cwnd_became_nonfull</span>(cc))</span><br><span class="line">  cc-&gt;cwnd_full = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<p>当前已经接收到了一个SENDME，于是两个“剩余”事件都减1。</p>
+<p>然后进入到congestion_control_update_circuit_estimates函数计算rtt和bdp。</p>
+<p>如果bdp没有更新，那将不进行后续的调整算法，直接把inflight减去当前确认掉的，然后返回。</p>
+<p>如果bdp大于cwnd，剩余可用为0，否则剩余可用为cwnd - bdp。然后更新cwnd_full状态值。（在inflight和cwnd之间留一个缓冲量gap）</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Upon receipt of a SENDME, pop the oldest timestamp off the timestamp</span></span><br><span class="line"><span class="comment"> * list, and use this to update RTT.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Returns true if circuit estimates were successfully updated, false</span></span><br><span class="line"><span class="comment"> * otherwise.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">bool</span></span></span><br><span class="line"><span class="function"><span class="title">congestion_control_update_circuit_estimates</span><span class="params">(<span class="type">congestion_control_t</span> *cc,</span></span></span><br><span class="line"><span class="params"><span class="function">                                            <span class="type">const</span> <span class="type">circuit_t</span> *circ)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="type">uint64_t</span> now_usec = <span class="built_in">monotime_absolute_usec</span>();</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Update RTT first, then BDP. BDP needs fresh RTT */</span></span><br><span class="line">  <span class="type">uint64_t</span> curr_rtt_usec = <span class="built_in">congestion_control_update_circuit_rtt</span>(cc, now_usec);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">congestion_control_update_circuit_bdp</span>(cc, circ, curr_rtt_usec);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Called when we get a SENDME. Updates circuit RTT by pulling off a</span></span><br><span class="line"><span class="comment"> * timestamp of when we sent the CIRCWINDOW_INCREMENT-th cell from</span></span><br><span class="line"><span class="comment"> * the queue of such timestamps, and comparing that to current time.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Also updates min, max, and EWMA of RTT.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Returns the current circuit RTT in usecs, or 0 if it could not be</span></span><br><span class="line"><span class="comment"> * measured (due to clock jump, stall, etc).</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">STATIC <span class="type">uint64_t</span></span></span><br><span class="line"><span class="function"><span class="title">congestion_control_update_circuit_rtt</span><span class="params">(<span class="type">congestion_control_t</span> *cc,</span></span></span><br><span class="line"><span class="params"><span class="function">                                      <span class="type">uint64_t</span> now_usec)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="type">uint64_t</span> rtt, ewma_cnt;</span><br><span class="line">  <span class="type">uint64_t</span> sent_at_timestamp;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">tor_assert</span>(cc);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Get the time that we sent the cell that resulted in the other</span></span><br><span class="line"><span class="comment">   * end sending this sendme. Use this to calculate RTT */</span></span><br><span class="line">  sent_at_timestamp = <span class="built_in">dequeue_timestamp</span>(cc-&gt;sendme_pending_timestamps);</span><br><span class="line"></span><br><span class="line">  rtt = now_usec - sent_at_timestamp;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Do not update RTT at all if it looks fishy */</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">time_delta_stalled_or_jumped</span>(cc, cc-&gt;ewma_rtt_usec, rtt)) &#123;</span><br><span class="line">    num_clock_stalls++; <span class="comment">/* Accounting */</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ewma_cnt = <span class="built_in">n_ewma_count</span>(cc);</span><br><span class="line"></span><br><span class="line">  cc-&gt;ewma_rtt_usec = <span class="built_in">n_count_ewma</span>(rtt, cc-&gt;ewma_rtt_usec, ewma_cnt);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (rtt &gt; cc-&gt;max_rtt_usec) &#123;</span><br><span class="line">    cc-&gt;max_rtt_usec = rtt;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (cc-&gt;min_rtt_usec == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// If we do not have a min_rtt yet, use current ewma</span></span><br><span class="line">    cc-&gt;min_rtt_usec = cc-&gt;ewma_rtt_usec;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cc-&gt;cwnd == cc-&gt;cwnd_min &amp;&amp; !cc-&gt;in_slow_start) &#123;</span><br><span class="line">    <span class="comment">// Raise min rtt if cwnd hit cwnd_min. This gets us out of a wedge state</span></span><br><span class="line">    <span class="comment">// if we hit cwnd_min due to an abnormally low rtt.</span></span><br><span class="line">    <span class="type">uint64_t</span> new_rtt = <span class="built_in">percent_max_mix</span>(cc-&gt;ewma_rtt_usec, cc-&gt;min_rtt_usec,</span><br><span class="line">                                       rtt_reset_pct);</span><br><span class="line"></span><br><span class="line">    <span class="type">static</span> <span class="type">ratelim_t</span> rtt_notice_limit = <span class="built_in">RATELIM_INIT</span>(<span class="number">300</span>);</span><br><span class="line">    <span class="built_in">log_fn_ratelim</span>(&amp;rtt_notice_limit, LOG_NOTICE, LD_CIRC,</span><br><span class="line">            <span class="string">&quot;Resetting circ RTT from %&quot;</span>PRIu64<span class="string">&quot; to %&quot;</span>PRIu64<span class="string">&quot; due to low cwnd&quot;</span>,</span><br><span class="line">            cc-&gt;min_rtt_usec/<span class="number">1000</span>, new_rtt/<span class="number">1000</span>);</span><br><span class="line"></span><br><span class="line">    cc-&gt;min_rtt_usec = new_rtt;</span><br><span class="line">    num_rtt_reset++; <span class="comment">/* Accounting */</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cc-&gt;ewma_rtt_usec &lt; cc-&gt;min_rtt_usec) &#123;</span><br><span class="line">    <span class="comment">// Using the EWMA for min instead of current RTT helps average out</span></span><br><span class="line">    <span class="comment">// effects from other conns</span></span><br><span class="line">    cc-&gt;min_rtt_usec = cc-&gt;ewma_rtt_usec;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> rtt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Called when we get a SENDME. Updates the bandwidth-delay-product (BDP)</span></span><br><span class="line"><span class="comment"> * estimates of a circuit. Several methods of computing BDP are used,</span></span><br><span class="line"><span class="comment"> * depending on scenario. While some congestion control algorithms only</span></span><br><span class="line"><span class="comment"> * use one of these methods, we update them all because it&#x27;s quick and easy.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * - now_usec is the current monotime in usecs.</span></span><br><span class="line"><span class="comment"> * - curr_rtt_usec is the current circuit RTT in usecs. It may be 0 if no</span></span><br><span class="line"><span class="comment"> *   RTT could bemeasured.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Returns true if we were able to update BDP, false otherwise.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="type">bool</span></span></span><br><span class="line"><span class="function"><span class="title">congestion_control_update_circuit_bdp</span><span class="params">(<span class="type">congestion_control_t</span> *cc,</span></span></span><br><span class="line"><span class="params"><span class="function">                                      <span class="type">const</span> <span class="type">circuit_t</span> *circ,</span></span></span><br><span class="line"><span class="params"><span class="function">                                      <span class="type">uint64_t</span> curr_rtt_usec)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="type">int</span> chan_q = <span class="number">0</span>;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> blocked_on_chan = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">tor_assert</span>(cc);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">CIRCUIT_IS_ORIGIN</span>(circ)) &#123;</span><br><span class="line">    <span class="comment">/* origin circs use n_chan */</span></span><br><span class="line">    chan_q = circ-&gt;n_chan_cells.n;</span><br><span class="line">    blocked_on_chan = circ-&gt;circuit_blocked_on_n_chan;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">/* Both onion services and exits use or_circuit and p_chan */</span></span><br><span class="line">    chan_q = <span class="built_in">CONST_TO_OR_CIRCUIT</span>(circ)-&gt;p_chan_cells.n;</span><br><span class="line">    blocked_on_chan = circ-&gt;circuit_blocked_on_p_chan;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* If we have no EWMA RTT, it is because monotime has been stalled</span></span><br><span class="line"><span class="comment">   * or messed up the entire time so far. Set our BDP estimates directly</span></span><br><span class="line"><span class="comment">   * to current cwnd */</span></span><br><span class="line">  <span class="keyword">if</span> (!cc-&gt;ewma_rtt_usec) &#123;</span><br><span class="line">     <span class="type">uint64_t</span> cwnd = cc-&gt;cwnd;</span><br><span class="line"></span><br><span class="line">     <span class="built_in">tor_assert_nonfatal</span>(cc-&gt;cwnd &lt;= cwnd_max);</span><br><span class="line"></span><br><span class="line">     <span class="comment">/* If the channel is blocked, keep subtracting off the chan_q</span></span><br><span class="line"><span class="comment">      * until we hit the min cwnd. */</span></span><br><span class="line">     <span class="keyword">if</span> (blocked_on_chan) &#123;</span><br><span class="line">       <span class="comment">/* Cast is fine because we&#x27;re less than int32 */</span></span><br><span class="line">       <span class="keyword">if</span> (chan_q &gt;= (<span class="type">int64_t</span>)cwnd) &#123;</span><br><span class="line">         <span class="built_in">log_notice</span>(LD_CIRC,</span><br><span class="line">                    <span class="string">&quot;Clock stall with large chanq: %d %&quot;</span>PRIu64, chan_q, cwnd);</span><br><span class="line">         cwnd = cc-&gt;cwnd_min;</span><br><span class="line">       &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">         cwnd = <span class="built_in">MAX</span>(cwnd - chan_q, cc-&gt;cwnd_min);</span><br><span class="line">       &#125;</span><br><span class="line">       cc-&gt;blocked_chan = <span class="number">1</span>;</span><br><span class="line">     &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">       cc-&gt;blocked_chan = <span class="number">0</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     cc-&gt;bdp = cwnd;</span><br><span class="line"></span><br><span class="line">     <span class="type">static</span> <span class="type">ratelim_t</span> dec_notice_limit = <span class="built_in">RATELIM_INIT</span>(<span class="number">300</span>);</span><br><span class="line">     <span class="built_in">log_fn_ratelim</span>(&amp;dec_notice_limit, LOG_NOTICE, LD_CIRC,</span><br><span class="line">            <span class="string">&quot;Our clock has been stalled for the entire lifetime of a circuit. &quot;</span></span><br><span class="line">            <span class="string">&quot;Performance may be sub-optimal.&quot;</span>);</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> blocked_on_chan;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Congestion window based BDP will respond to changes in RTT only, and is</span></span><br><span class="line"><span class="comment">   * relative to cwnd growth. It is useful for correcting for BDP</span></span><br><span class="line"><span class="comment">   * overestimation, but if BDP is higher than the current cwnd, it will</span></span><br><span class="line"><span class="comment">   * underestimate it.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * We multiply here first to avoid precision issues from min_RTT being</span></span><br><span class="line"><span class="comment">   * close to ewma RTT. Since all fields are u64, there is plenty of</span></span><br><span class="line"><span class="comment">   * room here to multiply first.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  cc-&gt;bdp = cc-&gt;cwnd*cc-&gt;min_rtt_usec/cc-&gt;ewma_rtt_usec;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* The orconn is blocked; use smaller of inflight vs SENDME */</span></span><br><span class="line">  <span class="keyword">if</span> (blocked_on_chan) &#123;</span><br><span class="line">    <span class="built_in">log_info</span>(LD_CIRC, <span class="string">&quot;CC: Streams blocked on circ channel. Chanq: %d&quot;</span>,</span><br><span class="line">             chan_q);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* A blocked channel is an immediate congestion signal, but it still</span></span><br><span class="line"><span class="comment">     * happens only once per cwnd */</span></span><br><span class="line">    <span class="keyword">if</span> (!cc-&gt;blocked_chan) &#123;</span><br><span class="line">      cc-&gt;next_cc_event = <span class="number">0</span>;</span><br><span class="line">      cc-&gt;blocked_chan = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">/* If we were previously blocked, emit a new congestion event</span></span><br><span class="line"><span class="comment">     * now that we are unblocked, to re-evaluate cwnd */</span></span><br><span class="line">    <span class="keyword">if</span> (cc-&gt;blocked_chan) &#123;</span><br><span class="line">      cc-&gt;blocked_chan = <span class="number">0</span>;</span><br><span class="line">      cc-&gt;next_cc_event = <span class="number">0</span>;</span><br><span class="line">      <span class="built_in">log_info</span>(LD_CIRC, <span class="string">&quot;CC: Streams un-blocked on circ channel. Chanq: %d&quot;</span>,</span><br><span class="line">               chan_q);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (cc-&gt;next_cc_event == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">CIRCUIT_IS_ORIGIN</span>(circ)) &#123;</span><br><span class="line">      <span class="built_in">log_info</span>(LD_CIRC,</span><br><span class="line">                 <span class="string">&quot;CC: Circuit %d &quot;</span></span><br><span class="line">                 <span class="string">&quot;SENDME RTT: %&quot;</span>PRIu64<span class="string">&quot;, %&quot;</span>PRIu64<span class="string">&quot;, %&quot;</span>PRIu64<span class="string">&quot;, %&quot;</span>PRIu64<span class="string">&quot;, &quot;</span></span><br><span class="line">                 <span class="string">&quot;BDP estimate: %&quot;</span>PRIu64,</span><br><span class="line">               <span class="built_in">CONST_TO_ORIGIN_CIRCUIT</span>(circ)-&gt;global_identifier,</span><br><span class="line">               cc-&gt;min_rtt_usec/<span class="number">1000</span>,</span><br><span class="line">               curr_rtt_usec/<span class="number">1000</span>,</span><br><span class="line">               cc-&gt;ewma_rtt_usec/<span class="number">1000</span>,</span><br><span class="line">               cc-&gt;max_rtt_usec/<span class="number">1000</span>,</span><br><span class="line">               cc-&gt;bdp);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="built_in">log_info</span>(LD_CIRC,</span><br><span class="line">                 <span class="string">&quot;CC: Circuit %&quot;</span>PRIu64<span class="string">&quot;:%d &quot;</span></span><br><span class="line">                 <span class="string">&quot;SENDME RTT: %&quot;</span>PRIu64<span class="string">&quot;, %&quot;</span>PRIu64<span class="string">&quot;, %&quot;</span>PRIu64<span class="string">&quot;, %&quot;</span>PRIu64<span class="string">&quot;, &quot;</span></span><br><span class="line">                 <span class="string">&quot;%&quot;</span>PRIu64,</span><br><span class="line">                 <span class="built_in">CONST_TO_OR_CIRCUIT</span>(circ)-&gt;p_chan-&gt;global_identifier,</span><br><span class="line">                 <span class="built_in">CONST_TO_OR_CIRCUIT</span>(circ)-&gt;p_circ_id,</span><br><span class="line">                 cc-&gt;min_rtt_usec/<span class="number">1000</span>,</span><br><span class="line">                 curr_rtt_usec/<span class="number">1000</span>,</span><br><span class="line">                 cc-&gt;ewma_rtt_usec/<span class="number">1000</span>,</span><br><span class="line">                 cc-&gt;max_rtt_usec/<span class="number">1000</span>,</span><br><span class="line">                 cc-&gt;bdp);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* We updated BDP this round if either we had a blocked channel, or</span></span><br><span class="line"><span class="comment">   * the curr_rtt_usec was not 0. */</span></span><br><span class="line">  <span class="type">bool</span> ret = (blocked_on_chan || curr_rtt_usec != <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">if</span> (ret) &#123;</span><br><span class="line">    <span class="built_in">tor_trace</span>(<span class="built_in">TR_SUBSYS</span>(cc), <span class="built_in">TR_EV</span>(bdp_update), circ, cc, curr_rtt_usec);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先取出最早的发送时间戳，然后与现在时间戳相减得到这个<code>SENDME</code>的rtt，检查时间是否跳变或则和单调时钟是否失效。</p>
+<p>congestion_control_update_circuit_rtt函数：</p>
+<p>根据#324 计算ewma_rtt。</p>
+<p>当前没有<code>min_rtt</code>，当前rtt作为<code>min_rtt</code>，当前有<code>min_rtt</code>，但是退回到慢启动阶段，用ewma和min加权平均来重置<code>min_rtt</code>。</p>
+<p>最后返回当前<code>SENDME</code>的rtt。</p>
+<p>congestion_control_update_circuit_bdp函数：</p>
+<p>成功更新bdp返回1，不能成功更新返回0。</p>
+<p><code>n_chan_cells</code>表示n信道上面排队等待传输的cells</p>
+<p>如果当前没有<code>ewma_rtt</code>，说明时间计算上出现混乱，直接通过当前的<code>cwnd</code>来估计BDP。判断当前信道是否之前阻塞，如果目前阻塞，而且等待发送的cells比cwnd大，发Log然后调整cwnd &#x3D; cwnd_min。否则正常更新cwnd，更新后的下限为cwnd_min。继续标记阻塞。bdp直接估计为cwnd。</p>
+<p>如果有<code>ewma_rtt</code>，按照#324更新bdp。</p>
+<p>如果现在阻塞了但是之前没阻塞，把<code>next_cc_event</code>赋0，强制进行拥塞检测，然后把之前拥塞信号改为1。</p>
+<p>如果当前没有阻塞但之前是阻塞的，把之前拥塞信号改为0，然后立即进行拥塞检测。</p>
+<p>拥塞或者rtt进行更新，返回1进行后续vegas算法。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (cc-&gt;in_slow_start) &#123;</span><br><span class="line">  <span class="keyword">if</span> (queue_use &lt; cc-&gt;vegas_params.gamma &amp;&amp; !cc-&gt;blocked_chan) &#123;</span><br><span class="line">    <span class="comment">/* If the congestion window is not fully in use, skip any</span></span><br><span class="line"><span class="comment">     * increment of cwnd in slow start */</span></span><br><span class="line">    <span class="keyword">if</span> (cc-&gt;cwnd_full) &#123;</span><br><span class="line">      <span class="comment">/* Get the &quot;Limited Slow Start&quot; increment */</span></span><br><span class="line">      <span class="type">uint64_t</span> inc = <span class="built_in">rfc3742_ss_inc</span>(cc);</span><br><span class="line">      cc-&gt;cwnd += inc;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Check if inc is less than what we would do in steady-state</span></span><br><span class="line">      <span class="comment">// avoidance. Note that this is likely never to happen</span></span><br><span class="line">      <span class="comment">// in practice, but we keep this block and the metrics to make</span></span><br><span class="line">      <span class="comment">// sure.</span></span><br><span class="line">      <span class="keyword">if</span> (inc*<span class="built_in">SENDME_PER_CWND</span>(cc) &lt;= <span class="built_in">CWND_INC</span>(cc)*cc-&gt;cwnd_inc_rate) &#123;</span><br><span class="line">        <span class="built_in">congestion_control_vegas_exit_slow_start</span>(circ, cc);</span><br><span class="line"></span><br><span class="line">        cc_stats_vegas_below_ss_inc_floor++;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* We exited slow start without being blocked */</span></span><br><span class="line">        cc_stats_vegas_ss_csig_blocked_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_ss_csig_blocked_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="type">uint64_t</span> old_cwnd = cc-&gt;cwnd;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Congestion signal: Set cwnd to gamma threshold */</span></span><br><span class="line">    cc-&gt;cwnd = <span class="built_in">vegas_bdp</span>(cc) + cc-&gt;vegas_params.gamma;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Compute the percentage we experience a blocked csig vs RTT sig */</span></span><br><span class="line">    <span class="keyword">if</span> (cc-&gt;blocked_chan) &#123;</span><br><span class="line">      cc_stats_vegas_ss_csig_blocked_ma =</span><br><span class="line">        <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_ss_csig_blocked_ma,</span><br><span class="line">                                 <span class="number">100</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="type">uint64_t</span> cwnd_diff = (old_cwnd &gt; cc-&gt;cwnd ? old_cwnd - cc-&gt;cwnd : <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">      cc_stats_vegas_ss_csig_blocked_ma =</span><br><span class="line">        <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_ss_csig_blocked_ma,</span><br><span class="line">                                 <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Account the amount we reduced the cwnd by for the gamma cutoff */</span></span><br><span class="line">      cc_stats_vegas_gamma_drop_ma =</span><br><span class="line">        <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_gamma_drop_ma,</span><br><span class="line">                             cwnd_diff);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">congestion_control_vegas_exit_slow_start</span>(circ, cc);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (cc-&gt;cwnd &gt;= cc-&gt;vegas_params.ss_cwnd_max) &#123;</span><br><span class="line">    cc-&gt;cwnd = cc-&gt;vegas_params.ss_cwnd_max;</span><br><span class="line">    <span class="built_in">congestion_control_vegas_exit_slow_start</span>(circ, cc);</span><br><span class="line">    cc_stats_vegas_above_ss_cwnd_max++;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  cc_stats_vegas_ss_queue_ma =</span><br><span class="line">     <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_ss_queue_ma,</span><br><span class="line">                           queue_use);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>慢启动阶段：</p>
+<p>如果剩余量小于gamma并且没有阻塞，如果cwnd满了，根据rfc3742提高cwnd，然后做一个安全性检查。</p>
+<p>否则，根据gamma参数设置一个新的cwnd，然后去更新<code>cc_stas_vegas_ss_csig_blocked_ma</code>，这个参数记录拥塞原因，越接近1证明通道阻塞的占比越多，越接近0表示rtt增大引发。rtt增大引发的窗口下降复读做记录。</p>
+<p>检测到拥塞之后立即退出慢启动。</p>
+<p>慢启动窗口设置最大值，如果超过了就退出慢启动阶段。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (cc-&gt;next_cc_event == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (queue_use &gt; cc-&gt;vegas_params.delta) &#123;</span><br><span class="line">      <span class="type">uint64_t</span> old_cwnd = cc-&gt;cwnd;</span><br><span class="line">      <span class="type">uint64_t</span> cwnd_diff;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* If we are above the delta threshold, drop cwnd down to the</span></span><br><span class="line"><span class="comment">       * delta threshold. */</span></span><br><span class="line">      cc-&gt;cwnd = <span class="built_in">vegas_bdp</span>(cc) + cc-&gt;vegas_params.delta - <span class="built_in">CWND_INC</span>(cc);</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Account the amount we reduced the cwnd by for the gamma cutoff */</span></span><br><span class="line">      cwnd_diff = (old_cwnd &gt; cc-&gt;cwnd ? old_cwnd - cc-&gt;cwnd : <span class="number">0</span>);</span><br><span class="line">      cc_stats_vegas_delta_drop_ma =</span><br><span class="line">        <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_delta_drop_ma,</span><br><span class="line">                             cwnd_diff);</span><br><span class="line"></span><br><span class="line">      cc_stats_vegas_above_delta++;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Percentage metrics: Add 100% delta, 0 for other two */</span></span><br><span class="line">      cc_stats_vegas_csig_alpha_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_alpha_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">      cc_stats_vegas_csig_beta_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_beta_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">      cc_stats_vegas_csig_delta_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_delta_ma,</span><br><span class="line">                                   <span class="number">100</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (queue_use &gt; cc-&gt;vegas_params.beta || cc-&gt;blocked_chan) &#123;</span><br><span class="line">      cc-&gt;cwnd -= <span class="built_in">CWND_INC</span>(cc);</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Compute the percentage we experience a blocked csig vs RTT sig */</span></span><br><span class="line">      <span class="keyword">if</span> (cc-&gt;blocked_chan) &#123;</span><br><span class="line">        cc_stats_vegas_csig_blocked_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_blocked_ma,</span><br><span class="line">                                   <span class="number">100</span>);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        cc_stats_vegas_csig_blocked_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_blocked_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Percentage counters: Add 100% beta, 0 for other two */</span></span><br><span class="line">      cc_stats_vegas_csig_alpha_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_alpha_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">      cc_stats_vegas_csig_beta_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_beta_ma,</span><br><span class="line">                                   <span class="number">100</span>);</span><br><span class="line">      cc_stats_vegas_csig_delta_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_delta_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cc-&gt;cwnd_full &amp;&amp;</span><br><span class="line">               queue_use &lt; cc-&gt;vegas_params.alpha) &#123;</span><br><span class="line">      cc-&gt;cwnd += <span class="built_in">CWND_INC</span>(cc);</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Percentage counters: Add 100% alpha, 0 for other two */</span></span><br><span class="line">      cc_stats_vegas_csig_alpha_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_alpha_ma,</span><br><span class="line">                                   <span class="number">100</span>);</span><br><span class="line">      cc_stats_vegas_csig_beta_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_beta_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">      cc_stats_vegas_csig_delta_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_delta_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">/* Percentage counters: No signal this round. Add 0% to all */</span></span><br><span class="line">      cc_stats_vegas_csig_alpha_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_alpha_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">      cc_stats_vegas_csig_beta_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_beta_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">      cc_stats_vegas_csig_delta_ma =</span><br><span class="line">          <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_csig_delta_ma,</span><br><span class="line">                                   <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* cwnd can never fall below 1 increment */</span></span><br><span class="line">    cc-&gt;cwnd = <span class="built_in">MAX</span>(cc-&gt;cwnd, cc-&gt;cwnd_min);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">congestion_control_vegas_log</span>(circ, cc);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Update metrics */</span></span><br><span class="line">    cc_stats_vegas_queue_ma =</span><br><span class="line">        <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_queue_ma,</span><br><span class="line">                                 queue_use);</span><br><span class="line">    cc_stats_vegas_bdp_ma =</span><br><span class="line">        <span class="built_in">stats_update_running_avg</span>(cc_stats_vegas_bdp_ma,</span><br><span class="line">                                 <span class="built_in">vegas_bdp</span>(cc));</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Log if we&#x27;re above the ss_cap */</span></span><br><span class="line">    <span class="keyword">if</span> (cc-&gt;cwnd &gt;= cc-&gt;vegas_params.ss_cwnd_max) &#123;</span><br><span class="line">      <span class="built_in">log_info</span>(LD_CIRC,</span><br><span class="line">            <span class="string">&quot;CC: TOR_VEGAS above ss_max in steady state for circ %d: %&quot;</span>PRIu64,</span><br><span class="line">            circ-&gt;purpose, cc-&gt;cwnd);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入稳态阶段，如果立即检测是否拥塞：</p>
+<p>如果严重拥塞，那cwnd回退一个单位。统计回退幅度，然后设置信号。</p>
+<p>如果轻度拥塞或者通道阻塞，那么cwnd减一个单位。接着判断是否通道阻塞，根据判断结果更新拥塞原因。然后设置信号。</p>
+<p>如果网络畅通，那么cwnd增加一个单位，然后设置信号。</p>
+<p>如果没有更新，所有信号设置为0.</p>
+<p>接下来cwnd保证不小于cuwnd_min，然后打log。</p>
+<p>根据queue_use和bdp来更新阻塞原因。超出最大慢启动窗口值时仍然发出警告。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">/* Reset event counters */</span></span><br><span class="line">  <span class="keyword">if</span> (cc-&gt;next_cwnd_event == <span class="number">0</span>) &#123;</span><br><span class="line">    cc-&gt;next_cwnd_event = <span class="built_in">SENDME_PER_CWND</span>(cc);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (cc-&gt;next_cc_event == <span class="number">0</span>) &#123;</span><br><span class="line">    cc-&gt;next_cc_event = <span class="built_in">CWND_UPDATE_RATE</span>(cc);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Decide if enough time has passed to reset the cwnd utilization */</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">cwnd_full_reset</span>(cc))</span><br><span class="line">    cc-&gt;cwnd_full = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Update inflight with ack */</span></span><br><span class="line">  cc-&gt;inflight = cc-&gt;inflight - cc-&gt;sendme_inc;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns the number of sendme acks we will receive before we update cwnd.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Congestion control literature recommends only one update of cwnd per</span></span><br><span class="line"><span class="comment"> * cwnd worth of acks. However, we can also tune this to be more frequent</span></span><br><span class="line"><span class="comment"> * by increasing the &#x27;cc_cwnd_inc_rate&#x27; consensus parameter. This tuning</span></span><br><span class="line"><span class="comment"> * only applies after slow start.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * If this returns 0 due to high cwnd_inc_rate, the calling code will</span></span><br><span class="line"><span class="comment"> * update every sendme ack.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">uint64_t</span> <span class="title">CWND_UPDATE_RATE</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> <span class="type">congestion_control_t</span> *cc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="comment">/* We add cwnd_inc_rate*sendme_inc/2 to round to nearest integer number</span></span><br><span class="line"><span class="comment">   * of acks */</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (cc-&gt;in_slow_start) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">return</span> ((cc-&gt;cwnd + cc-&gt;cwnd_inc_rate*cc-&gt;sendme_inc/<span class="number">2</span>)</span><br><span class="line">           / (cc-&gt;cwnd_inc_rate*cc-&gt;sendme_inc));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Gives us the number of SENDMEs in a CWND, rounded.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">uint64_t</span> <span class="title">SENDME_PER_CWND</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> <span class="type">congestion_control_t</span> *cc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="comment">/* We add cwnd_inc_rate*sendme_inc/2 to round to nearest integer number</span></span><br><span class="line"><span class="comment">   * of acks */</span></span><br><span class="line">  <span class="keyword">return</span> ((cc-&gt;cwnd + cc-&gt;sendme_inc/<span class="number">2</span>)/cc-&gt;sendme_inc);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>更新两个event，重置full信号，更新inflight。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/04/05/2025-4-4/" rel="prev" title="2025.4.4">
+      <i class="fa fa-chevron-left"></i> 2025.4.4
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/04/15/2025-4-15%E6%97%A5%E5%BF%97/" rel="next" title="2025.4.15日志">
+      2025.4.15日志 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

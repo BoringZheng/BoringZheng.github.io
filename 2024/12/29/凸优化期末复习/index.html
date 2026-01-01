@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 8.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="基础概念">
+<meta property="og:type" content="article">
+<meta property="og:title" content="凸优化期末复习">
+<meta property="og:url" content="http://example.com/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="基础概念">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-12-29T11:02:09.000Z">
+<meta property="article:modified_time" content="2025-01-05T03:19:08.000Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>凸优化期末复习 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          凸优化期末复习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-12-29 19:02:09" itemprop="dateCreated datePublished" datetime="2024-12-29T19:02:09+08:00">2024-12-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-01-05 11:19:08" itemprop="dateModified" datetime="2025-01-05T11:19:08+08:00">2025-01-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">凸优化</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h1><span id="more"></span>
+
+<p>行列式（determinant）</p>
+<p>向量空间：存在零向量（加法），每个向量都有加法逆元，向量的标量乘法满足结合律和分配律，存在单位标量（乘法）</p>
+<p>子空间（Subspace）：向量空间的一个子空间，包含零向量，加法封闭，数乘封闭</p>
+<p>生成空间（SPAN）：一组向量线性组合形成的空间</p>
+<p>基（basis）：线性无关、能够生成整个空间</p>
+<p>子空间的维度：子空间基的向量数量</p>
+<p>秩（Rank）：线性无关向量的最大数量（行秩、列秩）</p>
+<p>可逆矩阵（Invertible Matrix）：$A⋅B&#x3D;B⋅A&#x3D;I$，可逆条件（满秩方阵）</p>
+<p>向量范数（Vector Norms）：向量空间中给每一个向量分配一个非负数以此来表示向量的大小。（非负性、齐次性、三角不等式）</p>
+<p>欧几里得范数（L2）：$|\mathbf{v}|_2 &#x3D; \sqrt{v_1^2 + v_2^2 + \dots + v_n^2}$</p>
+<p>曼哈顿范数（L1）：$|\mathbf{v}|_1 &#x3D; |v_1| + |v_2| + \dots + |v_n|$</p>
+<p>最大范数（L∞ 范数）：$|\mathbf{v}|_\infty &#x3D; \max{|v_1|, |v_2|, \dots, |v_n|}$</p>
+<p>p-范数：$|\mathbf{v}|_p &#x3D; \left( |v_1|^p + |v_2|^p + \dots + |v_n|^p \right)^{1&#x2F;p}$</p>
+<p>内积（Inner product）：$\mathbf{u} \cdot \mathbf{v} &#x3D; u_1 v_1 + u_2 v_2 + \dots + u_n v_n &#x3D; \sum_{i&#x3D;1}^{n} u_i v_i$</p>
+<p>投影（projections）：表示一个向量在另一个向量上面的分量，$\text{Proj}_{\mathbf{v}} \mathbf{u} &#x3D; \frac{\mathbf{u} \cdot \mathbf{v}}{\mathbf{v} \cdot \mathbf{v}} \mathbf{v}$</p>
+<h1 id="CH02-Convexity"><a href="#CH02-Convexity" class="headerlink" title="CH02. Convexity"></a>CH02. Convexity</h1><p>仿射（affine）集合：<strong>仿射集合</strong>是指对于集合 SS 中任意两点 $\mathbf{x_1}$ 和 $\mathbf{x_2}$，和任意标量 $\lambda \in \mathbb{R}$，其仿射组合 $(1-\lambda)\mathbf{x_1} + \lambda \mathbf{x_2}$ 都属于集合$S$。</p>
+<p>凸集（Convex Set）：$ C \text{ 是凸的} \iff \forall \mathbf{x_1}, \mathbf{x_2} \in C, \ \forall \lambda \in [0, 1], \ (1 - \lambda)\mathbf{x_1} + \lambda \mathbf{x_2} \in C$</p>
+<p>凸组合（Convex Combinations）：$\mathbf{x} &#x3D; \lambda_1 \mathbf{x_1} + \lambda_2 \mathbf{x_2} + \dots + \lambda_n \mathbf{x_n}$，$\sum_{i&#x3D;1}^n \lambda_i &#x3D; 1$</p>
+<p>典型的凸集：非负正交象限（Non-negative Orthant）（所有坐标都非负数），超平面（Hyperplane），半空间（Half Space），欧几里得球（Euclidean Ball），凸锥（Convex Cone）（封闭性+非负性）</p>
+<p>Convex Set 的两个性质：投影（Projection），分离（Separation）</p>
+<p>Projection：投影点是存在且唯一的，计算投影可以考虑$|\mathbf{x} - \mathbf{p}| &#x3D; \min_{\mathbf{y} \in C} |\mathbf{x} - \mathbf{y}|$</p>
+<p>Separation：</p>
+<p>假设 $C_1$ 和 $C_2$ 是两个凸集，且 $C_1 \cap C_2 &#x3D; \emptyset$，并且至少有一个集合是开集。则存在一个超平面 $H$，使得：</p>
+<p>$C_1 \subseteq { \mathbf{x} \mid \mathbf{a}^\top \mathbf{x} \leq \alpha }, \quad C_2 \subseteq { \mathbf{x} \mid \mathbf{a}^\top \mathbf{x} \geq \beta }$</p>
+<p>其中，$\mathbf{a}$ 是超平面的法向量，且 $\alpha $和 $\beta$ 是常数。</p>
+<p>考点：判断凸集、投影（两个定理）。</p>
+<h1 id="CH03-Convex-Functions"><a href="#CH03-Convex-Functions" class="headerlink" title="CH03.Convex Functions"></a>CH03.Convex Functions</h1><p>凸函数（Convex Functions）：有效域（Effective Domain）（在什么定义域上面有凸性），上图集（Epigrhaph）（直观理解在曲线上方的点）（如果一个函数是Convex的，那么它的Epigraph也是Convex的,反之同理），琴生不等式（$f(\mathbb{E}[X]) \leq \mathbb{E}[f(X)]$）。</p>
+<p>凸性运算（Convexity-Preserving Operations）：凸集或者凸函数经过凸性运算之后仍然保持凸性。</p>
+<p>典型凸性运算：非负线性组合（加法），点wise上确界（Pointwise Supremum）（取每一个点的最大值），单调非递减的凸函数复合，Restrictions on line（凸函数复合一个直线函数也是凸函数）</p>
+<p>可微凸函数（Differentiable Convex Functions）：凸函数，且在定义上的每个点都存在梯度$\nabla f(x)$</p>
+<p>可微凸函数的基本性质：梯度不减少（切平面在函数下方），二阶梯度是半正定的（Hessian矩阵判定）</p>
+<p>不可微凸函数（Non-Differentiable Convex Functions）：凸函数，但是不一定可微</p>
+<p>次梯度（Subgradient）：$f(x) \geq f(x_0) + g^\top (x - x_0), \quad \forall x \in \mathbb{R}^n$</p>
+<p>次微分（Subdifferential）：所有次梯度构成的集合</p>
+<p>考点：判定凸函数（定义，Hessian矩阵）</p>
+<h1 id="CH04-Duality"><a href="#CH04-Duality" class="headerlink" title="CH04.Duality"></a>CH04.Duality</h1><p>标准线性规划形式（Standard LP Form）:<br>$$<br>\text{minimize } \mathbf{c}^\top \mathbf{x}<br>\\text{subject to } A \mathbf{x} &#x3D; \mathbf{b}, \quad \mathbf{x} \geq 0<br>$$<br>多面体（Polyhedron）：由有限个超平面所围成的凸集合</p>
+<p>Farkas Lemma：如果存在一个非负向量 $\mathbf{y}$，使得 $\mathbf{y}^\top A &#x3D; 0 $且 $\mathbf{y}^\top \mathbf{b} &gt; 0$，则线性系统 $A \mathbf{x} \leq \mathbf{b}$ 具有解；否则，系统没有解。</p>
+<p>弱对偶性（Weak Duality）：原始问题的最优目标值大于或者等于对偶问题的最优目标值，所以对偶问题为原问题提供一个下界（最小化问题当中）</p>
+<p>弱对偶性定理（Weak Duality Theorem）：对于任何原始问题的可行解 $\mathbf{x}$ 和任何对偶问题的可行解 $\mathbf{y}$，它们的目标值之间存在以下关系：<br>$$<br>\mathbf{c}^\top \mathbf{x} \leq \mathbf{b}^\top \mathbf{y}<br>$$<br>强对偶性（Strong Duality）：原始问题和对偶问题在一定条件下有相同的最优值（类似夹逼）</p>
+<p>强对偶性定理（Strong Duality）：如果原始问题有最优解且对偶问题有最优解，且原始问题的可行域是非空的（即原始问题可行），则原始问题的最优值等于对偶问题的最优值。即：<br>$$<br>\mathbf{c}^\top \mathbf{x}^* &#x3D; \mathbf{b}^\top \mathbf{y}^*<br>$$<br>最优条件：原始问题可行，Slater条件成立，原始问题和对偶问题都有界</p>
+<p>Slater条件：约束函数是凸函数，存在一个严格可行解</p>
+<p>互补松弛定理（Complementary Slackness Theorem）：如果 $\mathbf{x}^<em>$ 是原始问题的最优解，$\mathbf{y}^</em>$ 是对偶问题的最优解，则对于每个约束 $i$，有：<br>$$<br>y_i^* (A \mathbf{x}^* - \mathbf{b})_i &#x3D; 0, \quad i &#x3D; 1, 2, \dots, m<br>$$<br>KTT条件：</p>
+<p><strong>原始可行性</strong>：$A \mathbf{x}^* \leq \mathbf{b}, \quad \mathbf{x}^* \geq 0$</p>
+<p><strong>对偶可行性</strong>：$A^\top \mathbf{y}^* \geq \mathbf{c}, \quad \mathbf{y}^* \geq 0$</p>
+<p><strong>齐次性</strong>：$\mathbf{c} + A^\top \mathbf{y}^* &#x3D; 0$</p>
+<p><strong>互补松弛性</strong>：$y_i^* (A \mathbf{x}^* - \mathbf{b})_i &#x3D; 0$</p>
+<p>线性规划松弛（LP Relaxation）：在整数规划中，决策变量通常被约束为整数或二进制值。松弛过程就是将这些整数或二进制约束去掉，让变量变为连续的，变成一个标准的线性规划问题。</p>
+<p>考点：线性规划的标准形式和对偶形式、凑Farkas定理45</p>
+<h1 id="CH05-Conic-Linear-Programming"><a href="#CH05-Conic-Linear-Programming" class="headerlink" title="CH05.Conic Linear Programming"></a>CH05.Conic Linear Programming</h1><p>锥形线性规划（Conic Linear Programming）：是一种线性规划的推广形式，约束条件涉及到锥结构<br>$$<br>\text{maximize} \quad \mathbf{c}^\top \mathbf{x}<br>\<br>\text{subject to} \quad \mathbf{x} \in K, \quad A\mathbf{x} \leq \mathbf{b}<br>$$<br>几种特殊的锥形线性规划形式：</p>
+<p><strong>线性规划（LP）</strong>：取非负正交锥$K &#x3D; \mathbb{R}^n_+$</p>
+<p><strong>二次锥规划（Second-Order Cone Programming）</strong>：取二次顺序锥$K &#x3D; \left{ \mathbf{x} \in \mathbb{R}^{n+1}: | \mathbf{x}_1 | \leq \mathbf{x}_2 \right}$</p>
+<p><strong>半正定规划（SDP）</strong>：取半正定锥</p>
+<p>对偶问题：<br>$$<br>\text{minimize} \quad \mathbf{b}^\top \mathbf{y}<br>\<br>\text{subject to} \quad A^\top \mathbf{y} \in K^<em>, \quad \mathbf{y} \geq 0<br>$$<br>其中：$K^</em> &#x3D; {\mathbf{y}: \mathbf{x}^\top \mathbf{y} \geq 0 \ \forall \mathbf{x} \in K }$</p>
+<p>在这个条件下，锥形线性规划仍然满足弱对偶性、强对偶性和Slater条件</p>
+<p>鲁棒线性规划（Robust LP）：<br>$$<br>\text{maximize} \quad \mathbf{c}^\top \mathbf{x}<br>\<br>\text{subject to} \quad (A + \Delta A) \mathbf{x} \leq \mathbf{b} + \Delta \mathbf{b}, \quad \mathbf{x} \geq 0, \quad \forall (\Delta A, \Delta \mathbf{b}) \in \mathcal{U}_A \times \mathcal{U}_b<br>$$<br>其中$\mathcal{U}_A$和$\mathcal{U}_B$是两个不确定集</p>
+<p>半正定松弛（Semidefinite Relaxation）：可以将问题从<br>$$<br>\text{maximize} \quad \mathbf{x}^\top Q \mathbf{x}<br>\<br>\text{subject to} \quad \mathbf{x}^\top A_i \mathbf{x} \leq b_i \quad \text{for all} \quad i &#x3D; 1, \dots, m<br>$$<br>此时引入一个矩阵变量$X &#x3D; \mathbf{x} \mathbf{x}^\top$，然后将原问题的秩约束$\text{rank}(X) &#x3D; 1$替换为半正定约束$X \succeq 0$</p>
+<p>然后问题就转为为凸优化问题：<br>$$<br>\text{maximize} \quad \text{trace}(Q X)<br>\<br>\text{subject to} \quad \text{trace}(A_i X) \leq b_i \quad \text{for all} \quad i &#x3D; 1, \dots, m<br>\<br>X \succeq 0<br>$$</p>
+<h1 id="CH06-Optimality-Conditions"><a href="#CH06-Optimality-Conditions" class="headerlink" title="CH06. Optimality Conditions"></a>CH06. Optimality Conditions</h1><p>无约束问题的最优性条件：梯度为零条件、二阶Hessian矩阵半正定（二阶充分条件）</p>
+<p>有约束问题的最优性条件：KTT条件，John Necessary Conditions</p>
+<p>John Necessary Conditions：</p>
+<ol>
+<li><p>局部最优解的基本条件：如果 $\mathbf{x}^<em>$ 是目标函数 $f(\mathbf{x})$ 在有约束优化问题中的*<em>局部最优解</em></em>，那么，存在拉格朗日乘子 $\lambda_i \geq 0 $和 $\nu_j $使得下列条件成立：<br>$$<br>\nabla f(\mathbf{x}^<em>) + \sum_{i&#x3D;1}^{m} \lambda_i \nabla g_i(\mathbf{x}^</em>) + \sum_{j&#x3D;1}^{p} \nu_j \nabla h_j(\mathbf{x}^*) &#x3D; 0<br>$$</p>
+</li>
+<li><p>约束的凸性和目标函数的凸性：约翰的条件强调了约束集和目标函数的凸性对最优解的影响。它要求目标函数 $f(\mathbf{x})$ 和约束集（包括不等式约束和等式约束）是凸的。</p>
+<ul>
+<li><p>目标函数 $f(\mathbf{x})$ 必须是凸的，这意味着对于任意两点 $\mathbf{x}_1, \mathbf{x}_2$，有：<br>$$<br>f(\lambda \mathbf{x}_1 + (1-\lambda) \mathbf{x}_2) \leq \lambda f(\mathbf{x}_1) + (1-\lambda) f(\mathbf{x}_2), \quad \lambda \in [0, 1]<br>$$</p>
+</li>
+<li><p>约束集，即满足所有不等式约束$g_i(\mathbf{x}) \leq 0$ 和等式约束 $h_j(\mathbf{x}) &#x3D; 0 $的集合，必须是凸的。这保证了局部最优解是全局最优解。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>Lagrangian Duality：</p>
+<ol>
+<li><p>原始问题：<br>$$<br>\text{minimize} \quad f(\mathbf{x})<br>\<br>\text{subject to} \quad g_i(\mathbf{x}) \leq 0, \quad i &#x3D; 1, \dots, m<br>\<br>h_j(\mathbf{x}) &#x3D; 0, \quad j &#x3D; 1, \dots, p<br>$$</p>
+</li>
+<li><p>构造拉格朗日函数：<br>$$<br>\mathcal{L}(\mathbf{x}, \lambda, \nu) &#x3D; f(\mathbf{x}) + \sum_{i&#x3D;1}^{m} \lambda_i g_i(\mathbf{x}) + \sum_{j&#x3D;1}^{p} \nu_j h_j(\mathbf{x})<br>$$</p>
+</li>
+</ol>
+<p>考点：会写KKT条件和Lagrange 对偶，最优性分析</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E4%BD%9C%E4%B8%9A-2/" rel="prev" title="凸优化作业-2">
+      <i class="fa fa-chevron-left"></i> 凸优化作业-2
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/12/30/%E8%AE%A1%E7%BB%84%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0/" rel="next" title="计组期末复习">
+      计组期末复习 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">基础概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CH02-Convexity"><span class="nav-number">2.</span> <span class="nav-text">CH02. Convexity</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CH03-Convex-Functions"><span class="nav-number">3.</span> <span class="nav-text">CH03.Convex Functions</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CH04-Duality"><span class="nav-number">4.</span> <span class="nav-text">CH04.Duality</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CH05-Conic-Linear-Programming"><span class="nav-number">5.</span> <span class="nav-text">CH05.Conic Linear Programming</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CH06-Optimality-Conditions"><span class="nav-number">6.</span> <span class="nav-text">CH06. Optimality Conditions</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

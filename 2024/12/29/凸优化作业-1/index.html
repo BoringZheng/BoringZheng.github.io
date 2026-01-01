@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 8.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="凸优化作业-1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="凸优化作业-1">
+<meta property="og:url" content="http://example.com/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E4%BD%9C%E4%B8%9A-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="凸优化作业-1">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-12-29T10:59:33.000Z">
+<meta property="article:modified_time" content="2025-01-01T13:50:03.000Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E4%BD%9C%E4%B8%9A-1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>凸优化作业-1 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E4%BD%9C%E4%B8%9A-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          凸优化作业-1
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-12-29 18:59:33" itemprop="dateCreated datePublished" datetime="2024-12-29T18:59:33+08:00">2024-12-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-01-01 21:50:03" itemprop="dateModified" datetime="2025-01-01T21:50:03+08:00">2025-01-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">凸优化</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>凸优化作业-1</p>
+<span id="more"></span>
+
+<p><strong>Problem 1</strong>：<br>$$<br>将优化问题</p>
+<p>\text{最小化 } |Ax - b|_\infty</p>
+<p>满足</p>
+<p>|x|_1 \leq 1</p>
+<p>转化为线性规划。<br>$$</p>
+<h4 id="解答："><a href="#解答：" class="headerlink" title="解答："></a>解答：</h4><ol>
+<li><p><strong>重写 $|Ax - b|_\infty$</strong>：<br>$$<br>根据 \ell_\infty 范数的定义，我们可以引入一个辅助变量 t ，使得：</p>
+<p>\</p>
+<p>|Ax - b|<em>\infty &#x3D; \max</em>{1 \leq i \leq m} |(Ax - b)_i| \leq t</p>
+<p>\</p>
+<p>这可以转化为以下约束：<br>\<br>-(Ax - b)_i \leq t \quad \text{和} \quad (Ax - b)_i \leq t \quad \text{对于所有 } i &#x3D; 1, 2, \ldots, m<br>\</p>
+<p>这意味着我们可以写出以下不等式：</p>
+<p>\<br>Ax - b \leq t \mathbf{1} \quad \text{和} \quad -Ax + b \leq t \mathbf{1}<br>\<br>其中  \mathbf{1}  是一个全1的向量。<br>$$</p>
+</li>
+<li><p><strong>将问题转化为线性规划</strong>：<br>于是我们需要最小化$t$，同时满足以下约束条件：<br>$$<br>Ax - b \leq t \mathbf{1}<br>\</p>
+<p>-Ax + b \leq t \mathbf{1}<br>\</p>
+<p>|x|_1 \leq 1<br>$$<br>最终的线性规划可以表述为：<br>$$<br>\text{最小化 } t<br>\</p>
+<p>\text{满足 } Ax - b &#x3D; t \mathbf{e}<br>\</p>
+<p>-Ax + b &#x3D; t \mathbf{e}<br>\</p>
+<p>\sum_{j&#x3D;1}^{n} |x_j| \leq 1<br>$$</p>
+</li>
+</ol>
+<p><strong>Problem 2</strong>：</p>
+<p>(a)证明所有满足$X$是半正定的，且$I-X$也是半正定的$X$构成的集合$S$是凸集<br>$$<br>假设X_1 , X_2 \in S \<br>	<br>	考虑Y &#x3D; \lambda X_1 + ( 1 - \lambda ) X_2\</p>
+<p>   y^T X_1 y \geq 0 \quad \text{和} \quad y^T X_2 y \geq 0 \quad \text{对于所有 } y \in \mathbb{R}^n<br>   \</p>
+<p>考虑任意向量  y \in \mathbb{R}^n<br>\<br>   计算 y^T Y y :<br>   \<br>   y^T Y y &#x3D; y^T (\lambda X_1 + (1 - \lambda) X_2) y &#x3D; \lambda y^T X_1 y + (1 - \lambda) y^T X_2 y<br>   \<br>   由于 X_1 和 X_2 都是半正定的，得到：</p>
+<p>   \<br>   y^T Y y \geq \lambda \cdot 0 + (1 - \lambda) \cdot 0 &#x3D; 0<br>   \<br>   因此，Y 是半正定的。<br>\<br>   现在考虑  I - Y ：<br>   \<br>   I - Y &#x3D; I - (\lambda X_1 + (1 - \lambda) X_2) &#x3D; (1 - \lambda) I - \lambda X_1 + (1 - \lambda) I - (1 - \lambda) X_2<br>   \<br>   计算 y^T (I - Y) y ：<br>   \<br>   y^T (I - Y) y &#x3D; y^T y - y^T Y y &#x3D; y^T y - (\lambda y^T X_1 y + (1 - \lambda) y^T X_2 y)<br>   \<br>   从而得到：<br>   \<br>   y^T (I - Y) y &#x3D; y^T y - \lambda y^T X_1 y - (1 - \lambda) y^T X_2 y<br>   \<br>   根据 I - X_1 和  I - X_2 都是半正定的，得到：<br>   \<br>   y^T (I - X_1) y \geq 0 \quad \text{和} \quad y^T (I - X_2) y \geq 0<br>   \<br>   所以：<br>   \<br>   y^T y \geq y^T X_1 y \quad \text{和} \quad y^T y \geq y^T X_2 y<br>   \<br>   结合线性组合性质：<br>   \<br>   y^T y \geq \lambda y^T X_1 y + (1 - \lambda) y^T X_2 y<br>   \<br>   因此，<br>   \<br>   y^T (I - Y) y \geq 0<br>   \<br>   这表明  I - Y 也是半正定的。<br>$$<br>(b) 证明集合 $S &#x3D; { X \in S_n : \text{rank}(X) \leq 1 } $是否为凸集</p>
+<p><strong>证明</strong>：<br>$$<br>设X_1, X_2 \in S，这意味着\text{rank}(X_1) \leq 1和\text{rank}(X_2) \leq 1。<br>\</p>
+<p>由于\text{rank}(X_1) \leq 1，我们可以表示 X_1为：<br>\<br>   X_1 &#x3D; u_1 v_1^T<br>   \<br>   其中 u_1 \in \mathbb{R}^m 和 v_1 \in \mathbb{R}^n。同理，X_2  可以表示为：<br>   \<br>   X_2 &#x3D; u_2 v_2^T<br>   \</p>
+<p>对于 \theta \in [0, 1] ，考虑矩阵：<br>   \<br>   X_\theta &#x3D; \theta X_1 + (1 - \theta) X_2 &#x3D; \theta (u_1 v_1^T) + (1 - \theta) (u_2 v_2^T)<br>   \<br>然而两个矩阵的和的秩有可能是2，故而不是凸集<br>$$<br><strong>Problem 3</strong>：</p>
+<p>设$ B(0, 1) \subset \mathbb{R}^n  $是单位欧几里得球，考虑集合$N(x) &#x3D; { u \in \mathbb{R}^n : u^T (y - x) \leq 0 \text{ 对于所有 } y \in B(0, 1) }$</p>
+<p>(a) 证明 ( N(x) ) 是一个凸锥</p>
+<p>$$<br>选择任意u_1, u_2 \in N(x): 根据定义，对于任意 y \in B(0, 1) ，都有：<br>   \<br>   u_1^T (y - x) \leq 0 \quad \text{和} \quad u_2^T (y - x) \leq 0<br>   \</p>
+<p>考虑非负组合：对于任意非负标量  \alpha, \beta \geq 0 ，考虑 u &#x3D; \alpha u_1 + \beta u_2 。<br>\<br>验证条件：我们需要验证 u^T (y - x) \leq 0 对于所有 y \in B(0, 1) ：<br>   \<br>   u^T (y - x) &#x3D; (\alpha u_1 + \beta u_2)^T (y - x) &#x3D; \alpha u_1^T (y - x) + \beta u_2^T (y - x)<br>   \<br>   由于  u_1^T (y - x) \leq 0 和 u_2^T (y - x) \leq 0 ，因此：<br>   \<br>   u^T (y - x) \leq \alpha \cdot 0 + \beta \cdot 0 &#x3D; 0<br>   \<br>   所以，u \in N(x) 。</p>
+<p>因此， N(x) 是一个凸锥。<br>$$</p>
+<p>(b) 给出 ( N(x) ) 的显式描述<br>$$<br>我们可以考虑  N(x)  中的向量 u  的条件。对于任意  y \in B(0, 1)，我们有：<br>\<br>|y|_2 \leq 1<br>\<br>因此，y - x  的范数可以表示为：<br>\<br>|y - x|_2 \leq |y|_2 + |x|_2 \leq 1 + |x|_2<br>\</p>
+<p>要使得  u^T (y - x) \leq 0  对所有  y  成立，u  必须在某个方向上与  y - x  形成一个夹角不小于 90 度。这意味着  u 必须指向  x 的反方向。<br>\<br>因此， N(x)  可以描述为所有指向  x  的反方向的向量的集合：<br>\<br>N(x) &#x3D; { u \in \mathbb{R}^n : u^T x \leq 0 }<br>\<br>$$<br><strong>Problem 4</strong>：</p>
+<p>(a) 找到 $ \Pi_{H^-}(s, c)(x) $ 的公式并证明其正确性</p>
+<p><strong>投影公式</strong>：</p>
+<p>对于任意点 $x \in \mathbb{R}^n $，其在半空间 $ H^-(s, c) $ 上的投影可以通过以下公式给出：<br>$\Pi_{H^-}(s, c)(x) &#x3D; x - \frac{s^T x - c}{|s|^2} s$</p>
+<p><strong>证明</strong>：<br>$$<br>希望找到一个点  y \in H^-(s, c) ，使得  ||y - x||  最小。根据投影的定义，最优解  y  应满足：<br>   \<br>   s^T y &#x3D; c<br>   \</p>
+<p>设 y &#x3D; x + \alpha s ，其中  \alpha  是一个待定的标量。我们需要找到  \alpha  使得 y 满足  s^T y &#x3D; c ：<br>   \<br>   s^T (x + \alpha s) &#x3D; s^T x + \alpha |s|^2 &#x3D; c<br>   \<br>   解这个方程得到：<br>   \<br>   \alpha &#x3D; \frac{c - s^T x}{|s|^2}<br>   \</p>
+<p>代入  y ：<br>   \<br>   y &#x3D; x + \frac{c - s^T x}{|s|^2} s<br>   \</p>
+<p>验证  y  在半空间内：<br>   \<br>   s^T y &#x3D; s^T x + (c - s^T x) &#x3D; c<br>   \<br>   因此  y 在超平面上，且由于 y 是通过向量s 的方向调整得到的，所以 y 在半空间  H^-(s, c) 内。<br>\<br>因此<br>   \<br>   \Pi_{H^-}(s, c)(x) &#x3D; x - \frac{s^T x - c}{|s|^2} s<br>   \<br>$$<br>(b) 证明对于任意 $ v \in \mathbb{R}^n $ 和 $ \delta \in \mathbb{R} $，都有$\Pi_{\Delta}(v) &#x3D; \Pi_{\Delta}(v + \delta e)$</p>
+<p><strong>证明</strong>：<br>$$<br>对于 v  的投影：<br>\<br>\Pi_{\Delta}(v) &#x3D; \text{argmin}_{x \in \Delta} |x - v|<br>\</p>
+<p>对于  v + \delta e  的投影：<br>\<br>\Pi_{\Delta}(v + \delta e) &#x3D; \text{argmin}<em>{x \in \Delta} |x - (v + \delta e)|<br>\<br>由于  e^T x &#x3D; 1  的约束是线性的，且  \delta  只是对所有坐标的均匀偏移，因此投影的结果不会受到  \delta  的影响。<br>\<br>故\Pi</em>{\Delta}(v) &#x3D; \Pi_{\Delta}(v + \delta e)<br>$$</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/12/29/%E5%9B%9E%E5%BF%86%E5%BD%95-1/" rel="prev" title="回忆录-1">
+      <i class="fa fa-chevron-left"></i> 回忆录-1
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E4%BD%9C%E4%B8%9A-2/" rel="next" title="凸优化作业-2">
+      凸优化作业-2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E7%AD%94%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">解答：</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 8.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Report for Practical Binary Analysis CTFThe game now is given.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Binary-Analysis-CTF">
+<meta property="og:url" content="http://example.com/2025/12/03/Binary-Analysis-CTF/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Report for Practical Binary Analysis CTFThe game now is given.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE_20251128_140438.png">
+<meta property="og:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/level8.bmp">
+<meta property="og:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE_20251128_141456.png">
+<meta property="og:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE_20251128_144924.png">
+<meta property="og:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/wall_1024x768.jpg">
+<meta property="article:published_time" content="2025-12-03T11:53:42.000Z">
+<meta property="article:modified_time" content="2026-01-01T18:23:33.543Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE_20251128_140438.png">
+
+<link rel="canonical" href="http://example.com/2025/12/03/Binary-Analysis-CTF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Binary-Analysis-CTF | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/03/Binary-Analysis-CTF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Binary-Analysis-CTF
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-12-03 19:53:42" itemprop="dateCreated datePublished" datetime="2025-12-03T19:53:42+08:00">2025-12-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2026-01-02 02:23:33" itemprop="dateModified" datetime="2026-01-02T02:23:33+08:00">2026-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Research/" itemprop="url" rel="index"><span itemprop="name">Research</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Report-for-Practical-Binary-Analysis-CTF"><a href="#Report-for-Practical-Binary-Analysis-CTF" class="headerlink" title="Report for Practical Binary Analysis CTF"></a>Report for Practical Binary Analysis CTF</h1><p>The game now is given.</p>
+<span id="more"></span>
+
+<p>However, we have some problems at first. The virtual machine given on the website is really old. It even couldn’t support the newest visual studio code ssh-server. So there is a method to have a nice editing experience to use command:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -p 2222 binary@127.0.0.1 </span><br></pre></td></tr></table></figure>
+
+<p>After finish ssh connection, I really recommend everyone who want to play this game to use hexedit but not vim. Vim really takes me big trouble in the game.</p>
+<p>And now, we could begin the game.</p>
+<h2 id="Level-2"><a href="#Level-2" class="headerlink" title="Level 2"></a>Level 2</h2><p>First of all, there is a key given <code>84b34c124b2ba5ca224af8e33b077e9e</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./oracle 84b34c124b2ba5ca224af8e33b077e9e </span><br><span class="line">+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+</span><br><span class="line">| Level 1 completed, unlocked lvl2         |</span><br><span class="line">+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+</span><br><span class="line">Run oracle with -h to show a hint</span><br></pre></td></tr></table></figure>
+
+<p>It gives us a hint, it’s important.<br> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./oracle 84b34c124b2ba5ca224af8e33b077e9e -h</span><br><span class="line">Combine the parts</span><br></pre></td></tr></table></figure><br>It seems we have no point to solve the problem. So we can first justify what it is.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5$ file ./lvl2</span><br><span class="line">./lvl2: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=457d7940f6a73d6505db1f022071ee7368b67ce9, stripped</span><br></pre></td></tr></table></figure>
+<p>OK, it’s a executable. We can run a few times to observe it.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">74</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">a5</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">a5</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">74</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">f2</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">f2</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">4f</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">4f</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">f2</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">36</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">36</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">6c</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">6c</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">d6</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">df</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">df</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./lvl2</span><br><span class="line">d6</span><br></pre></td></tr></table></figure>
+<p>It puts some words repeatedly. We guess the key is an arrangement of these words.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ltrace ./lvl2</span><br><span class="line">__libc_start_main(0x400500, 1, 0x7fff185b57b8, 0x400640 &lt;unfinished ...&gt;</span><br><span class="line">time(0)                                                     = 1764236346</span><br><span class="line">srand(0x69281c3a, 0x7fff185b57b8, 0x7fff185b57c8, 0)        = 0</span><br><span class="line">rand(0x7f1246c6d620, 0x7fff185b569c, 0x7f1246c6d0a4, 0x7f1246c6d11c) = 0x23f62ce4</span><br><span class="line">puts(&quot;a5&quot;a5</span><br><span class="line">)                                                  = 3</span><br><span class="line">+++ exited (status 0) +++</span><br></pre></td></tr></table></figure>
+<p>In ltrace, we can see that the program seems like to get a rand number and get a words to puts. And when we use objdump, it seems we are close to the answer.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">0000000000400500 &lt;.text&gt;:</span><br><span class="line">  400500:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  400504:	31 ff                	xor    %edi,%edi</span><br><span class="line">  400506:	e8 c5 ff ff ff       	callq  4004d0 &lt;time@plt&gt;</span><br><span class="line">  40050b:	89 c7                	mov    %eax,%edi</span><br><span class="line">  40050d:	e8 ae ff ff ff       	callq  4004c0 &lt;srand@plt&gt;</span><br><span class="line">  400512:	e8 c9 ff ff ff       	callq  4004e0 &lt;rand@plt&gt;</span><br><span class="line">  400517:	99                   	cltd   </span><br><span class="line">  400518:	c1 ea 1c             	shr    $0x1c,%edx</span><br><span class="line">  40051b:	01 d0                	add    %edx,%eax</span><br><span class="line">  40051d:	83 e0 0f             	and    $0xf,%eax</span><br><span class="line">  400520:	29 d0                	sub    %edx,%eax</span><br><span class="line">  400522:	48 98                	cltq   </span><br><span class="line">  400524:	48 8b 3c c5 60 10 60 	mov    0x601060(,%rax,8),%rdi</span><br><span class="line">  40052b:	00 </span><br></pre></td></tr></table></figure>
+<p>We can see from 0x400517 to 0x400522, <code>eax</code> is expanded in <code>edx</code>. And then <code>edx</code> is shifted right by 28 bits. Then add <code>edx</code> and <code>eax</code> and only the last four digits are retained. The whole progress is to take the remainder of <code>eax</code> divided by 16. And in 0x400524, get a words from 0x601060 + 8 * <code>rax</code> to puts.</p>
+<p>So we could just use gdb to get the key.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">(gdb) b *0x400524</span><br><span class="line">Breakpoint 1 at 0x400524</span><br><span class="line">(gdb) x/16x 0x601060</span><br><span class="line">0x601060:	0x004006c4	0x00000000	0x004006c7	0x00000000</span><br><span class="line">0x601070:	0x004006ca	0x00000000	0x004006cd	0x00000000</span><br><span class="line">0x601080:	0x004006d0	0x00000000	0x004006d3	0x00000000</span><br><span class="line">0x601090:	0x004006d6	0x00000000	0x004006d9	0x00000000</span><br><span class="line">(gdb) x/16s 0x4006c4</span><br><span class="line">0x4006c4:	&quot;03&quot;</span><br><span class="line">0x4006c7:	&quot;4f&quot;</span><br><span class="line">0x4006ca:	&quot;c4&quot;</span><br><span class="line">0x4006cd:	&quot;f6&quot;</span><br><span class="line">0x4006d0:	&quot;a5&quot;</span><br><span class="line">0x4006d3:	&quot;36&quot;</span><br><span class="line">0x4006d6:	&quot;f2&quot;</span><br><span class="line">0x4006d9:	&quot;bf&quot;</span><br><span class="line">0x4006dc:	&quot;74&quot;</span><br><span class="line">0x4006df:	&quot;f8&quot;</span><br><span class="line">0x4006e2:	&quot;d6&quot;</span><br><span class="line">0x4006e5:	&quot;d3&quot;</span><br><span class="line">0x4006e8:	&quot;81&quot;</span><br><span class="line">0x4006eb:	&quot;6c&quot;</span><br><span class="line">0x4006ee:	&quot;df&quot;</span><br><span class="line">0x4006f1:	&quot;88&quot;</span><br></pre></td></tr></table></figure>
+<p>Now we get the key <code>034fc4f6a536f2bf74f8d6d3816cdf88</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./oracle 034fc4f6a536f2bf74f8d6d3816cdf88   </span><br><span class="line">+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+</span><br><span class="line">| Level 2 completed, unlocked lvl3         |</span><br><span class="line">+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+</span><br><span class="line">Run oracle with -h to show a hint</span><br></pre></td></tr></table></figure>
+
+<h2 id="Level-3"><a href="#Level-3" class="headerlink" title="Level 3"></a>Level 3</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">```</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ .&#x2F;oracle 034fc4f6a536f2bf74f8d6d3816cdf88 -h<br>Fix four broken things</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The hint of level 3 is clear. Let&#x27;s first see what lvl3 is.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ file lvl3<br>lvl3: ERROR: ELF 64-bit LSB executable, Motorola Coldfire, version 1 (Novell Modesto) error reading (Invalid argument)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">It is obvious something wrong. First check its elf headers.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ readelf -h lvl3<br>ELF Header:<br>  Magic:   7f 45 4c 46 02 01 01 0b 00 00 00 00 00 00 00 00<br>  Class:                             ELF64<br>  Data:                              2’s complement, little endian<br>  Version:                           1 (current)<br>  OS&#x2F;ABI:                            Novell - Modesto<br>  ABI Version:                       0<br>  Type:                              EXEC (Executable file)<br>  Machine:                           Motorola Coldfire<br>  Version:                           0x1<br>  Entry point address:               0x4005d0<br>  Start of program headers:          4022250974 (bytes into file)<br>  Start of section headers:          4480 (bytes into file)<br>  Flags:                             0x0<br>  Size of this header:               64 (bytes)<br>  Size of program headers:           56 (bytes)<br>  Number of program headers:         9<br>  Size of section headers:           64 (bytes)<br>  Number of section headers:         29<br>  Section header string table index: 28<br>readelf: Error: Reading 0x1f8 bytes extends past end of file for program headers</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">First of all, the OS/ABI is obviously wrong, default linux should be Unix/System V. So &quot;0b&quot; should be corrected to &quot;00&quot;. And also, the Machine is ridiculous. It should be X86-64, so we need to correct &quot;34&quot; to &quot;3E&quot;.</span><br><span class="line">And in the Hexedit view, there is a hint &quot;deadbeef&quot;. Start of program headers should be 64, so we need to use &quot;4000 0000&quot; to replace it.</span><br><span class="line">![屏幕截图_20251127_180303.png](https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE_20251127_180303.png)</span><br><span class="line"></span><br><span class="line">After we fix the 3 problems, it seems everything is right. But in fact, the hint remind us there are four problems. So let&#x27;s take a shot on every section.</span><br></pre></td></tr></table></figure>
+<p>  [14] .text             NOBITS           0000000000400550  00000550<br>       00000000000001f2  0000000000000000  AX       0     0     16</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The problem is showed. ``.text`` is NOBITS. It should be PROGBITS. So we correct &quot;8d00 0000 0800 0000&quot; to &quot;8d00 0000 0100 0000&quot;. And the position is 4480 + 64 * 13 = 5312. The hex mode is 0x14c0, so find &quot;8d00 0000 0800 0000&quot; around it and correct it. Then we could get the key:</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:<del>&#x2F;code&#x2F;chapter5$ .&#x2F;lvl3<br>3a5c381e40d2fffd95ba4452a0fb4a40  .&#x2F;lvl3<br>binary@binary-VirtualBox:</del>&#x2F;code&#x2F;chapter5$ .&#x2F;oracle 3a5c381e40d2fffd95ba4452a0fb4a40<br>+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+<br>| Level 3 completed, unlocked lvl4         |<br>+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+<br>Run oracle with -h to show a hint</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">By the way, **Don&#x27;t use vim when you want to change a binary file**. Otherwise, it will take you 3 hours to find what mistakes you have made, and finally you&#x27;ll find that it&#x27;s vim who change your code without your permission.</span><br><span class="line"></span><br><span class="line">## Level 4</span><br><span class="line">As we see, there is a hint for level 4:</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ .&#x2F;oracle 3a5c381e40d2fffd95ba4452a0fb4a40 -h<br>Watch closely while I run</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">It reminds us we should observe its running time.</span><br><span class="line">So let&#x27;s first run it:</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:<del>&#x2F;code&#x2F;chapter5$ .&#x2F;lvl4<br>binary@binary-VirtualBox:</del>&#x2F;code&#x2F;chapter5$</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">We found nothing in it. So maybe we could use ltrace to see what libc function it called.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ ltrace .&#x2F;lvl4<br>__libc_start_main(0x4004a0, 1, 0x7ffceec34fd8, 0x400650 &lt;unfinished …&gt;<br>setenv(“FLAG”, “656cf8aecb76113a4dece1688c61d0e7”…, 1)                       &#x3D; 0<br>+++ exited (status 0) +++</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Lucky! The answer is just in it.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ .&#x2F;oracle 656cf8aecb76113a4dece1688c61d0e7<br>+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+<br>| Level 4 completed, unlocked lvl5         |<br>+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+<br>Run oracle with -h to show a hint</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## Level 5</span><br><span class="line">Now let&#x27;s focus on level 5.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ .&#x2F;oracle 656cf8aecb76113a4dece1688c61d0e7 -h<br>   Secrets hidden in code unused<br>The method of redirection is the key<br>   Static rather than dynamically</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OK, the hint reminds us that we should find the code never used and do a redirection to get the key. So we can use objdump first.</span><br></pre></td></tr></table></figure>
+<p>0000000000400500 &lt;.text&gt;:<br>  400500:	48 83 ec 08          	sub    $0x8,%rsp<br>  400504:	bf 97 07 40 00       	mov    $0x400797,%edi<br>  400509:	e8 a2 ff ff ff       	callq  4004b0 &lt;puts@plt&gt;<br>  40050e:	b8 01 00 00 00       	mov    $0x1,%eax<br>  400513:	48 83 c4 08          	add    $0x8,%rsp<br>  400517:	c3                   	retq<br>  400518:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)<br>  40051f:	00<br>  400520:	31 ed                	xor    %ebp,%ebp<br>  400522:	49 89 d1             	mov    %rdx,%r9<br>  400525:	5e                   	pop    %rsi<br>  400526:	48 89 e2             	mov    %rsp,%rdx<br>  400529:	48 83 e4 f0          	and    $0xfffffffffffffff0,%rsp<br>  40052d:	50                   	push   %rax<br>  40052e:	54                   	push   %rsp<br>  40052f:	49 c7 c0 60 07 40 00 	mov    $0x400760,%r8<br>  400536:	48 c7 c1 f0 06 40 00 	mov    $0x4006f0,%rcx<br>  40053d:	48 c7 c7 00 05 40 00 	mov    $0x400500,%rdi<br>  400544:	e8 87 ff ff ff       	callq  4004d0 &lt;__libc_start_main@plt&gt;<br>  400549:	f4                   	hlt<br>  40054a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)<br>  400550:	b8 4f 10 60 00       	mov    $0x60104f,%eax<br>  400555:	55                   	push   %rbp<br>  400556:	48 2d 48 10 60 00    	sub    $0x601048,%rax<br>  40055c:	48 83 f8 0e          	cmp    $0xe,%rax<br>  400560:	48 89 e5             	mov    %rsp,%rbp<br>  400563:	76 1b                	jbe    400580 &lt;__printf_chk@plt+0xa0&gt;<br>  400565:	b8 00 00 00 00       	mov    $0x0,%eax<br>  40056a:	48 85 c0             	test   %rax,%rax<br>  40056d:	74 11                	je     400580 &lt;__printf_chk@plt+0xa0&gt;<br>  40056f:	5d                   	pop    %rbp<br>  400570:	bf 48 10 60 00       	mov    $0x601048,%edi<br>  400575:	ff e0                	jmpq   *%rax<br>  400577:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)<br>  40057e:	00 00<br>  400580:	5d                   	pop    %rbp<br>  400581:	c3                   	retq<br>  400582:	0f 1f 40 00          	nopl   0x0(%rax)<br>  400586:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)<br>  40058d:	00 00 00<br>  400590:	be 48 10 60 00       	mov    $0x601048,%esi<br>  400595:	55                   	push   %rbp<br>  400596:	48 81 ee 48 10 60 00 	sub    $0x601048,%rsi<br>  40059d:	48 c1 fe 03          	sar    $0x3,%rsi<br>  4005a1:	48 89 e5             	mov    %rsp,%rbp<br>  4005a4:	48 89 f0             	mov    %rsi,%rax<br>  4005a7:	48 c1 e8 3f          	shr    $0x3f,%rax<br>  4005ab:	48 01 c6             	add    %rax,%rsi<br>  4005ae:	48 d1 fe             	sar    %rsi<br>  4005b1:	74 15                	je     4005c8 &lt;__printf_chk@plt+0xe8&gt;<br>  4005b3:	b8 00 00 00 00       	mov    $0x0,%eax<br>  4005b8:	48 85 c0             	test   %rax,%rax<br>  4005bb:	74 0b                	je     4005c8 &lt;__printf_chk@plt+0xe8&gt;<br>  4005bd:	5d                   	pop    %rbp<br>  4005be:	bf 48 10 60 00       	mov    $0x601048,%edi<br>  4005c3:	ff e0                	jmpq   *%rax<br>  4005c5:	0f 1f 00             	nopl   (%rax)<br>  4005c8:	5d                   	pop    %rbp<br>  4005c9:	c3                   	retq<br>  4005ca:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)<br>  4005d0:	80 3d 71 0a 20 00 00 	cmpb   $0x0,0x200a71(%rip)        # 601048 &lt;__printf_chk@plt+0x200b68&gt;<br>  4005d7:	75 11                	jne    4005ea &lt;__printf_chk@plt+0x10a&gt;<br>  4005d9:	55                   	push   %rbp<br>  4005da:	48 89 e5             	mov    %rsp,%rbp<br>  4005dd:	e8 6e ff ff ff       	callq  400550 &lt;__printf_chk@plt+0x70&gt;<br>  4005e2:	5d                   	pop    %rbp<br>  4005e3:	c6 05 5e 0a 20 00 01 	movb   $0x1,0x200a5e(%rip)        # 601048 &lt;__printf_chk@plt+0x200b68&gt;<br>  4005ea:	f3 c3                	repz retq<br>  4005ec:	0f 1f 40 00          	nopl   0x0(%rax)<br>  4005f0:	bf 20 0e 60 00       	mov    $0x600e20,%edi<br>  4005f5:	48 83 3f 00          	cmpq   $0x0,(%rdi)<br>  4005f9:	75 05                	jne    400600 &lt;__printf_chk@plt+0x120&gt;<br>  4005fb:	eb 93                	jmp    400590 &lt;__printf_chk@plt+0xb0&gt;<br>  4005fd:	0f 1f 00             	nopl   (%rax)<br>  400600:	b8 00 00 00 00       	mov    $0x0,%eax<br>  400605:	48 85 c0             	test   %rax,%rax<br>  400608:	74 f1                	je     4005fb &lt;__printf_chk@plt+0x11b&gt;<br>  40060a:	55                   	push   %rbp<br>  40060b:	48 89 e5             	mov    %rsp,%rbp<br>  40060e:	ff d0                	callq  *%rax<br>  400610:	5d                   	pop    %rbp<br>  400611:	e9 7a ff ff ff       	jmpq   400590 &lt;__printf_chk@plt+0xb0&gt;<br>  400616:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)<br>  40061d:	00 00 00<br>  400620:	53                   	push   %rbx<br>  400621:	be 74 07 40 00       	mov    $0x400774,%esi<br>  400626:	bf 01 00 00 00       	mov    $0x1,%edi<br>  40062b:	48 83 ec 30          	sub    $0x30,%rsp<br>  40062f:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax<br>  400636:	00 00<br>  400638:	48 89 44 24 28       	mov    %rax,0x28(%rsp)<br>  40063d:	31 c0                	xor    %eax,%eax<br>  40063f:	48 b8 10 60 21 33 15 	movabs $0x6223331533216010,%rax<br>  400646:	33 23 62<br>  400649:	c6 44 24 20 00       	movb   $0x0,0x20(%rsp)<br>  40064e:	48 89 04 24          	mov    %rax,(%rsp)<br>  400652:	48 b8 45 65 76 34 41 	movabs $0x6675364134766545,%rax<br>  400659:	36 75 66<br>  40065c:	48 89 44 24 08       	mov    %rax,0x8(%rsp)<br>  400661:	48 b8 17 67 75 64 10 	movabs $0x6570331064756717,%rax<br>  400668:	33 70 65<br>  40066b:	48 89 44 24 10       	mov    %rax,0x10(%rsp)<br>  400670:	48 b8 18 35 76 62 11 	movabs $0x6671671162763518,%rax<br>  400677:	67 71 66<br>  40067a:	48 89 44 24 18       	mov    %rax,0x18(%rsp)<br>  40067f:	8b 1c 25 40 05 40 00 	mov    0x400540,%ebx<br>  400686:	31 c0                	xor    %eax,%eax<br>  400688:	89 da                	mov    %ebx,%edx<br>  40068a:	e8 51 fe ff ff       	callq  4004e0 &lt;__printf_chk@plt&gt;<br>  40068f:	48 8d 54 24 20       	lea    0x20(%rsp),%rdx<br>  400694:	48 89 e0             	mov    %rsp,%rax<br>  400697:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)<br>  40069e:	00 00<br>  4006a0:	31 18                	xor    %ebx,(%rax)<br>  4006a2:	48 83 c0 04          	add    $0x4,%rax<br>  4006a6:	48 39 d0             	cmp    %rdx,%rax<br>  4006a9:	75 f5                	jne    4006a0 &lt;__printf_chk@plt+0x1c0&gt;<br>  4006ab:	31 c0                	xor    %eax,%eax<br>  4006ad:	48 89 e2             	mov    %rsp,%rdx<br>  4006b0:	be 82 07 40 00       	mov    $0x400782,%esi<br>  4006b5:	bf 01 00 00 00       	mov    $0x1,%edi<br>  4006ba:	e8 21 fe ff ff       	callq  4004e0 &lt;__printf_chk@plt&gt;<br>  4006bf:	31 c0                	xor    %eax,%eax<br>  4006c1:	48 8b 4c 24 28       	mov    0x28(%rsp),%rcx<br>  4006c6:	64 48 33 0c 25 28 00 	xor    %fs:0x28,%rcx<br>  4006cd:	00 00<br>  4006cf:	75 06                	jne    4006d7 &lt;__printf_chk@plt+0x1f7&gt;<br>  4006d1:	48 83 c4 30          	add    $0x30,%rsp<br>  4006d5:	5b                   	pop    %rbx<br>  4006d6:	c3                   	retq<br>  4006d7:	e8 e4 fd ff ff       	callq  4004c0 &lt;__stack_chk_fail@plt&gt;<br>  4006dc:	0f 1f 40 00          	nopl   0x0(%rax)<br>  4006e0:	bf 97 07 40 00       	mov    $0x400797,%edi<br>  4006e5:	e9 c6 fd ff ff       	jmpq   4004b0 &lt;puts@plt&gt;<br>  4006ea:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)<br>  4006f0:	41 57                	push   %r15<br>  4006f2:	41 56                	push   %r14<br>  4006f4:	41 89 ff             	mov    %edi,%r15d<br>  4006f7:	41 55                	push   %r13<br>  4006f9:	41 54                	push   %r12<br>  4006fb:	4c 8d 25 0e 07 20 00 	lea    0x20070e(%rip),%r12        # 600e10 &lt;__printf_chk@plt+0x200930&gt;<br>  400702:	55                   	push   %rbp<br>  400703:	48 8d 2d 0e 07 20 00 	lea    0x20070e(%rip),%rbp        # 600e18 &lt;__printf_chk@plt+0x200938&gt;<br>  40070a:	53                   	push   %rbx<br>  40070b:	49 89 f6             	mov    %rsi,%r14<br>  40070e:	49 89 d5             	mov    %rdx,%r13<br>  400711:	4c 29 e5             	sub    %r12,%rbp<br>  400714:	48 83 ec 08          	sub    $0x8,%rsp<br>  400718:	48 c1 fd 03          	sar    $0x3,%rbp<br>  40071c:	e8 5f fd ff ff       	callq  400480 &lt;puts@plt-0x30&gt;<br>  400721:	48 85 ed             	test   %rbp,%rbp<br>  400724:	74 20                	je     400746 &lt;__printf_chk@plt+0x266&gt;<br>  400726:	31 db                	xor    %ebx,%ebx<br>  400728:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)<br>  40072f:	00<br>  400730:	4c 89 ea             	mov    %r13,%rdx<br>  400733:	4c 89 f6             	mov    %r14,%rsi<br>  400736:	44 89 ff             	mov    %r15d,%edi<br>  400739:	41 ff 14 dc          	callq  *(%r12,%rbx,8)<br>  40073d:	48 83 c3 01          	add    $0x1,%rbx<br>  400741:	48 39 eb             	cmp    %rbp,%rbx<br>  400744:	75 ea                	jne    400730 &lt;__printf_chk@plt+0x250&gt;<br>  400746:	48 83 c4 08          	add    $0x8,%rsp<br>  40074a:	5b                   	pop    %rbx<br>  40074b:	5d                   	pop    %rbp<br>  40074c:	41 5c                	pop    %r12<br>  40074e:	41 5d                	pop    %r13<br>  400750:	41 5e                	pop    %r14<br>  400752:	41 5f                	pop    %r15<br>  400754:	c3                   	retq<br>  400755:	90                   	nop<br>  400756:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)<br>  40075d:	00 00 00<br>  400760:	f3 c3                	repz retq </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OK, it&#x27;s a very long text, and obviously it&#x27;s difficult for human to understand it. So maybe we can use something smartly. We can add breakpoint at everywhere it seems like a return or finish for a function, and we could run it in gdb. The place it would not be run is the thing we are finding.</span><br></pre></td></tr></table></figure>
+<p>(gdb) b *0x400520<br>Breakpoint 1 at 0x400520<br>(gdb) b *0x4005c9<br>Breakpoint 2 at 0x4005c9<br>(gdb) b *0x40061d<br>Breakpoint 3 at 0x40061d<br>(gdb) b *0x4006c6<br>Breakpoint 4 at 0x4006c6<br>(gdb) b *0x400728<br>Breakpoint 5 at 0x400728<br>(gdb) run<br>Starting program: &#x2F;home&#x2F;binary&#x2F;code&#x2F;chapter5&#x2F;lvl5 </p>
+<p>Breakpoint 1, 0x0000000000400520 in ?? ()<br>(gdb) c<br>Continuing.</p>
+<p>Breakpoint 5, 0x0000000000400728 in ?? ()<br>(gdb) c<br>Continuing.</p>
+<p>Breakpoint 2, 0x00000000004005c9 in ?? ()<br>(gdb) c<br>Continuing.<br>nothing to see here<br>[Inferior 1 (process 1936) exited with code 01]<br>(gdb)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">As we predicted, there are some codes never used. Let&#x27;s focus on it.</span><br></pre></td></tr></table></figure>
+<p>  400620:	53                   	push   %rbx<br>  400621:	be 74 07 40 00       	mov    $0x400774,%esi<br>  400626:	bf 01 00 00 00       	mov    $0x1,%edi<br>  40062b:	48 83 ec 30          	sub    $0x30,%rsp<br>  40062f:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax<br>  400636:	00 00<br>  400638:	48 89 44 24 28       	mov    %rax,0x28(%rsp)<br>  40063d:	31 c0                	xor    %eax,%eax<br>  40063f:	48 b8 10 60 21 33 15 	movabs $0x6223331533216010,%rax<br>  400646:	33 23 62<br>  400649:	c6 44 24 20 00       	movb   $0x0,0x20(%rsp)<br>  40064e:	48 89 04 24          	mov    %rax,(%rsp)<br>  400652:	48 b8 45 65 76 34 41 	movabs $0x6675364134766545,%rax<br>  400659:	36 75 66<br>  40065c:	48 89 44 24 08       	mov    %rax,0x8(%rsp)<br>  400661:	48 b8 17 67 75 64 10 	movabs $0x6570331064756717,%rax<br>  400668:	33 70 65<br>  40066b:	48 89 44 24 10       	mov    %rax,0x10(%rsp)<br>  400670:	48 b8 18 35 76 62 11 	movabs $0x6671671162763518,%rax<br>  400677:	67 71 66<br>  40067a:	48 89 44 24 18       	mov    %rax,0x18(%rsp)<br>  40067f:	8b 1c 25 40 05 40 00 	mov    0x400540,%ebx<br>  400686:	31 c0                	xor    %eax,%eax<br>  400688:	89 da                	mov    %ebx,%edx<br>  40068a:	e8 51 fe ff ff       	callq  4004e0 &lt;__printf_chk@plt&gt;<br>  40068f:	48 8d 54 24 20       	lea    0x20(%rsp),%rdx<br>  400694:	48 89 e0             	mov    %rsp,%rax<br>  400697:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)<br>  40069e:	00 00<br>  4006a0:	31 18                	xor    %ebx,(%rax)<br>  4006a2:	48 83 c0 04          	add    $0x4,%rax<br>  4006a6:	48 39 d0             	cmp    %rdx,%rax<br>  4006a9:	75 f5                	jne    4006a0 &lt;__printf_chk@plt+0x1c0&gt;<br>  4006ab:	31 c0                	xor    %eax,%eax<br>  4006ad:	48 89 e2             	mov    %rsp,%rdx<br>  4006b0:	be 82 07 40 00       	mov    $0x400782,%esi<br>  4006b5:	bf 01 00 00 00       	mov    $0x1,%edi<br>  4006ba:	e8 21 fe ff ff       	callq  4004e0 &lt;__printf_chk@plt&gt;<br>  4006bf:	31 c0                	xor    %eax,%eax<br>  4006c1:	48 8b 4c 24 28       	mov    0x28(%rsp),%rcx<br>  4006c6:	64 48 33 0c 25 28 00 	xor    %fs:0x28,%rcx</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">As the hint says, we could do a redirection to here to get something.</span><br><span class="line">The rest thing we need to do is put 0x400620 as main to run. In fact, we need only change this:</span><br></pre></td></tr></table></figure>
+<p>  400500:	48 83 ec 08          	sub    $0x8,%rsp<br>  400504:	bf 97 07 40 00       	mov    $0x400797,%edi<br>  400509:	e8 a2 ff ff ff       	callq  4004b0 &lt;puts@plt&gt;<br>  40050e:	b8 01 00 00 00       	mov    $0x1,%eax<br>  400513:	48 83 c4 08          	add    $0x8,%rsp<br>  400517:	c3                   	retq<br>  400518:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)<br>  40051f:	00<br>  400520:	31 ed                	xor    %ebp,%ebp<br>  400522:	49 89 d1             	mov    %rdx,%r9<br>  400525:	5e                   	pop    %rsi<br>  400526:	48 89 e2             	mov    %rsp,%rdx<br>  400529:	48 83 e4 f0          	and    $0xfffffffffffffff0,%rsp<br>  40052d:	50                   	push   %rax<br>  40052e:	54                   	push   %rsp<br>  40052f:	49 c7 c0 60 07 40 00 	mov    $0x400760,%r8<br>  400536:	48 c7 c1 f0 06 40 00 	mov    $0x4006f0,%rcx<br>  40053d:	48 c7 c7 00 05 40 00 	mov    $0x400500,%rdi -&gt; 40053d 48 c7 c7 20 06 40 00 mov    $0x400520, %rdi<br>  400544:	e8 87 ff ff ff       	callq  4004d0 &lt;__libc_start_main@plt&gt;</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Now we can get the key.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:<del>&#x2F;code&#x2F;chapter5$ .&#x2F;lvl5<br>key &#x3D; 0x00400620<br>decrypted flag &#x3D; 0fa355cbec64a05f7a5d050e836b1a1f<br>binary@binary-VirtualBox:</del>&#x2F;code&#x2F;chapter5$ .&#x2F;oracle 0fa355cbec64a05f7a5d050e836b1a1f<br>+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+<br>| Level 5 completed, unlocked lvl6         |<br>+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+<br>Run oracle with -h to show a hint</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## Level 6</span><br><span class="line">We get some hint of level 6.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ .&#x2F;oracle 0fa355cbec64a05f7a5d050e836b1a1f -h<br>Find out what I expect, then trace me for a hint</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">So let&#x27;s just run it.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:<del>&#x2F;code&#x2F;chapter5$ .&#x2F;lvl6<br>2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97<br>binary@binary-VirtualBox:</del>&#x2F;code&#x2F;chapter5$ .&#x2F;lvl6 101<br>2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97<br>binary@binary-VirtualBox:<del>&#x2F;code&#x2F;chapter5$ .&#x2F;lvl6 2<br>2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97<br>binary@binary-VirtualBox:</del>&#x2F;code&#x2F;chapter5$ .&#x2F;lvl6 97<br>2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97<br>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ ltrace .&#x2F;lvl6<br>__libc_start_main(0x4005f0, 1, 0x7fff758d71b8, 0x400890 &lt;unfinished …&gt;<br>__printf_chk(1, 0x400947, 2, 100)                                              &#x3D; 2<br>__printf_chk(1, 0x400947, 3, 0x7ffffffe)                                       &#x3D; 2<br>__printf_chk(1, 0x400947, 5, 0x7ffffffe)                                       &#x3D; 2<br>__printf_chk(1, 0x400947, 7, 0x7ffffffe)                                       &#x3D; 2<br>__printf_chk(1, 0x400947, 11, 0x7ffffffe)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 13, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 17, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 19, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 23, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 29, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 31, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 37, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 41, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 43, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 47, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 53, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 59, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 61, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 67, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 71, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 73, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 79, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 83, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 89, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 97, 0x7ffffffd)                                      &#x3D; 3<br>putchar(10, 3, 0, 0x7ffffffd2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97<br>)                                                  &#x3D; 10<br>+++ exited (status 0) +++</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">We get nothing, and it seems we need to find something it expected. So we maybe could use strings to try if we can get anything interesting.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ strings .&#x2F;lvl6<br>&#x2F;lib64&#x2F;ld-linux-x86-64.so.2<br>libc.so.6<br>__printf_chk<br>__stack_chk_fail<br>putchar<br>__sprintf_chk<br>strcmp<br>_<em>libc_start_main<br>setenv<br><strong>gmon_start</strong><br>GLIBC_2.3.4<br>GLIBC_2.4<br>GLIBC_2.2.5<br>UH-&#96;<br>AWAVA<br>AUATL<br>[]A\A]A^A</em><br>DEBUG: argv[1] &#x3D; %s<br>get_data_addr<br>0x%jx<br>DATA_ADDR<br>;*3$”</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GOOD! There are really obvious hint for us. ``argv[1] = %s get_data_addr&#x27;&#x27;</span><br><span class="line">So we could just try to run it with the parameter.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:<del>&#x2F;code&#x2F;chapter5$ .&#x2F;lvl6 get_data_addr<br>2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97<br>binary@binary-VirtualBox:</del>&#x2F;code&#x2F;chapter5$ ltrace .&#x2F;lvl6 get_data_addr<br>__libc_start_main(0x4005f0, 2, 0x7ffd05739688, 0x400890 &lt;unfinished …&gt;<br>strcmp(“get_data_addr”, “get_data_addr”)                                       &#x3D; 0<br>__sprintf_chk(0x7ffd05739180, 1, 1024, 0x400937)                               &#x3D; 8<br>setenv(“DATA_ADDR”, “0x4006c1”, 1)                                             &#x3D; 0<br>__printf_chk(1, 0x400947, 2, 100)                                              &#x3D; 2<br>__printf_chk(1, 0x400947, 3, 0x7ffffffe)                                       &#x3D; 2<br>__printf_chk(1, 0x400947, 5, 0x7ffffffe)                                       &#x3D; 2<br>__printf_chk(1, 0x400947, 7, 0x7ffffffe)                                       &#x3D; 2<br>__printf_chk(1, 0x400947, 11, 0x7ffffffe)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 13, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 17, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 19, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 23, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 29, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 31, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 37, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 41, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 43, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 47, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 53, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 59, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 61, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 67, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 71, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 73, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 79, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 83, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 89, 0x7ffffffd)                                      &#x3D; 3<br>__printf_chk(1, 0x400947, 97, 0x7ffffffd)                                      &#x3D; 3<br>putchar(10, 3, 0, 0x7ffffffd2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97<br>)                                                  &#x3D; 10<br>+++ exited (status 0) +++</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">There is nothing special in directly running, but something interesting in ltrace. If input get_data_addr, set DATA_ADDR as 0x4006c1. Let&#x27;s have a look what it is.</span><br></pre></td></tr></table></figure>
+<p>(gdb) x&#x2F;16x 0x4006c1<br>0x4006c1:	0x2e	0x29	0xc6	0x4a	0x0f	0x03	0xa6	0xee<br>0x4006c9:	0x2a	0x30	0x7f	0xec	0xc8	0xc3	0xff	0x42</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">We get the key ``2e29c64a0f03a6ee2a307fecc8c3ff42``.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ .&#x2F;oracle 2e29c64a0f03a6ee2a307fecc8c3ff42<br>+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+<br>| Level 6 completed, unlocked lvl7         |<br>+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+<br>Run oracle with -h to show a hint</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## Level 7</span><br><span class="line">OK, Now we stand on level 7.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ .&#x2F;oracle 2e29c64a0f03a6ee2a307fecc8c3ff42 -h<br>  First observe my runtime state,<br>then watch closely while I replicate</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Let&#x27;s first see runtime state.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ .&#x2F;lvl7<br>-bash: .&#x2F;lvl7: cannot execute binary file: Exec format error</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Strange! Let&#x27;s have a look what lvl7 is.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ file .&#x2F;lvl7<br>.&#x2F;lvl7: gzip compressed data, last modified: Sat Dec  1 17:30:15 2018, from Unix</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OK, it&#x27;s a gzip. First unzip it.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ tar -xvzf .&#x2F;lvl7<br>stage1<br>stage2.zip</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OK, two file is here.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:<del>&#x2F;code&#x2F;chapter5$ file stage1<br>stage1: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter &#x2F;lib64&#x2F;ld-linux-x86-64.so.2, for GNU&#x2F;Linux 2.6.32, BuildID[sha1]&#x3D;ac71081a0951af729a4064c1dafbc5713b1537e3, stripped<br>binary@binary-VirtualBox:</del>&#x2F;code&#x2F;chapter5$ unzip stage2.zip<br>Archive:  stage2.zip<br>[stage2.zip] tmp password:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">As we can see, stage1 is a elf file, and stage2.zip need a password. It seems that we need to get the password through stage1.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:<del>&#x2F;code&#x2F;chapter5$ .&#x2F;stage1<br>binary@binary-VirtualBox:</del>&#x2F;code&#x2F;chapter5$ ltrace .&#x2F;stage1<br>__libc_start_main(0x4003e0, 1, 0x7fff690515d8, 0x400520 &lt;no return …&gt;<br>+++ exited (status 0) +++</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">There is nothing interesting in runtime state. So maybe the password would stay in strings.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5$ strings stage1<br>&#x2F;lib64&#x2F;ld-linux-x86-64.so.2<br>libc.so.6<br>_<em>libc_start_main<br><strong>gmon_start</strong><br>GLIBC_2.2.5<br>	dump ecx<br>UH-0<br>AWAVA<br>AUATL<br>[]A\A]A^A</em><br> S)TA<br>E2 KE<br>;*3$”</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">We in fact find something interesting inthe last 3 lines. There are something be like STAE2 KE. Now it&#x27;s time to use GDB!</span><br></pre></td></tr></table></figure>
+<p>00000000004003e0 &lt;.text&gt;:<br>  4003e0:	ba a4 05 40 00       	mov    $0x4005a4,%edx<br>  4003e5:	0f 1f 00             	nopl   (%rax)<br>  4003e8:	0f be 02             	movsbl (%rdx),%eax<br>  4003eb:	83 f8 30             	cmp    $0x30,%eax<br>  4003ee:	7c 12                	jl     400402 &lt;__libc_start_main@plt+0x42&gt;<br>  4003f0:	83 f8 5a             	cmp    $0x5a,%eax<br>  4003f3:	7f 0d                	jg     400402 &lt;__libc_start_main@plt+0x42&gt;<br>  4003f5:	eb 09                	jmp    400400 &lt;__libc_start_main@plt+0x40&gt;<br>  4003f7:	64 75 6d             	fs jne 400467 &lt;__libc_start_main@plt+0xa7&gt;<br>  4003fa:	70 20                	jo     40041c &lt;__libc_start_main@plt+0x5c&gt;<br>  4003fc:	65 63 78 00          	movslq %gs:0x0(%rax),%edi<br>  400400:	89 c1                	mov    %eax,%ecx<br>  400402:	48 83 c2 01          	add    $0x1,%rdx<br>  400406:	48 81 fa b5 05 40 00 	cmp    $0x4005b5,%rdx<br>  40040d:	75 d9                	jne    4003e8 &lt;__libc_start_main@plt+0x28&gt;<br>  40040f:	31 c0                	xor    %eax,%eax<br>  400411:	c3                   	retq<br>(gdb) b *0x4003e0<br>Breakpoint 1 at 0x4003e0<br>(gdb) run<br>Starting program: &#x2F;home&#x2F;binary&#x2F;code&#x2F;chapter5&#x2F;stage1 </p>
+<p>Breakpoint 1, 0x00000000004003e0 in ?? ()<br>(gdb) display&#x2F;i $pc<br>1: x&#x2F;i $pc<br>&#x3D;&gt; 0x4003e0:	mov    $0x4005a4,%edx<br>(gdb) x&#x2F;16s 0x4005a4<br>0x4005a4:	“ S)TA\021G\372\336\377E2 KE\212Y”</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Lucky! We meet it at the first line. We guess the password is ``STAGE2KEY``.</span><br></pre></td></tr></table></figure>
+<p>binary@binary-VirtualBox:~&#x2F;code&#x2F;chapter5&#x2F;lv7$ .&#x2F;stage2<br>#include &lt;stdio.h&gt;<br>#include &lt;string.h&gt;<br>#include <vector><br>#include <algorithm></p>
+<p>int main()<br>{<br>std::vector<char> hex;<br>char q[] &#x3D; “#include &lt;stdio.h&gt;\n#include &lt;string.h&gt;\n#include <vector>\n#include <algorithm>\n\nint main()\n{\nstd::vector<char> hex;\nchar q[] &#x3D; &quot;%s&quot;;\nint i, _0F;\nchar c, qc[4096];\n\nfor(i &#x3D; 0; i &lt; 32; i++) for(c &#x3D; ‘0’; c &lt;&#x3D; ‘9’; c++) hex.push_back(c);\nfor(i &#x3D; 0; i &lt; 32; i++) for(c &#x3D; ‘A’; c &lt;&#x3D; ‘F’; c++) hex.push_back(c);\nstd::srand(55);\nstd::random_shuffle(hex.begin(), hex.end());\n\n_0F &#x3D; 0;\nfor(i &#x3D; 0; i &lt; strlen(q); i++)\n{\nif(q[i] &#x3D;&#x3D; 0xa)\n{\nqc[_0F++] &#x3D; 0x5c;\nqc[_0F] &#x3D; ‘n’;\n}\nelse if(q[i] &#x3D;&#x3D; 0x22)\n{\nqc[_0F++] &#x3D; 0x5c;\nqc[<em>0F] &#x3D; 0x22;\n}\nelse if(!strncmp(&amp;q[i], &quot;0F&quot;, 2) &amp;&amp; (q[i-1] &#x3D;&#x3D; ‘</em>‘ || i &#x3D;&#x3D; 545))\n{\nchar buf[3];\nbuf[0] &#x3D; q[i];\nbuf[1] &#x3D; q[i+1];\nbuf[2] &#x3D; 0;\nunsigned j &#x3D; strtoul(buf, NULL, 16);\nqc[_0F++] &#x3D; q[i++] &#x3D; hex[j];\nqc[_0F] &#x3D; q[i] &#x3D; hex[j+1];\n}\nelse qc[_0F] &#x3D; q[i];\n_0F++;\n}\nqc[_0F] &#x3D; 0;\n\nprintf(q, qc);\n\nreturn 0;\n}\n”;<br>int i, _0F;<br>char c, qc[4096];</p>
+<p>for(i &#x3D; 0; i &lt; 32; i++) for(c &#x3D; ‘0’; c &lt;&#x3D; ‘9’; c++) hex.push_back(c);<br>for(i &#x3D; 0; i &lt; 32; i++) for(c &#x3D; ‘A’; c &lt;&#x3D; ‘F’; c++) hex.push_back(c);<br>std::srand(55);<br>std::random_shuffle(hex.begin(), hex.end());</p>
+<p>_0F &#x3D; 0;<br>for(i &#x3D; 0; i &lt; strlen(q); i++)<br>{<br>if(q[i] &#x3D;&#x3D; 0xa)<br>{<br>qc[_0F++] &#x3D; 0x5c;<br>qc[_0F] &#x3D; ‘n’;<br>}<br>else if(q[i] &#x3D;&#x3D; 0x22)<br>{<br>qc[_0F++] &#x3D; 0x5c;<br>qc[<em>0F] &#x3D; 0x22;<br>}<br>else if(!strncmp(&amp;q[i], “0F”, 2) &amp;&amp; (q[i-1] &#x3D;&#x3D; ‘</em>‘ || i &#x3D;&#x3D; 545))<br>{<br>char buf[3];<br>buf[0] &#x3D; q[i];<br>buf[1] &#x3D; q[i+1];<br>buf[2] &#x3D; 0;<br>unsigned j &#x3D; strtoul(buf, NULL, 16);<br>qc[_0F++] &#x3D; q[i++] &#x3D; hex[j];<br>qc[_0F] &#x3D; q[i] &#x3D; hex[j+1];<br>}<br>else qc[_0F] &#x3D; q[i];<br>_0F++;<br>}<br>qc[_0F] &#x3D; 0;</p>
+<p>printf(q, qc);</p>
+<p>return 0;<br>}</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Run stage2. We discover it puts a cpp file, and generate 2 Bytes keys. So we could iterated this process 16 times to get the entire key.</span><br><span class="line">``` bash</span><br><span class="line">#!/bin/bash</span><br><span class="line"></span><br><span class="line">for i in $(seq 1 16); do</span><br><span class="line">        j=$((i+1))</span><br><span class="line">        ./test$i &gt; test$j.cpp</span><br><span class="line">        echo -n $(./test$i | egrep &#x27;, &quot;&#x27; | cut -d &#x27;&quot;&#x27; -f 2) &gt;&gt; flag</span><br><span class="line">        g++ test$j.cpp -o test$j</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">cat flag</span><br><span class="line">echo</span><br></pre></td></tr></table></figure>
+<p>OK, now we get the full key.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv7$ ./sol.sh</span><br><span class="line">0F25E512A7763EEFB7696B3AEDA1F964</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./oracle 0F25E512A7763EEFB7696B3AEDA1F964</span><br><span class="line">+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+</span><br><span class="line">| Level 7 completed, unlocked lvl8         |</span><br><span class="line">+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+</span><br><span class="line">Run oracle with -h to show a hint</span><br></pre></td></tr></table></figure>
+
+<h2 id="Level-8"><a href="#Level-8" class="headerlink" title="Level 8"></a>Level 8</h2><p>We finally come in level 8. The hint is very strange.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./oracle 0F25E512A7763EEFB7696B3AEDA1F964 -h</span><br><span class="line">Sometimes a byte is a bit</span><br></pre></td></tr></table></figure>
+<p>OK, we take it aside and see what lvl8 is first.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5$ file ./lvl8</span><br><span class="line">./lvl8: ASCII text, with very long lines</span><br></pre></td></tr></table></figure>
+<p>Strange! ASCII text, and very long. Open it.<br><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE_20251128_140438.png" alt="屏幕截图_20251128_140438.png"><br>Obviously, it’s not any language we could understand, but we could still find something really interesting in it.<br>If you observe it carefully, you’ll find there are many repeated words, and also, the capacity is very strange. So it’s easy to think about that maybe the words is meaningless, but the uppercase and lowercase of the letters are very important. Let’s make a program to translate uppercase letters into 1 and lowercase letters into 0.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line"></span><br><span class="line">python3 - &lt;&lt; <span class="string">&#x27;PY&#x27;</span></span><br><span class="line">import string</span><br><span class="line">from pathlib import Path</span><br><span class="line"></span><br><span class="line">data = Path(<span class="string">&quot;lvl8&quot;</span>).read_text()</span><br><span class="line"></span><br><span class="line">bits = []</span><br><span class="line"><span class="keyword">for</span> ch <span class="keyword">in</span> data:</span><br><span class="line">    <span class="keyword">if</span> ch <span class="keyword">in</span> string.ascii_lowercase:</span><br><span class="line">        bits.append(<span class="string">&#x27;0&#x27;</span>)</span><br><span class="line">    <span class="keyword">elif</span> ch <span class="keyword">in</span> string.ascii_uppercase:</span><br><span class="line">        bits.append(<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">bits_str = <span class="string">&quot;&quot;</span>.<span class="built_in">join</span>(bits)</span><br><span class="line">n_bits = len(bits_str) // 8 * 8</span><br><span class="line">bits_str = bits_str[:n_bits]</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> not bits_str:</span><br><span class="line">    raise SystemExit(<span class="string">&quot;没有从 lvl8 里提取到任何大小写字母&quot;</span>)</span><br><span class="line"></span><br><span class="line">value = int(bits_str, 2)</span><br><span class="line">n_bytes = n_bits // 8</span><br><span class="line">b = value.to_bytes(n_bytes, <span class="string">&quot;big&quot;</span>)</span><br><span class="line"></span><br><span class="line">with open(<span class="string">&quot;level8.bin&quot;</span>, <span class="string">&quot;wb&quot;</span>) as f:</span><br><span class="line">    f.write(b)</span><br><span class="line">PY</span><br><span class="line"></span><br><span class="line">file level8.bin</span><br></pre></td></tr></table></figure>
+<p>And we could get such a file level8.bin</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv8$ file level8.bin</span><br><span class="line">level8.bin: PC bitmap, Windows 3.x format, 300 x 300 x 24</span><br></pre></td></tr></table></figure>
+<p>Now we have a bit map which is 300 * 300 * 24. And open the picture, it’s like this:<br><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/level8.bmp" alt="level8.bmp"></p>
+<p>I’m stuck here for a bit while. Because I don’t know what the picture is. So I decided to open it with hexedit first.<br><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE_20251128_141456.png" alt="屏幕截图_20251128_141456.png"></p>
+<p>Strange! Do you remember what the picture is? 300 * 300 * 24. However, that means, white should be FF and black should be 00. But as you see in picture, there are many 01 and FE, that means there are some information in the lowest bit. Let’s extract it.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">        FILE *fileptr;</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">char</span> *buffer;</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">char</span> *p;</span><br><span class="line">        <span class="type">long</span> filelen;</span><br><span class="line"></span><br><span class="line">        fileptr = fopen(<span class="string">&quot;lvl8_pic&quot;</span>, <span class="string">&quot;rb&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (!fileptr)</span><br><span class="line">        &#123;</span><br><span class="line">                perror(<span class="string">&quot;fopen lvl8_pic&quot;</span>);</span><br><span class="line">                <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        fseek(fileptr, <span class="number">0</span>, SEEK_END);</span><br><span class="line">        filelen = ftell(fileptr);</span><br><span class="line">        rewind(fileptr);</span><br><span class="line">        </span><br><span class="line">        buffer = <span class="built_in">malloc</span>(filelen);</span><br><span class="line">        <span class="keyword">if</span> (!buffer)</span><br><span class="line">        &#123;</span><br><span class="line">                perror(<span class="string">&quot;malloc&quot;</span>);</span><br><span class="line">                fclose(fileptr);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        fread(buffer, filelen, <span class="number">1</span>, fileptr);</span><br><span class="line">        fclose(fileptr);</span><br><span class="line">        </span><br><span class="line">        FILE *out = fopen(<span class="string">&quot;lvl8_elf&quot;</span>, <span class="string">&quot;wb&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (!out)</span><br><span class="line">        &#123;</span><br><span class="line">                perror(<span class="string">&quot;fopen lvl8_elf&quot;</span>);</span><br><span class="line">                <span class="built_in">free</span>(buffer);</span><br><span class="line">                <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="type">unsigned</span> <span class="type">char</span> decodeByte = <span class="number">0</span>;</span><br><span class="line">        <span class="type">long</span> bufferCounter = <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> bitIndex = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        p = buffer;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="type">unsigned</span> <span class="type">char</span> thisByte = *p;</span><br><span class="line">                p++;</span><br><span class="line">                bufferCounter++;</span><br><span class="line">        </span><br><span class="line">                <span class="keyword">if</span> ((thisByte &amp; <span class="number">1</span>) == <span class="number">1</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                        decodeByte |= (<span class="number">1</span> &lt;&lt; (<span class="number">7</span> - bitIndex));</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                bitIndex++;</span><br><span class="line">                </span><br><span class="line">                <span class="keyword">if</span> (bitIndex == <span class="number">8</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                        bitIndex = <span class="number">0</span>;</span><br><span class="line">                        fwrite(&amp;decodeByte, <span class="number">1</span>, <span class="number">1</span>, out);</span><br><span class="line">                        decodeByte = <span class="number">0</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                <span class="keyword">if</span> (bufferCounter &gt;= filelen)</span><br><span class="line">                &#123;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        fclose(out);</span><br><span class="line">        <span class="built_in">free</span>(buffer);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Now we get another elf file, which seems to have ability to help us get the key.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv8$ gcc ./deal.c -o deal</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv8$ ./deal</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv8$ file ./lvl8_elf</span><br><span class="line">./lvl8_elf: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=3f43c1bc1bc2d1dccc12d2fbb1cb83347e8cb3b4, not stripped</span><br></pre></td></tr></table></figure>
+<p>Let’s first run it.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv8$ ./lvl8_elf</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv8$ ltrace ./lvl8</span><br><span class="line">&quot;./lvl8&quot; is not an ELF file</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv8$ ltrace ./lvl8_elf</span><br><span class="line">__libc_start_main(0x4005d6, 1, 0x7ffe9d5e1e98, 0x4006b0 &lt;unfinished ...&gt;</span><br><span class="line">memalign(4096, 4096, 0x7ffe9d5e1ea8, 0)                                        = 0x17f1000</span><br><span class="line">mprotect(0x17f1000, 4096, 3, 0x7fb7fa68bb20)                                   = 0</span><br><span class="line">memcpy(0x17f1000, &quot;\234\235\236\232\233t\315\314\314\314s\315\314\314\314\204A\371\324\314\314\314\204G\331\376\314\314\314\303\311\223&quot;..., 83) = 0x17f1000</span><br><span class="line">mprotect(0x17f1000, 4096, 4, 82)                                               = 0</span><br><span class="line">+++ exited (status 0) +++</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv8$ ./lvl8_elf</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5/lv8$ ltrace ./lvl8_elf</span><br><span class="line">__libc_start_main(0x4005d6, 1, 0x7ffca7aba4e8, 0x4006b0 &lt;unfinished ...&gt;</span><br><span class="line">memalign(4096, 4096, 0x7ffca7aba4f8, 0)                                        = 0x17f9000</span><br><span class="line">mprotect(0x17f9000, 4096, 3, 0x7f4f4f00db20)                                   = 0</span><br><span class="line">memcpy(0x17f9000, &quot;\234\235\236\232\233t\315\314\314\314s\315\314\314\314\204A\371\324\314\314\314\204G\331\376\314\314\314\303\311\223&quot;..., 83) = 0x17f9000</span><br><span class="line">mprotect(0x17f9000, 4096, 4, 82)                                               = 0</span><br><span class="line">+++ exited (status 0) +++</span><br></pre></td></tr></table></figure>
+<p>Really disgusting. It don’t want give us the key directly. OK, as we usually do, have a look at ltrace. There are something interesting need we focus. First it unlock a memory, and then write something on it, and lock it. Maybe we can find something it. GDB!</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">00000000004005d6 &lt;main&gt;:</span><br><span class="line">  4005d6:	55                   	push   %rbp</span><br><span class="line">  4005d7:	48 89 e5             	mov    %rsp,%rbp</span><br><span class="line">  4005da:	48 83 ec 30          	sub    $0x30,%rsp</span><br><span class="line">  4005de:	89 7d dc             	mov    %edi,-0x24(%rbp)</span><br><span class="line">  4005e1:	48 89 75 d0          	mov    %rsi,-0x30(%rbp)</span><br><span class="line">  4005e5:	be 00 10 00 00       	mov    $0x1000,%esi</span><br><span class="line">  4005ea:	bf 00 10 00 00       	mov    $0x1000,%edi</span><br><span class="line">  4005ef:	e8 bc fe ff ff       	callq  4004b0 &lt;memalign@plt&gt;</span><br><span class="line">  4005f4:	48 89 45 f0          	mov    %rax,-0x10(%rbp)</span><br><span class="line">  4005f8:	48 8b 45 f0          	mov    -0x10(%rbp),%rax</span><br><span class="line">  4005fc:	ba 03 00 00 00       	mov    $0x3,%edx</span><br><span class="line">  400601:	be 00 10 00 00       	mov    $0x1000,%esi</span><br><span class="line">  400606:	48 89 c7             	mov    %rax,%rdi</span><br><span class="line">  400609:	e8 b2 fe ff ff       	callq  4004c0 &lt;mprotect@plt&gt;</span><br><span class="line">  40060e:	8b 05 a0 0a 20 00    	mov    0x200aa0(%rip),%eax        # 6010b4 &lt;flag_bin_len&gt;</span><br><span class="line">  400614:	89 c2                	mov    %eax,%edx</span><br><span class="line">  400616:	48 8b 45 f0          	mov    -0x10(%rbp),%rax</span><br><span class="line">  40061a:	be 60 10 60 00       	mov    $0x601060,%esi</span><br><span class="line">  40061f:	48 89 c7             	mov    %rax,%rdi</span><br><span class="line">  400622:	e8 79 fe ff ff       	callq  4004a0 &lt;memcpy@plt&gt;</span><br><span class="line">  400627:	8b 05 87 0a 20 00    	mov    0x200a87(%rip),%eax        # 6010b4 &lt;flag_bin_len&gt;</span><br><span class="line">  40062d:	89 c2                	mov    %eax,%edx</span><br><span class="line">  40062f:	48 8b 45 f0          	mov    -0x10(%rbp),%rax</span><br><span class="line">  400633:	48 01 d0             	add    %rdx,%rax</span><br><span class="line">  400636:	c6 00 c3             	movb   $0xc3,(%rax)</span><br><span class="line">  400639:	c7 45 ec 00 00 00 00 	movl   $0x0,-0x14(%rbp)</span><br><span class="line">  400640:	eb 26                	jmp    400668 &lt;main+0x92&gt;</span><br><span class="line">  400642:	8b 45 ec             	mov    -0x14(%rbp),%eax</span><br><span class="line">  400645:	48 63 d0             	movslq %eax,%rdx</span><br><span class="line">  400648:	48 8b 45 f0          	mov    -0x10(%rbp),%rax</span><br><span class="line">  40064c:	48 01 d0             	add    %rdx,%rax</span><br><span class="line">  40064f:	8b 55 ec             	mov    -0x14(%rbp),%edx</span><br><span class="line">  400652:	48 63 ca             	movslq %edx,%rcx</span><br><span class="line">  400655:	48 8b 55 f0          	mov    -0x10(%rbp),%rdx</span><br><span class="line">  400659:	48 01 ca             	add    %rcx,%rdx</span><br><span class="line">  40065c:	0f b6 12             	movzbl (%rdx),%edx</span><br><span class="line">  40065f:	83 f2 cc             	xor    $0xffffffcc,%edx</span><br><span class="line">  400662:	88 10                	mov    %dl,(%rax)</span><br><span class="line">  400664:	83 45 ec 01          	addl   $0x1,-0x14(%rbp)</span><br><span class="line">  400668:	8b 55 ec             	mov    -0x14(%rbp),%edx</span><br><span class="line">  40066b:	8b 05 43 0a 20 00    	mov    0x200a43(%rip),%eax        # 6010b4 &lt;flag_bin_len&gt;</span><br><span class="line">  400671:	39 c2                	cmp    %eax,%edx</span><br><span class="line">  400673:	72 cd                	jb     400642 &lt;main+0x6c&gt;</span><br><span class="line">  400675:	48 8b 45 f0          	mov    -0x10(%rbp),%rax</span><br><span class="line">  400679:	ba 04 00 00 00       	mov    $0x4,%edx</span><br><span class="line">  40067e:	be 00 10 00 00       	mov    $0x1000,%esi</span><br><span class="line">  400683:	48 89 c7             	mov    %rax,%rdi</span><br><span class="line">  400686:	e8 35 fe ff ff       	callq  4004c0 &lt;mprotect@plt&gt;</span><br><span class="line">  40068b:	48 8b 45 f0          	mov    -0x10(%rbp),%rax</span><br><span class="line">  40068f:	8b 15 1f 0a 20 00    	mov    0x200a1f(%rip),%edx        # 6010b4 &lt;flag_bin_len&gt;</span><br><span class="line">  400695:	89 d2                	mov    %edx,%edx</span><br><span class="line">  400697:	48 01 d0             	add    %rdx,%rax</span><br><span class="line">  40069a:	48 89 45 f8          	mov    %rax,-0x8(%rbp)</span><br><span class="line">  40069e:	48 8b 55 f8          	mov    -0x8(%rbp),%rdx</span><br><span class="line">  4006a2:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  4006a7:	ff d2                	callq  *%rdx</span><br><span class="line">  4006a9:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  4006ae:	c9                   	leaveq </span><br><span class="line">  4006af:	c3                   	retq</span><br></pre></td></tr></table></figure>
+<p>We can see that, after operating the memory block, it gets in a circle. And obviously, we don’t want to see what it exactly do. So we just use gdb and try to see what happen to the block.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">(gdb) b *0x400606</span><br><span class="line">Breakpoint 1 at 0x400606</span><br><span class="line">(gdb) b *0x400673</span><br><span class="line">Breakpoint 2 at 0x400673</span><br><span class="line">(gdb) b *0x400675</span><br><span class="line">Breakpoint 3 at 0x400675</span><br><span class="line">(gdb) run   </span><br><span class="line">Starting program: /home/binary/code/chapter5/lv8/lvl8_elf </span><br><span class="line"></span><br><span class="line">Breakpoint 1, 0x0000000000400606 in main ()</span><br><span class="line">(gdb) x/16x $rdi</span><br><span class="line">0xffffffff:	Cannot access memory at address 0xffffffff</span><br><span class="line">(gdb) ni</span><br><span class="line">0x0000000000400609 in main ()</span><br><span class="line">(gdb) x/16x $rdi</span><br><span class="line">0x603000:	0x00000000	0x00000000	0x00000000	0x00000000</span><br><span class="line">0x603010:	0x00000000	0x00000000	0x00000000	0x00000000</span><br><span class="line">0x603020:	0x00000000	0x00000000	0x00000000	0x00000000</span><br><span class="line">0x603030:	0x00000000	0x00000000	0x00000000	0x00000000</span><br><span class="line">(gdb) c</span><br><span class="line">Continuing.</span><br><span class="line"></span><br><span class="line">Breakpoint 2, 0x0000000000400673 in main ()</span><br><span class="line">(gdb) display/16bx 0x603000</span><br><span class="line">1: x/16xb 0x603000</span><br><span class="line">0x603000:	0x9c	0x9d	0x9e	0x9a	0x9b	0x74	0xcd	0xcc</span><br><span class="line">0x603008:	0xcc	0xcc	0x73	0xcd	0xcc	0xcc	0xcc	0x84</span><br><span class="line">(gdb) c</span><br><span class="line">Continuing.</span><br><span class="line"></span><br><span class="line">Breakpoint 2, 0x0000000000400673 in main ()</span><br><span class="line">1: x/16xb 0x603000</span><br><span class="line">0x603000:	0x50	0x9d	0x9e	0x9a	0x9b	0x74	0xcd	0xcc</span><br><span class="line">0x603008:	0xcc	0xcc	0x73	0xcd	0xcc	0xcc	0xcc	0x84</span><br><span class="line">(gdb) c</span><br><span class="line">Continuing.</span><br><span class="line"></span><br><span class="line">Breakpoint 2, 0x0000000000400673 in main ()</span><br><span class="line">1: x/16xb 0x603000</span><br><span class="line">0x603000:	0x50	0x51	0x9e	0x9a	0x9b	0x74	0xcd	0xcc</span><br><span class="line">0x603008:	0xcc	0xcc	0x73	0xcd	0xcc	0xcc	0xcc	0x84</span><br><span class="line">(gdb) c</span><br><span class="line">Continuing.</span><br><span class="line"></span><br><span class="line">Breakpoint 2, 0x0000000000400673 in main ()</span><br><span class="line">1: x/16xb 0x603000</span><br><span class="line">0x603000:	0x50	0x51	0x52	0x9a	0x9b	0x74	0xcd	0xcc</span><br><span class="line">0x603008:	0xcc	0xcc	0x73	0xcd	0xcc	0xcc	0xcc	0x84</span><br><span class="line">(gdb) c</span><br><span class="line">Continuing.</span><br><span class="line"></span><br><span class="line">Breakpoint 2, 0x0000000000400673 in main ()</span><br><span class="line">1: x/16xb 0x603000</span><br><span class="line">0x603000:	0x50	0x51	0x52	0x56	0x9b	0x74	0xcd	0xcc</span><br><span class="line">0x603008:	0xcc	0xcc	0x73	0xcd	0xcc	0xcc	0xcc	0x84</span><br><span class="line">(gdb) c</span><br><span class="line">Continuing.</span><br><span class="line"></span><br><span class="line">Breakpoint 2, 0x0000000000400673 in main ()</span><br><span class="line">1: x/16xb 0x603000</span><br><span class="line">0x603000:	0x50	0x51	0x52	0x56	0x57	0x74	0xcd	0xcc</span><br><span class="line">0x603008:	0xcc	0xcc	0x73	0xcd	0xcc	0xcc	0xcc	0x84</span><br><span class="line">(gdb) delete 2</span><br><span class="line">(gdb) c</span><br><span class="line">Continuing.</span><br><span class="line"></span><br><span class="line">Breakpoint 3, 0x0000000000400675 in main ()</span><br><span class="line">1: x/16xb 0x603000</span><br><span class="line">0x603000:	0x50	0x51	0x52	0x56	0x57	0xb8	0x01	0x00</span><br><span class="line">0x603008:	0x00	0x00	0xbf	0x01	0x00	0x00	0x00	0x48</span><br></pre></td></tr></table></figure>
+<p>We can see that, the circle do one thing: change 0x603000 into 50 51 52 56 57. So we have enough reason to think that maybe there are something interesting in 0x53-0x55.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(gdb) dump binary memory dump.bin 0x603000 0x603055</span><br></pre></td></tr></table></figure>
+<p><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE_20251128_144924.png" alt="屏幕截图_20251128_144924.png"><br>Got it!</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./oracle 2235a6b2123404469f4abce71b1dd29f</span><br><span class="line">+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+</span><br><span class="line">| Level 8 completed, unlocked reward.tar.gz |</span><br><span class="line">+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+</span><br><span class="line">Run oracle with -h to show a hint</span><br><span class="line">binary@binary-VirtualBox:~/code/chapter5$ ./oracle 2235a6b2123404469f4abce71b1dd29f -h</span><br><span class="line">Congratulations, you&#x27;ve completed all levels!</span><br></pre></td></tr></table></figure>
+<p>And there is a rewards for us!<br><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/wall_1024x768.jpg" alt="wall_1024x768.jpg"></p>
+<p>This game is really meaningful and interesting. I think everyone who wants to expose joy of binary analysis should finish this game.</p>
+<p>The whole file directory could be found on <a target="_blank" rel="noopener" href="https://github.com/BoringZheng/binary-analysis.git">https://github.com/BoringZheng/binary-analysis.git</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/11/13/2025-11-13%20%E7%BB%84%E4%BC%9A%E6%B1%87%E6%8A%A5/" rel="prev" title="2025-11-13 组会汇报">
+      <i class="fa fa-chevron-left"></i> 2025-11-13 组会汇报
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/12/26/2025-7-19%E6%97%A5%E5%BF%97/" rel="next" title="2025-7-19日志">
+      2025-7-19日志 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Report-for-Practical-Binary-Analysis-CTF"><span class="nav-number">1.</span> <span class="nav-text">Report for Practical Binary Analysis CTF</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Level-2"><span class="nav-number">1.1.</span> <span class="nav-text">Level 2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Level-3"><span class="nav-number">1.2.</span> <span class="nav-text">Level 3</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Level-8"><span class="nav-number">1.3.</span> <span class="nav-text">Level 8</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

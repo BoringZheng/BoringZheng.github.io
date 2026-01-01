@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 8.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Problem 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="凸优化期末复习练习题">
+<meta property="og:url" content="http://example.com/2025/01/05/%E5%87%B8%E4%BC%98%E5%8C%96%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0%E7%BB%83%E4%B9%A0%E9%A2%98/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Problem 1">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-01-05T15:20:56.000Z">
+<meta property="article:modified_time" content="2025-01-06T12:34:23.000Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2025/01/05/%E5%87%B8%E4%BC%98%E5%8C%96%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0%E7%BB%83%E4%B9%A0%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>凸优化期末复习练习题 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/01/05/%E5%87%B8%E4%BC%98%E5%8C%96%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0%E7%BB%83%E4%B9%A0%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          凸优化期末复习练习题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-01-05 23:20:56" itemprop="dateCreated datePublished" datetime="2025-01-05T23:20:56+08:00">2025-01-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-01-06 20:34:23" itemprop="dateModified" datetime="2025-01-06T20:34:23+08:00">2025-01-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">凸优化</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Problem-1"><a href="#Problem-1" class="headerlink" title="Problem 1"></a>Problem 1</h1><span id="more"></span>
+
+<p>Let $C\sube \mathbb{R}^n$ be a non-empty closed convex set and $\mathbb{I}<em>C$ denote its associated indicator function; i.e.,<br>$$<br>\mathbb{I}<em>C (x) &#x3D; \left{<br>\begin{aligned}<br>&amp;0&amp; \ \ \ \ \ \ \    if \ x\in C,\<br>&amp;+\infty&amp; \ \ \ \ \ \ otherwise.<br>\end{aligned}<br>\right.<br>$$<br>(a) Argue directly using the definition of the subdifferential that for any $x\in C$,<br>$$<br>\partial \mathbb{I}<em>C(x) &#x3D; {s\in \mathbb{R}^n: s^T (y-x) \leq 0\ \text{for all} \ y\in C}.<br>$$<br>(b)Using the result in (a), show that for any $x\in \mathbb{R}</em>{+}^n$，<br>$$<br>\partial \mathbb{I}</em>{\mathbb{R}</em>{+}^n} &#x3D; {s\in \mathbb{R}^n:\ s\leq 0,\  x^Ts &#x3D; 0}<br>$$<br><strong>Solution</strong>:</p>
+<p>(a)<br>$$<br>\<br>\text{考虑}s\in \mathbb{R}^n，对于任意的x_0\in C，x\in C<br>\<br>\mathbb{I}<em>C(x) \geq f(x_0)+s^T(x-x_0)<br>\<br>s^T(x-x_0)+0\leq 0<br>\<br>故\partial \mathbb{I}<em>C(x) &#x3D; {s\in \mathbb{R}^n: s^T (y-x) \leq 0\ \text{for all} \ y\in C}.<br>$$<br>(b)<br>$$<br>根据(a)中的结论，我们有：<br>\<br>\partial\mathbb{I}</em>{\mathbb{R}</em>{+}^n} &#x3D; {s\in \mathbb{R}^n:\ s^T(y-x)\leq 0 \ \text{for all} \ y\in \mathbb{R}<em>+^n}<br>\<br>于是s^Ty\leq s^T x \ \text{for all }y\in\mathbb{R}</em>+^n<br>\<br>于是s^Tx &#x3D; 0, \ s^T y \leq 0<br>\<br>由于y\in\mathbb{R}<em>+^n, s\leq0<br>\<br>故<br>\partial \mathbb{I}</em>{\mathbb{R}_{+}^n} &#x3D; {s\in \mathbb{R}^n:\ s\leq 0,\  x^Ts &#x3D; 0}<br>$$</p>
+<h1 id="Problem-2"><a href="#Problem-2" class="headerlink" title="Problem 2"></a>Problem 2</h1><p>Let $f: \mathbb{R}^2 \to \mathbb{R} \cup {+\infty}$ be the function given by<br>$$<br>f(x_1, x_2) &#x3D; \begin{cases} 0, &amp; \text{当 } | (x_1, x_2) |_2 &lt; 1, \ \in [0, +\infty), &amp; \text{当 } | (x_1, x_2) |_2 &#x3D; 1, \ +\infty, &amp; \text{当 } | (x_1, x_2) |_2 &gt; 1. \end{cases}<br>$$<br>Show that $f$ is convex.</p>
+<p><strong>Solution</strong>:<br>$$<br>考虑两个点M,N\in\mathbb{R}^2，其中||M||_2\leq ||N||_2<br>\<br>考虑任意的\alpha,\beta \geq 0<br>那么有如下几种情况：<br>\</p>
+<ol>
+<li>||M||_2\leq ||N||_2 \leq 1<br>\<br>此时||\alpha M + \beta N||_2\leq 1<br>\<br>\alpha f(M)+ \beta f(N) \geq f(\alpha M + \beta N)<br>\</li>
+<li>||M||_2 \leq 1\leq ||N||_2<br>\<br>此时f(\alpha M + \beta N) \leq +\infty &#x3D; \alpha f(M) + \beta f(N)<br>\</li>
+<li>1\leq ||M||_2 \leq ||N||_2<br>\<br>此时f(\alpha M + \beta N) \leq (\alpha + \beta )\infty\leq\alpha f(M) + \beta f(N)<br>$$</li>
+</ol>
+<h1 id="Problem-3"><a href="#Problem-3" class="headerlink" title="Problem 3"></a>Problem 3</h1><p>Let $A \in \mathbb{R}^{m \times n} $ be given. Show that exactly one system in each of the following pairs has a solution. </p>
+<p>(a)</p>
+<p>$\text{(I)} \quad A x &lt; 0, \quad x \geq 0 $</p>
+<p>$ \text{(II)} \quad A^T y \geq 0, \quad y \geq 0, \quad y \neq 0 $</p>
+<p> (b) </p>
+<p>$ \text{(I)} \quad A x \geq 0, \quad A x \neq 0 $</p>
+<p>$ \text{(II)} \quad A^T y &#x3D; 0, \quad y &gt; 0 $</p>
+<p><strong>Solution</strong>:</p>
+<p>(a)<br>$$<br>假设(I)和(II)都有解\bar{x}和\bar{y}<br>\<br>那么我们可以知道A^T\bar{y}\geq 0<br>\<br>于是\bar{y}^TA \geq 0<br>\<br>所以\bar{y}^TA\bar{x}\geq0<br>\<br>又A\bar{x}&lt; 0<br>\<br>所以\bar{y}^TA\bar{x}&lt;0<br>\矛盾，故(I)和(II)不可能同时成立<br>\<br>考虑Ax &lt; 0,\ x\geq0<br>\<br>(I’)Ax + s &#x3D; c, 其中x,\ s\geq 0,\ c &lt; 0<br>\<br>若(I’)不成立，根据Farkas引理有：<br>\<br>A^Tw\leq 0, \ bw&gt;0,\ 其中b\in \mathbb{R}^n,\ w \leq 0<br>\<br>那么取b  &#x3D; -e^T,\ y &#x3D; -w<br>\<br>有A^Ty \geq0, y&gt;0 成立<br>$$<br>(b)<br>$$<br>考虑(I’):  (-Ax) \leq 0,\ e^TAx  &gt;0\<br>假设(I’)没有解，根据Farkas引理：\<br>(II’):\ -A^Tw &#x3D; e^TA ,\ w\geq 0有解\<br>于是 (w+e^T)A&#x3D;0\<br>令y&#x3D; w+e^T即证明完毕<br>$$</p>
+<h1 id="Problem-4"><a href="#Problem-4" class="headerlink" title="Problem 4"></a>Problem 4</h1><p>令 $A \in \mathbb{R}^{m \times n} $且 $b \in \mathbb{R}^m_+$ 已知，考虑以下线性系统：<br>$$<br>Ax &#x3D; b, \quad x \geq 0 \tag{1}<br>$$<br>以及相关的线性规划问题（LP）：<br>$$<br>\text{minimize } e^T y\<br>\text{subject to } Ax + Iy &#x3D; b, \quad x \geq 0, , y \geq 0 \tag{2}<br>$$<br>其中，$e &#x3D; (1, \dots, 1) \in \mathbb{R}^m$ 是一个全为 1 的向量，$I$ 是$m \times m$ 的单位矩阵。这个线性规划问题 (2) 通常称为 Phase One Problem。</p>
+<p>(a) 写出问题 (2) 的对偶问题。</p>
+<p>(b) 证明问题 (2) 总有最优解。</p>
+<p>(c) 证明系统 (1) 有解，当且仅当问题 (2) 的最优值为零。</p>
+<p><strong>Solution:</strong></p>
+<p>(a)<br>$$<br>\text{maxmize } e^Ty\<br>\text{subject to }Ax + Iy &gt; b,\ x \geq 0, \ y\geq 0<br>$$</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/01/05/2025-1-5%E6%97%A5%E5%BF%97/" rel="prev" title="2025.1.5日志">
+      <i class="fa fa-chevron-left"></i> 2025.1.5日志
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/01/07/2025-1-7%E6%97%A5%E5%BF%97/" rel="next" title="2025.1.7日志">
+      2025.1.7日志 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Problem-1"><span class="nav-number">1.</span> <span class="nav-text">Problem 1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Problem-2"><span class="nav-number">2.</span> <span class="nav-text">Problem 2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Problem-3"><span class="nav-number">3.</span> <span class="nav-text">Problem 3</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Problem-4"><span class="nav-number">4.</span> <span class="nav-text">Problem 4</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
