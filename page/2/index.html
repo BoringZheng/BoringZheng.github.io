@@ -145,80 +145,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/09/24/Tor%20Relay-Padding%E6%9C%BA%E5%88%B6%E7%A0%94%E7%A9%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="John Doe">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/09/24/Tor%20Relay-Padding%E6%9C%BA%E5%88%B6%E7%A0%94%E7%A9%B6/" class="post-title-link" itemprop="url">Tor Relay-Padding 机制研究</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-              
-
-              <time title="Created: 2025-09-24 00:00:00 / Modified: 15:45:11" itemprop="dateCreated datePublished" datetime="2025-09-24T00:00:00+08:00">2025-09-24</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Tor/" itemprop="url" rel="index"><span itemprop="name">Tor</span></a>
-                </span>
-                  , 
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Tor/Research/" itemprop="url" rel="index"><span itemprop="name">Research</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>RELAY_CELL 的构成是 RELAY_HEADER (11) + DATA + CELL_PADDING_GAP(4) + PADDING &#x3D; CELL_PAYLOAD(509)</p>
-<p>relay.c&#x2F;get_pad_cell_offset() 中查看 CELL_PAYLOAD 剩余空间，然后把 offset 返回到relay.c&#x2F;pad_cell_payload() 中，如果这个值是0，直接放弃 padding（问题：强制 padding 在什么地方），否则通过 crypto_rand_fast.c&#x2F;crypto_fast_rng_getbytes() 进行随机填充。</p>
-<p>真正确定是否进行强制随机填充实际上在确定打包数据长度时就已经确定了。在relay.c&#x2F;connection_edge_get_inbuf_bytes_to_package()中，如果 send_randomness_after_n_cells 值为0，并且 have_sent_sufficiently_random_cell 为0，那么设定数据长度为 509-4-16 &#x3D; 489 (5填充)，否则设定数据长度为 509 - 11&#x3D;498。如果确定要强制填充，那么把have_sent_sufficiently_random_cell设为1。已经完成随机填充之后，会进入relay.c&#x2F;circuit_reset_sendme_randomness() 进行重置，把下一个阈值放到 CIRCWINDOW_INCREMENT &#x2F; 2 ~ CIRCWINDOW_INCREMENT之间。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/19/2025-7-18%E6%97%A5%E5%BF%97/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -930,6 +856,78 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2025/04/05/2025-4-4/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/04/02/Tor%E7%9A%84Vegas%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/04/02/Tor%E7%9A%84Vegas%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">Tor的Vegas机制</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-04-02 15:29:29" itemprop="dateCreated datePublished" datetime="2025-04-02T15:29:29+08:00">2025-04-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-07-04 19:32:45" itemprop="dateModified" datetime="2025-07-04T19:32:45+08:00">2025-07-04</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="congestion-control-vegas-process-sendme-函数解析"><a href="#congestion-control-vegas-process-sendme-函数解析" class="headerlink" title="congestion_control_vegas_process_sendme 函数解析"></a><code>congestion_control_vegas_process_sendme</code> 函数解析</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a><strong>简介</strong></h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2025/04/02/Tor%E7%9A%84Vegas%E6%9C%BA%E5%88%B6/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
