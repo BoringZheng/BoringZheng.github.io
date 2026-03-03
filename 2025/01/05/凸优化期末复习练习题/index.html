@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>凸优化期末复习练习题 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Problem 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="凸优化期末复习练习题">
+<meta property="og:url" content="http://example.com/2025/01/05/%E5%87%B8%E4%BC%98%E5%8C%96%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0%E7%BB%83%E4%B9%A0%E9%A2%98/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Problem 1">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-01-05T15:20:56.000Z">
+<meta property="article:modified_time" content="2025-01-06T12:34:23.419Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-凸优化期末复习练习题" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/01/05/%E5%87%B8%E4%BC%98%E5%8C%96%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0%E7%BB%83%E4%B9%A0%E9%A2%98/" class="article-date">
+  <time class="dt-published" datetime="2025-01-05T15:20:56.000Z" itemprop="datePublished">2025-01-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/">凸优化</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      凸优化期末复习练习题
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Problem-1"><a href="#Problem-1" class="headerlink" title="Problem 1"></a>Problem 1</h1><span id="more"></span>
+
+<p>Let $C\sube \mathbb{R}^n$ be a non-empty closed convex set and $\mathbb{I}<em>C$ denote its associated indicator function; i.e.,<br>$$<br>\mathbb{I}<em>C (x) &#x3D; \left{<br>\begin{aligned}<br>&amp;0&amp; \ \ \ \ \ \ \    if \ x\in C,\<br>&amp;+\infty&amp; \ \ \ \ \ \ otherwise.<br>\end{aligned}<br>\right.<br>$$<br>(a) Argue directly using the definition of the subdifferential that for any $x\in C$,<br>$$<br>\partial \mathbb{I}<em>C(x) &#x3D; {s\in \mathbb{R}^n: s^T (y-x) \leq 0\ \text{for all} \ y\in C}.<br>$$<br>(b)Using the result in (a), show that for any $x\in \mathbb{R}</em>{+}^n$，<br>$$<br>\partial \mathbb{I}</em>{\mathbb{R}</em>{+}^n} &#x3D; {s\in \mathbb{R}^n:\ s\leq 0,\  x^Ts &#x3D; 0}<br>$$<br><strong>Solution</strong>:</p>
+<p>(a)<br>$$<br>\<br>\text{考虑}s\in \mathbb{R}^n，对于任意的x_0\in C，x\in C<br>\<br>\mathbb{I}<em>C(x) \geq f(x_0)+s^T(x-x_0)<br>\<br>s^T(x-x_0)+0\leq 0<br>\<br>故\partial \mathbb{I}<em>C(x) &#x3D; {s\in \mathbb{R}^n: s^T (y-x) \leq 0\ \text{for all} \ y\in C}.<br>$$<br>(b)<br>$$<br>根据(a)中的结论，我们有：<br>\<br>\partial\mathbb{I}</em>{\mathbb{R}</em>{+}^n} &#x3D; {s\in \mathbb{R}^n:\ s^T(y-x)\leq 0 \ \text{for all} \ y\in \mathbb{R}<em>+^n}<br>\<br>于是s^Ty\leq s^T x \ \text{for all }y\in\mathbb{R}</em>+^n<br>\<br>于是s^Tx &#x3D; 0, \ s^T y \leq 0<br>\<br>由于y\in\mathbb{R}<em>+^n, s\leq0<br>\<br>故<br>\partial \mathbb{I}</em>{\mathbb{R}_{+}^n} &#x3D; {s\in \mathbb{R}^n:\ s\leq 0,\  x^Ts &#x3D; 0}<br>$$</p>
+<h1 id="Problem-2"><a href="#Problem-2" class="headerlink" title="Problem 2"></a>Problem 2</h1><p>Let $f: \mathbb{R}^2 \to \mathbb{R} \cup {+\infty}$ be the function given by<br>$$<br>f(x_1, x_2) &#x3D; \begin{cases} 0, &amp; \text{当 } | (x_1, x_2) |_2 &lt; 1, \ \in [0, +\infty), &amp; \text{当 } | (x_1, x_2) |_2 &#x3D; 1, \ +\infty, &amp; \text{当 } | (x_1, x_2) |_2 &gt; 1. \end{cases}<br>$$<br>Show that $f$ is convex.</p>
+<p><strong>Solution</strong>:<br>$$<br>考虑两个点M,N\in\mathbb{R}^2，其中||M||_2\leq ||N||_2<br>\<br>考虑任意的\alpha,\beta \geq 0<br>那么有如下几种情况：<br>\</p>
+<ol>
+<li>||M||_2\leq ||N||_2 \leq 1<br>\<br>此时||\alpha M + \beta N||_2\leq 1<br>\<br>\alpha f(M)+ \beta f(N) \geq f(\alpha M + \beta N)<br>\</li>
+<li>||M||_2 \leq 1\leq ||N||_2<br>\<br>此时f(\alpha M + \beta N) \leq +\infty &#x3D; \alpha f(M) + \beta f(N)<br>\</li>
+<li>1\leq ||M||_2 \leq ||N||_2<br>\<br>此时f(\alpha M + \beta N) \leq (\alpha + \beta )\infty\leq\alpha f(M) + \beta f(N)<br>$$</li>
+</ol>
+<h1 id="Problem-3"><a href="#Problem-3" class="headerlink" title="Problem 3"></a>Problem 3</h1><p>Let $A \in \mathbb{R}^{m \times n} $ be given. Show that exactly one system in each of the following pairs has a solution. </p>
+<p>(a)</p>
+<p>$\text{(I)} \quad A x &lt; 0, \quad x \geq 0 $</p>
+<p>$ \text{(II)} \quad A^T y \geq 0, \quad y \geq 0, \quad y \neq 0 $</p>
+<p> (b) </p>
+<p>$ \text{(I)} \quad A x \geq 0, \quad A x \neq 0 $</p>
+<p>$ \text{(II)} \quad A^T y &#x3D; 0, \quad y &gt; 0 $</p>
+<p><strong>Solution</strong>:</p>
+<p>(a)<br>$$<br>假设(I)和(II)都有解\bar{x}和\bar{y}<br>\<br>那么我们可以知道A^T\bar{y}\geq 0<br>\<br>于是\bar{y}^TA \geq 0<br>\<br>所以\bar{y}^TA\bar{x}\geq0<br>\<br>又A\bar{x}&lt; 0<br>\<br>所以\bar{y}^TA\bar{x}&lt;0<br>\矛盾，故(I)和(II)不可能同时成立<br>\<br>考虑Ax &lt; 0,\ x\geq0<br>\<br>(I’)Ax + s &#x3D; c, 其中x,\ s\geq 0,\ c &lt; 0<br>\<br>若(I’)不成立，根据Farkas引理有：<br>\<br>A^Tw\leq 0, \ bw&gt;0,\ 其中b\in \mathbb{R}^n,\ w \leq 0<br>\<br>那么取b  &#x3D; -e^T,\ y &#x3D; -w<br>\<br>有A^Ty \geq0, y&gt;0 成立<br>$$<br>(b)<br>$$<br>考虑(I’):  (-Ax) \leq 0,\ e^TAx  &gt;0\<br>假设(I’)没有解，根据Farkas引理：\<br>(II’):\ -A^Tw &#x3D; e^TA ,\ w\geq 0有解\<br>于是 (w+e^T)A&#x3D;0\<br>令y&#x3D; w+e^T即证明完毕<br>$$</p>
+<h1 id="Problem-4"><a href="#Problem-4" class="headerlink" title="Problem 4"></a>Problem 4</h1><p>令 $A \in \mathbb{R}^{m \times n} $且 $b \in \mathbb{R}^m_+$ 已知，考虑以下线性系统：<br>$$<br>Ax &#x3D; b, \quad x \geq 0 \tag{1}<br>$$<br>以及相关的线性规划问题（LP）：<br>$$<br>\text{minimize } e^T y\<br>\text{subject to } Ax + Iy &#x3D; b, \quad x \geq 0, , y \geq 0 \tag{2}<br>$$<br>其中，$e &#x3D; (1, \dots, 1) \in \mathbb{R}^m$ 是一个全为 1 的向量，$I$ 是$m \times m$ 的单位矩阵。这个线性规划问题 (2) 通常称为 Phase One Problem。</p>
+<p>(a) 写出问题 (2) 的对偶问题。</p>
+<p>(b) 证明问题 (2) 总有最优解。</p>
+<p>(c) 证明系统 (1) 有解，当且仅当问题 (2) 的最优值为零。</p>
+<p><strong>Solution:</strong></p>
+<p>(a)<br>$$<br>\text{maxmize } e^Ty\<br>\text{subject to }Ax + Iy &gt; b,\ x \geq 0, \ y\geq 0<br>$$</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/01/05/%E5%87%B8%E4%BC%98%E5%8C%96%E6%9C%9F%E6%9C%AB%E5%A4%8D%E4%B9%A0%E7%BB%83%E4%B9%A0%E9%A2%98/" data-id="cuidgxZ3kL5lUHoUcWW1631Um" data-title="凸优化期末复习练习题" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2025/01/07/2025-1-7%E6%97%A5%E5%BF%97/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          2025.1.7日志
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2025/01/05/2025-1-5%E6%97%A5%E5%BF%97/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">2025.1.5日志</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">-Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algorithms/">Algorithms</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Article-Reading/">Article Reading</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DL-CO/">DL&CO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Memories/">Memories</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Notes/">Notes</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Research/">Research</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Research/Tor/">Tor</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/">Tor</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/Research/">Research</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/View/">View</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/View/Logs/">Logs</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/physics/">physics</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/">凸优化</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Private/" rel="tag">Private</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Private/" style="font-size: 10px;">Private</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/03/">March 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/01/">January 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/12/">December 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/11/">November 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/10/">October 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/09/">September 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/08/">August 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/07/">July 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">June 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">April 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/02/">February 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/01/">January 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/03/05/2026-03-05-%E7%BB%84%E4%BC%9A/">2026-03-05 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/03/03/2025-7-19%E6%97%A5%E5%BF%97/">2025-7-19日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/27/2026-2-27%E6%97%A5%E5%BF%97/">2026-2-27日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/12/2.12%20%E7%BB%84%E4%BC%9A/">2026-02-12 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/">2026-02-05 组会</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

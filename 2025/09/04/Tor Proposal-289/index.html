@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Authenticating sendme cells to mitigate bandwidth attacks | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Tor 中的 SENDME 机制详解（基于 Proposal 289 与源码实现）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Authenticating sendme cells to mitigate bandwidth attacks">
+<meta property="og:url" content="http://example.com/2025/09/04/Tor%20Proposal-289/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Tor 中的 SENDME 机制详解（基于 Proposal 289 与源码实现）">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-09-03T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-01-01T18:34:46.000Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Tor Proposal-289" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/09/04/Tor%20Proposal-289/" class="article-date">
+  <time class="dt-published" datetime="2025-09-03T16:00:00.000Z" itemprop="datePublished">2025-09-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Research/">Research</a>►<a class="article-category-link" href="/categories/Research/Tor/">Tor</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Authenticating sendme cells to mitigate bandwidth attacks
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Tor-中的-SENDME-机制详解（基于-Proposal-289-与源码实现）"><a href="#Tor-中的-SENDME-机制详解（基于-Proposal-289-与源码实现）" class="headerlink" title="Tor 中的 SENDME 机制详解（基于 Proposal 289 与源码实现）"></a>Tor 中的 SENDME 机制详解（基于 Proposal 289 与源码实现）</h1><span id="more"></span>
+
+
+<hr>
+<h2 id="背景与动机"><a href="#背景与动机" class="headerlink" title="背景与动机"></a>背景与动机</h2><p>Tor 使用 <strong>窗口流控 (window-based flow control)</strong> 防止一端无限推送数据：</p>
+<ul>
+<li><p>发送端维护 <code>package_window</code>（还能发多少 DATA）。</p>
+</li>
+<li><p>接收端维护 <code>deliver_window</code>（还能收多少 DATA）。</p>
+</li>
+<li><p>当接收端 <code>deliver_window</code> 降到阈值，就向对端发送 <strong>电路级 SENDME</strong>，对端据此为自己的 <code>package_window</code> <strong>补窗</strong>。</p>
+</li>
+</ul>
+<p>为防<strong>伪造&#x2F;提前&#x2F;重复</strong> SENDME，Tor 在 <strong>Proposal 289 – Authenticated SENDMEs</strong> 中引入 <strong>v1 SENDME</strong>：在 SENDME 里携带 <strong>摘要 (digest)</strong>，该摘要与“刚好位于 SENDME 边界的那一格 DATA cell 的加&#x2F;解密状态”绑定，只有真正见过该 DATA 的一方才能给出正确摘要。</p>
+<p><strong>参考规范：</strong></p>
+<ul>
+<li><p>torspec proposals：<code>proposals/289-authenticated-sendmes.txt</code></p>
+</li>
+<li><p>tor-spec：<code>tor-spec.txt</code> 的 Flow control &amp; SENDME 部分</p>
+</li>
+</ul>
+<blockquote>
+<p>要点：<strong>只有在“边界点（每 inc 个数据）”</strong> 才会记录&#x2F;期待摘要。提前发的 SENDME 在对端 <strong>没有可匹配摘要</strong> → 校验失败 → 关路。</p>
+</blockquote>
+<hr>
+<h2 id="端到端流程（按方向拆解）"><a href="#端到端流程（按方向拆解）" class="headerlink" title="端到端流程（按方向拆解）"></a>端到端流程（按方向拆解）</h2><h3 id="A-端（接收-DATA-→-可能发送电路级-SENDME）"><a href="#A-端（接收-DATA-→-可能发送电路级-SENDME）" class="headerlink" title="A 端（接收 DATA → 可能发送电路级 SENDME）"></a>A 端（接收 DATA → 可能发送电路级 SENDME）</h3><ol>
+<li><p><strong>收到 DATA、递减窗口</strong><br> <code>sendme_circuit_data_received(circ, layer_hint)</code> 负责将 <code>deliver_window</code> –，并记录日志。</p>
+</li>
+<li><p><strong>判断是否该发电路级 SENDME</strong><br> <code>sendme_circuit_consider_sending(circ, layer_hint)</code>：当 <code>deliver_window &lt;= CIRCWINDOW_START - sendme_inc</code> 时，进入发送分支；当前实现还包含“不得一次性连续发多个 SENDME”的保护（否则摘要会复用，导致对端不匹配）。</p>
+</li>
+<li><p><strong>构造并发送 SENDME（含摘要）</strong><br> <code>send_circuit_level_sendme(circ, layer_hint, digest)</code>：</p>
+<ul>
+<li><p>选择发送版本：<code>get_emit_min_version()</code>；</p>
+</li>
+<li><p>v1：<code>build_cell_payload_v1(cell_digest, payload)</code> 将摘要写入 payload；</p>
+</li>
+<li><p>通过 <code>relay_send_command_from_edge(...)</code> 发出 <code>RELAY_COMMAND_SENDME</code>。</p>
+</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>A 端需要先从电路密码状态取到 <strong>摘要</strong>：</p>
+<ul>
+<li><p>客户端（有 <code>layer_hint</code>）：<code>cpath_get_sendme_digest(layer_hint)</code></p>
+</li>
+<li><p>其他场景（无 <code>layer_hint</code>）：<code>relay_crypto_get_sendme_digest(&amp;TO_OR_CIRCUIT(circ)-&gt;crypto)</code></p>
+</li>
+</ul>
+</blockquote>
+<hr>
+<h3 id="B-端（发送-DATA-→-记录摘要-→-接收-校验-A-的-SENDME）"><a href="#B-端（发送-DATA-→-记录摘要-→-接收-校验-A-的-SENDME）" class="headerlink" title="B 端（发送 DATA → 记录摘要 → 接收&#x2F;校验 A 的 SENDME）"></a>B 端（发送 DATA → 记录摘要 → 接收&#x2F;校验 A 的 SENDME）</h3><ol>
+<li><p><strong>发送 DATA 时记录“边界摘要”</strong><br> 只有当“下一步预计会收到 SENDME”（即到达 inc 边界）才记录：</p>
+<ul>
+<li><p>加密后发送：<code>sendme_record_sending_cell_digest(circ, cpath)</code></p>
+</li>
+<li><p>统一入口：<code>sendme_record_cell_digest_on_circ(circ, cpath)</code></p>
+</li>
+</ul>
+<p> 内部逻辑：</p>
+<ul>
+<li><p><code>circuit_sent_cell_for_sendme(circ, cpath)</code> → 判断是否到达 SENDME 边界；</p>
+</li>
+<li><p>若到达，取摘要：</p>
+<ul>
+<li><p>有 <code>cpath</code>：<code>cpath_sendme_record_cell_digest(cpath, true/false)</code></p>
+</li>
+<li><p>无 <code>cpath</code>：<code>relay_crypto_record_sendme_digest(&amp;TO_OR_CIRCUIT(circ)-&gt;crypto, dir)</code></p>
+</li>
+</ul>
+</li>
+<li><p>通过 <code>record_cell_digest_on_circ(circ, digest)</code> 将 <strong>摘要 push 到</strong> <code>**circ-&gt;sendme_last_digests**</code>（FIFO）。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>收到 A 的电路级 SENDME</strong><br> 入口：<code>sendme_process_circuit_level(layer_hint, circ, payload, len)</code>：</p>
+<ul>
+<li><p>第一步 <strong>校验</strong>：<code>sendme_is_valid(circ, payload, len)</code>；</p>
+</li>
+<li><p>通过后：</p>
+<ul>
+<li><p>固定窗口算法：<code>sendme_process_circuit_level_impl(layer_hint, circ)</code> → <code>**package_window += CIRCWINDOW_INCREMENT**</code>；</p>
+</li>
+<li><p>或拥塞控制：<code>congestion_control_dispatch_cc_alg(cc, circ)</code>；</p>
+</li>
+</ul>
+</li>
+<li><p>成功后通常会触发 <strong>恢复读取</strong>：<code>circuit_resume_edge_reading(circ, layer_hint)</code>（允许继续从应用读数据、打包为 DATA）。</p>
+</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="校验原理与“提前-SENDME”失败路径"><a href="#校验原理与“提前-SENDME”失败路径" class="headerlink" title="校验原理与“提前 SENDME”失败路径"></a>校验原理与“提前 SENDME”失败路径</h2><h3 id="摘要如何形成"><a href="#摘要如何形成" class="headerlink" title="摘要如何形成"></a>摘要如何形成</h3><ul>
+<li><p>摘要来源于<strong>电路的滚动加&#x2F;解密状态</strong>：</p>
+<ul>
+<li><p><code>cpath_sendme_record_cell_digest(cpath, dir)</code></p>
+</li>
+<li><p><code>relay_crypto_record_sendme_digest(&amp;TO_OR_CIRCUIT(circ)-&gt;crypto, dir)</code></p>
+</li>
+</ul>
+</li>
+<li><p><strong>只在边界</strong>（预计下一个 cell 是 SENDME）时记录；</p>
+</li>
+<li><p>存入 <code>circ-&gt;sendme_last_digests</code>（FIFO）。</p>
+</li>
+</ul>
+<h3 id="发送端-B-的校验（收到-SENDME-时）"><a href="#发送端-B-的校验（收到-SENDME-时）" class="headerlink" title="发送端 B 的校验（收到 SENDME 时）"></a>发送端 B 的校验（收到 SENDME 时）</h3><p><code>sendme_is_valid(circ, cell_payload, cell_payload_len)</code>：</p>
+<ol>
+<li><p><strong>解析版本</strong>：payload 为空→v0；否则走 trunnel 解析得出版本（v1 有摘要）。</p>
+</li>
+<li><p><strong>弹出期望摘要</strong>：<code>circ_digest = pop_first_cell_digest(circ)</code></p>
+<ul>
+<li>若返回 <code>NULL</code>：说明 <strong>B 端并未到达边界、尚未入队摘要</strong> ⇒ <strong>提前&#x2F;伪造</strong> SENDME ⇒ <strong>判定非法</strong>，返回 false；</li>
+</ul>
+</li>
+<li><p><strong>v1 比对摘要</strong>：<code>cell_v1_is_valid(cell, circ_digest)</code> → <code>v1_digest_matches(circ_digest, cell_digest)</code> 做字节级比较；不等即非法；</p>
+</li>
+<li><p><strong>通过</strong>：返回 true。</p>
+</li>
+</ol>
+<p><code>sendme_process_circuit_level(...)</code> 在 <code>sendme_is_valid(...)</code> 为 <strong>false</strong> 时返回 <code>-END_CIRC_REASON_TORPROTOCOL</code>，上层据此关闭电路。</p>
+<blockquote>
+<p><strong>结论</strong>：A 端“提前发” SENDME 时，B 端大概率 <strong>没有入队摘要</strong>，<code>pop_first_cell_digest()</code> 拿到 <code>NULL</code>，校验失败 → 关路。即使 B 端恰好有摘要，若 A 端重复&#x2F;错位地使用摘要，也会在 <code>v1_digest_matches()</code> 处失败。</p>
+</blockquote>
+<hr>
+<h2 id="关键函数索引与注释（按功能分组）"><a href="#关键函数索引与注释（按功能分组）" class="headerlink" title="关键函数索引与注释（按功能分组）"></a>关键函数索引与注释（按功能分组）</h2><h3 id="A-端：接收-DATA-→-考虑发送-SENDME"><a href="#A-端：接收-DATA-→-考虑发送-SENDME" class="headerlink" title="A 端：接收 DATA → 考虑发送 SENDME"></a>A 端：接收 DATA → 考虑发送 SENDME</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">int sendme_circuit_data_received(circuit_t *circ, crypt_path_t *layer_hint);</span><br><span class="line">void sendme_circuit_consider_sending(circuit_t *circ, crypt_path_t *layer_hint);</span><br><span class="line">static int send_circuit_level_sendme(circuit_t *circ, crypt_path_t *layer_hint,</span><br><span class="line">                                     const uint8_t *cell_digest);</span><br><span class="line">STATIC ssize_t build_cell_payload_v1(const uint8_t *cell_digest, uint8_t *payload);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>sendme_circuit_data_received</code>：<code>deliver_window--</code>，到阈值触发后续。</p>
+</li>
+<li><p><code>sendme_circuit_consider_sending</code>：边界判断、回填 <code>deliver_window</code>、取 digest、发 SENDME；并保护“不要一次性多发”。</p>
+</li>
+<li><p><code>send_circuit_level_sendme</code>：决定 v0&#x2F;v1，构 payload 并经 <code>relay_send_command_from_edge</code> 发送。</p>
+</li>
+</ul>
+<h3 id="B-端：发送-DATA-→-记录摘要（边界时）"><a href="#B-端：发送-DATA-→-记录摘要（边界时）" class="headerlink" title="B 端：发送 DATA → 记录摘要（边界时）"></a>B 端：发送 DATA → 记录摘要（边界时）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">void sendme_record_cell_digest_on_circ(circuit_t *circ, crypt_path_t *cpath);</span><br><span class="line">void sendme_record_sending_cell_digest(circuit_t *circ, crypt_path_t *cpath);</span><br><span class="line">STATIC bool circuit_sendme_cell_is_next(int deliver_window, int sendme_inc);</span><br><span class="line">static void record_cell_digest_on_circ(circuit_t *circ, const uint8_t *digest);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>sendme_record_sending_cell_digest</code>&#x2F;<code>sendme_record_cell_digest_on_circ</code>：到边界才入队摘要。</p>
+</li>
+<li><p><code>circuit_sendme_cell_is_next</code>：根据窗口 + <code>inc</code> 判“下一格是否 SENDME”。</p>
+</li>
+</ul>
+<h3 id="B-端：接收-校验-SENDME-→-回填窗口"><a href="#B-端：接收-校验-SENDME-→-回填窗口" class="headerlink" title="B 端：接收&#x2F;校验 SENDME → 回填窗口"></a>B 端：接收&#x2F;校验 SENDME → 回填窗口</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">int sendme_process_circuit_level(crypt_path_t *layer_hint, circuit_t *circ,</span><br><span class="line">                                 const uint8_t *cell_payload, uint16_t len);</span><br><span class="line">STATIC bool sendme_is_valid(const circuit_t *circ,</span><br><span class="line">                            const uint8_t *cell_payload, size_t len);</span><br><span class="line">static uint8_t *pop_first_cell_digest(const circuit_t *circ);</span><br><span class="line">static bool cell_v1_is_valid(const sendme_cell_t *cell,</span><br><span class="line">                             const uint8_t *circ_digest);</span><br><span class="line">static bool v1_digest_matches(const uint8_t *circ_digest,</span><br><span class="line">                              const uint8_t *cell_digest);</span><br><span class="line">int sendme_process_circuit_level_impl(crypt_path_t *layer_hint, circuit_t *circ);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>sendme_is_valid</code>：<strong>核心校验</strong>，包括版本检查、弹出队首摘要、（v1）摘要比对。失败返回 false。</p>
+</li>
+<li><p><code>sendme_process_circuit_level</code>：校验失败则返回 <code>-END_CIRC_REASON_TORPROTOCOL</code>；成功则固定窗口或拥塞控制回填。</p>
+</li>
+<li><p><code>sendme_process_circuit_level_impl</code>：固定窗口算法中 <code>package_window += CIRCWINDOW_INCREMENT</code>，并做上界保护。</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/04/Tor%20Proposal-289/" data-id="cuidxlrAim1kvioiTap6VU4Cy" data-title="Authenticating sendme cells to mitigate bandwidth attacks" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2025/09/24/Tor%20Relay-Padding%E6%9C%BA%E5%88%B6%E7%A0%94%E7%A9%B6/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Tor Relay-Padding 机制研究
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2025/08/23/HK%20%E6%B8%B8%E8%AE%B0/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">HK游记</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">-Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algorithms/">Algorithms</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Article-Reading/">Article Reading</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DL-CO/">DL&CO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Memories/">Memories</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Notes/">Notes</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Research/">Research</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Research/Tor/">Tor</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/">Tor</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/Research/">Research</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/View/">View</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/View/Logs/">Logs</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/physics/">physics</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/">凸优化</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Private/" rel="tag">Private</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Private/" style="font-size: 10px;">Private</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/03/">March 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/01/">January 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/12/">December 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/11/">November 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/10/">October 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/09/">September 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/08/">August 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/07/">July 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">June 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">April 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/02/">February 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/01/">January 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/03/05/2026-03-05-%E7%BB%84%E4%BC%9A/">2026-03-05 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/03/03/2025-7-19%E6%97%A5%E5%BF%97/">2025-7-19日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/27/2026-2-27%E6%97%A5%E5%BF%97/">2026-2-27日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/12/2.12%20%E7%BB%84%E4%BC%9A/">2026-02-12 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/">2026-02-05 组会</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

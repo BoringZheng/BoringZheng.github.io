@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>2026-02-12 组会 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="2.12 组会1. 研究问题与设计目标1.1 研究问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2026-02-12 组会">
+<meta property="og:url" content="http://example.com/2026/02/12/2.12%20%E7%BB%84%E4%BC%9A/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="2.12 组会1. 研究问题与设计目标1.1 研究问题">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-02-12T03:25:42.000Z">
+<meta property="article:modified_time" content="2026-03-03T07:00:09.956Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-2.12 组会" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/02/12/2.12%20%E7%BB%84%E4%BC%9A/" class="article-date">
+  <time class="dt-published" datetime="2026-02-12T03:25:42.000Z" itemprop="datePublished">2026-02-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Research/">Research</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      2026-02-12 组会
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="2-12-组会"><a href="#2-12-组会" class="headerlink" title="2.12 组会"></a>2.12 组会</h1><h2 id="1-研究问题与设计目标"><a href="#1-研究问题与设计目标" class="headerlink" title="1. 研究问题与设计目标"></a>1. 研究问题与设计目标</h2><h3 id="1-1-研究问题"><a href="#1-1-研究问题" class="headerlink" title="1.1 研究问题"></a>1.1 研究问题</h3><span id="more"></span>
+
+<p>Tor 的 stream-level 流控里，client 会基于“自身接收侧排队&#x2F;排空能力”给对端一个速率信号（XON&#x2F;XOFF）。</p>
+<p>但原始实现中，XON 的 <code>kbps_ewma</code> 来自 client 的测量值（<code>ewma_drain_rate</code>），实验者很难在不破坏协议语义的情况下构造“可控”的速率建议序列。</p>
+<p>因此我们的问题是：</p>
+<h3 id="1-2-设计目标"><a href="#1-2-设计目标" class="headerlink" title="1.2 设计目标"></a>1.2 设计目标</h3><ul>
+<li><strong>可控</strong>：支持固定速率、上限、比例缩放、方波（high&#x2F;low）、强制 XOFF</li>
+<li><strong>热更新</strong>：无需重启，通过配置文件更新控制参数</li>
+<li><strong>低侵入</strong>：修改集中在 client 的 flow control 发送路径</li>
+<li><strong>可复现</strong>：现象稳定，对应清晰的触发条件</li>
+</ul>
+<hr>
+<h2 id="2-背景机制：Tor-的-stream-level-流控"><a href="#2-背景机制：Tor-的-stream-level-流控" class="headerlink" title="2. 背景机制：Tor 的 stream-level 流控"></a>2. 背景机制：Tor 的 stream-level 流控</h2><h3 id="2-1-stream-level（而不是circuit-level）"><a href="#2-1-stream-level（而不是circuit-level）" class="headerlink" title="2.1 stream-level（而不是circuit-level）"></a>2.1 stream-level（而不是circuit-level）</h3><p>Tor 的数据传输最终落在 TCP socket 上。对应用而言，关键瓶颈是 client 侧 socket 写出能力与缓冲排队。</p>
+<ul>
+<li><strong>outbuf 堆积</strong>：表示应用侧写不动，或网络回压导致排队</li>
+<li><strong>outbuf 排空</strong>：表示 client 能把数据持续写入 socket</li>
+</ul>
+<p>因此在 stream 层做反馈，有两个直接优点：</p>
+<ol>
+<li>反馈与“真实接收能力”绑定（排队&#x2F;排空）</li>
+<li>相对来说约束比较Hard，可能没办法调很高但是一定可以很低</li>
+</ol>
+<h3 id="2-2-XOFF-与-XON-的语义"><a href="#2-2-XOFF-与-XON-的语义" class="headerlink" title="2.2 XOFF 与 XON 的语义"></a>2.2 XOFF 与 XON 的语义</h3><ul>
+<li><strong>XOFF</strong>：硬回压信号。接收方明确表示“现在别再推数据了”。</li>
+<li><strong>XON(kbps_ewma)</strong>：软速率建议。接收方告诉发送方“我能稳定排空的速率大约是 X kbps”。</li>
+</ul>
+<h3 id="2-3-为什么-Exit-收到-XON-会对应调整速率（机制解释）"><a href="#2-3-为什么-Exit-收到-XON-会对应调整速率（机制解释）" class="headerlink" title="2.3 为什么 Exit 收到 XON 会对应调整速率（机制解释）"></a>2.3 为什么 Exit 收到 XON 会对应调整速率（机制解释）</h3><p>在发送端（exit 方向），“发送速率”受两类因素共同约束：</p>
+<ol>
+<li><strong>流控窗口&#x2F;在途量（inflight）约束（Circuit 级别）</strong>：发送端通常不会无限制地把数据推入网络，会受控于某种 inflight 上限或 pacing 预算。</li>
+<li><strong>接收端反馈（XON&#x2F;XOFF）（Stream 级别）</strong>：XOFF 会直接抑制发送；XON 提供一个速率目标，使发送端把 pacing 目标向该速率收敛。</li>
+</ol>
+<p>直观类比：</p>
+<ul>
+<li>XOFF 类似“红灯”，直接停。</li>
+<li>XON(kbps) 类似“限速牌”，告诉你目标速度是多少。</li>
+</ul>
+<p>因此，当 exit 收到新的 XON 建议值时：</p>
+<ul>
+<li>其 pacing 目标会更新</li>
+<li>bucket&#x2F;预算的补充速率会随之变化</li>
+<li>最终表现为：</li>
+</ul>
+<blockquote>
+<p>实际吞吐随 advertised_kbps（你广播的 kbps_ewma）发生可观测的响应。</p>
+</blockquote>
+<hr>
+<h2 id="3-实现：用“advertised-kbps”替换“纯测量-kbps”"><a href="#3-实现：用“advertised-kbps”替换“纯测量-kbps”" class="headerlink" title="3. 实现：用“advertised_kbps”替换“纯测量 kbps”"></a>3. 实现：用“advertised_kbps”替换“纯测量 kbps”</h2><h3 id="3-1-Block-A：头部与实验标记（L33–L38）"><a href="#3-1-Block-A：头部与实验标记（L33–L38）" class="headerlink" title="3.1 Block A：头部与实验标记（L33–L38）"></a>3.1 Block A：头部与实验标记（L33–L38）</h3><p>引入头文件：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ctype.h&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<hr>
+<h3 id="3-2-Block-B：Client-only-FlowCtl-knobs（L54–L273）"><a href="#3-2-Block-B：Client-only-FlowCtl-knobs（L54–L273）" class="headerlink" title="3.2 Block B：Client-only FlowCtl knobs（L54–L273）"></a>3.2 Block B：Client-only FlowCtl knobs（L54–L273）</h3><p>这是本次工作的“控制面”。核心贡献是：</p>
+<ol>
+<li><strong>配置系统</strong>：从文件读取 mode 与参数</li>
+<li><strong>热更新</strong>：mtime 检测 + reload</li>
+<li><strong>模式集合</strong>：off&#x2F;fixed&#x2F;cap&#x2F;scale&#x2F;square&#x2F;xoff</li>
+<li><strong>速率计算函数</strong>：<code>flowctl_compute_advertised_kbps(measured)</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* ===================== Client-only FlowCtl knobs ===================== */</span></span><br><span class="line"><span class="comment">/* A tiny runtime knob system (file-based) to rewrite XON kbps on CLIENT.</span></span><br><span class="line"><span class="comment"> * Exit side does not change; it already consumes XON kbps and adjusts bucket.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> &#123;</span></span><br><span class="line">  FLOWCTL_MODE_OFF = <span class="number">0</span>,</span><br><span class="line">  FLOWCTL_MODE_FIXED,</span><br><span class="line">  FLOWCTL_MODE_CAP,</span><br><span class="line">  FLOWCTL_MODE_SCALE,</span><br><span class="line">  FLOWCTL_MODE_SQUARE,</span><br><span class="line">  FLOWCTL_MODE_XOFF,</span><br><span class="line">&#125; <span class="type">flowctl_mode_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">flowctl_cfg_t</span> &#123;</span></span><br><span class="line">  <span class="type">flowctl_mode_t</span> mode;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* fixed */</span></span><br><span class="line">  <span class="type">uint32_t</span> target_kbps;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* cap */</span></span><br><span class="line">  <span class="type">uint32_t</span> cap_kbps;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* scale: permille, 1000 = 1.0x */</span></span><br><span class="line">  <span class="type">uint32_t</span> scale_permille;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* square wave */</span></span><br><span class="line">  <span class="type">uint32_t</span> high_kbps;</span><br><span class="line">  <span class="type">uint32_t</span> low_kbps;</span><br><span class="line">  <span class="type">uint32_t</span> period_ms;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* logging */</span></span><br><span class="line">  <span class="type">int</span> log_on;</span><br><span class="line">&#125; <span class="type">flowctl_cfg_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">flowctl_cfg_t</span> flowctl_cfg = &#123;</span><br><span class="line">  .mode = FLOWCTL_MODE_OFF,</span><br><span class="line">  .target_kbps = <span class="number">0</span>,</span><br><span class="line">  .cap_kbps = <span class="number">0</span>,</span><br><span class="line">  .scale_permille = <span class="number">1000</span>,</span><br><span class="line">  .high_kbps = <span class="number">0</span>,</span><br><span class="line">  .low_kbps = <span class="number">0</span>,</span><br><span class="line">  .period_ms = <span class="number">2000</span>,</span><br><span class="line">  .log_on = <span class="number">1</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">uint64_t</span> flowctl_epoch = <span class="number">1</span>;           <span class="comment">/* bump on cfg reload */</span></span><br><span class="line"><span class="type">static</span> <span class="type">time_t</span> flowctl_cfg_mtime = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">const</span> <span class="type">char</span> *</span><br><span class="line"><span class="title function_">flowctl_cfg_path</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">char</span> *p = getenv(<span class="string">&quot;TOR_FLOWCTL_FILE&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> (p &amp;&amp; p[<span class="number">0</span>]) ? p : <span class="string">&quot;/tmp/tor-flowctl.conf&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span></span><br><span class="line"><span class="title function_">flowctl_strstrip_inplace</span><span class="params">(<span class="type">char</span> *s)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (!s) <span class="keyword">return</span>;</span><br><span class="line">  <span class="comment">/* lstrip */</span></span><br><span class="line">  <span class="keyword">while</span> (*s &amp;&amp; <span class="built_in">isspace</span>((<span class="type">unsigned</span> <span class="type">char</span>)*s)) &#123;</span><br><span class="line">    memmove(s, s+<span class="number">1</span>, <span class="built_in">strlen</span>(s));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/* rstrip */</span></span><br><span class="line">  <span class="type">size_t</span> n = <span class="built_in">strlen</span>(s);</span><br><span class="line">  <span class="keyword">while</span> (n &gt; <span class="number">0</span> &amp;&amp; <span class="built_in">isspace</span>((<span class="type">unsigned</span> <span class="type">char</span>)s[n<span class="number">-1</span>])) &#123;</span><br><span class="line">    s[n<span class="number">-1</span>] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">    n--;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">flowctl_mode_t</span></span><br><span class="line"><span class="title function_">flowctl_parse_mode</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *v)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (!v) <span class="keyword">return</span> FLOWCTL_MODE_OFF;</span><br><span class="line">  <span class="keyword">if</span> (!strcasecmp(v, <span class="string">&quot;off&quot;</span>)) <span class="keyword">return</span> FLOWCTL_MODE_OFF;</span><br><span class="line">  <span class="keyword">if</span> (!strcasecmp(v, <span class="string">&quot;fixed&quot;</span>)) <span class="keyword">return</span> FLOWCTL_MODE_FIXED;</span><br><span class="line">  <span class="keyword">if</span> (!strcasecmp(v, <span class="string">&quot;cap&quot;</span>)) <span class="keyword">return</span> FLOWCTL_MODE_CAP;</span><br><span class="line">  <span class="keyword">if</span> (!strcasecmp(v, <span class="string">&quot;scale&quot;</span>)) <span class="keyword">return</span> FLOWCTL_MODE_SCALE;</span><br><span class="line">  <span class="keyword">if</span> (!strcasecmp(v, <span class="string">&quot;square&quot;</span>)) <span class="keyword">return</span> FLOWCTL_MODE_SQUARE;</span><br><span class="line">  <span class="keyword">if</span> (!strcasecmp(v, <span class="string">&quot;xoff&quot;</span>)) <span class="keyword">return</span> FLOWCTL_MODE_XOFF;</span><br><span class="line">  <span class="keyword">return</span> FLOWCTL_MODE_OFF;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* returns 1 if reloaded and epoch bumped */</span></span><br><span class="line"><span class="type">static</span> <span class="type">int</span></span><br><span class="line"><span class="title function_">flowctl_maybe_reload_cfg</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">char</span> *path = flowctl_cfg_path();</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">st</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (stat(path, &amp;st) != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">/* no file =&gt; keep current cfg */</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (st.st_mtime == flowctl_cfg_mtime) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  FILE *fp = fopen(path, <span class="string">&quot;r&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span> (!fp) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="type">flowctl_cfg_t</span> newcfg = flowctl_cfg; <span class="comment">/* start from current */</span></span><br><span class="line">  <span class="type">char</span> line[<span class="number">256</span>];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (fgets(line, <span class="keyword">sizeof</span>(line), fp)) &#123;</span><br><span class="line">    flowctl_strstrip_inplace(line);</span><br><span class="line">    <span class="keyword">if</span> (line[<span class="number">0</span>] == <span class="string">&#x27;\0&#x27;</span> || line[<span class="number">0</span>] == <span class="string">&#x27;#&#x27;</span>)</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> *eq = <span class="built_in">strchr</span>(line, <span class="string">&#x27;=&#x27;</span>);</span><br><span class="line">    <span class="keyword">if</span> (!eq) <span class="keyword">continue</span>;</span><br><span class="line">    *eq = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">    <span class="type">char</span> *k = line;</span><br><span class="line">    <span class="type">char</span> *v = eq + <span class="number">1</span>;</span><br><span class="line">    flowctl_strstrip_inplace(k);</span><br><span class="line">    flowctl_strstrip_inplace(v);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!strcasecmp(k, <span class="string">&quot;mode&quot;</span>)) &#123;</span><br><span class="line">      newcfg.mode = flowctl_parse_mode(v);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!strcasecmp(k, <span class="string">&quot;target_kbps&quot;</span>)) &#123;</span><br><span class="line">      newcfg.target_kbps = (<span class="type">uint32_t</span>)strtoul(v, <span class="literal">NULL</span>, <span class="number">10</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!strcasecmp(k, <span class="string">&quot;cap_kbps&quot;</span>)) &#123;</span><br><span class="line">      newcfg.cap_kbps = (<span class="type">uint32_t</span>)strtoul(v, <span class="literal">NULL</span>, <span class="number">10</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!strcasecmp(k, <span class="string">&quot;scale_permille&quot;</span>)) &#123;</span><br><span class="line">      newcfg.scale_permille = (<span class="type">uint32_t</span>)strtoul(v, <span class="literal">NULL</span>, <span class="number">10</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!strcasecmp(k, <span class="string">&quot;high_kbps&quot;</span>)) &#123;</span><br><span class="line">      newcfg.high_kbps = (<span class="type">uint32_t</span>)strtoul(v, <span class="literal">NULL</span>, <span class="number">10</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!strcasecmp(k, <span class="string">&quot;low_kbps&quot;</span>)) &#123;</span><br><span class="line">      newcfg.low_kbps = (<span class="type">uint32_t</span>)strtoul(v, <span class="literal">NULL</span>, <span class="number">10</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!strcasecmp(k, <span class="string">&quot;period_ms&quot;</span>)) &#123;</span><br><span class="line">      newcfg.period_ms = (<span class="type">uint32_t</span>)strtoul(v, <span class="literal">NULL</span>, <span class="number">10</span>);</span><br><span class="line">      <span class="keyword">if</span> (newcfg.period_ms == <span class="number">0</span>) newcfg.period_ms = <span class="number">2000</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!strcasecmp(k, <span class="string">&quot;log&quot;</span>)) &#123;</span><br><span class="line">      newcfg.log_on = (<span class="type">int</span>)strtol(v, <span class="literal">NULL</span>, <span class="number">10</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  fclose(fp);</span><br><span class="line"></span><br><span class="line">  flowctl_cfg = newcfg;</span><br><span class="line">  flowctl_cfg_mtime = st.st_mtime;</span><br><span class="line">  flowctl_epoch++;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (flowctl_cfg.log_on) &#123;</span><br><span class="line">    log_notice(LD_EDGE,</span><br><span class="line">      <span class="string">&quot;[flowctl] reload: mode=%d target=%u cap=%u scale=%u high=%u low=%u period_ms=%u epoch=%&quot;</span> PRIu64 <span class="string">&quot; file=%s&quot;</span>,</span><br><span class="line">      (<span class="type">int</span>)flowctl_cfg.mode,</span><br><span class="line">      flowctl_cfg.target_kbps,</span><br><span class="line">      flowctl_cfg.cap_kbps,</span><br><span class="line">      flowctl_cfg.scale_permille,</span><br><span class="line">      flowctl_cfg.high_kbps,</span><br><span class="line">      flowctl_cfg.low_kbps,</span><br><span class="line">      flowctl_cfg.period_ms,</span><br><span class="line">      (<span class="type">uint64_t</span>)flowctl_epoch,</span><br><span class="line">      path);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">uint32_t</span></span><br><span class="line"><span class="title function_">flowctl_compute_advertised_kbps</span><span class="params">(<span class="type">uint32_t</span> measured_kbps)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">uint32_t</span> adv = measured_kbps;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">switch</span> (flowctl_cfg.mode) &#123;</span><br><span class="line">    <span class="keyword">case</span> FLOWCTL_MODE_OFF:</span><br><span class="line">      <span class="keyword">return</span> measured_kbps;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> FLOWCTL_MODE_FIXED:</span><br><span class="line">      adv = flowctl_cfg.target_kbps;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> FLOWCTL_MODE_CAP:</span><br><span class="line">      <span class="keyword">if</span> (flowctl_cfg.cap_kbps &gt; <span class="number">0</span>)</span><br><span class="line">        adv = MIN(measured_kbps, flowctl_cfg.cap_kbps);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> FLOWCTL_MODE_SCALE: &#123;</span><br><span class="line">      <span class="type">uint64_t</span> t = (<span class="type">uint64_t</span>)measured_kbps * (<span class="type">uint64_t</span>)flowctl_cfg.scale_permille;</span><br><span class="line">      adv = (<span class="type">uint32_t</span>)MIN((<span class="type">uint64_t</span>)INT32_MAX, (t + <span class="number">500</span>) / <span class="number">1000</span>); <span class="comment">/* rounded */</span></span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> FLOWCTL_MODE_SQUARE: &#123;</span><br><span class="line">      <span class="type">uint64_t</span> now_us = monotime_absolute_usec();</span><br><span class="line">      <span class="type">uint64_t</span> phase = (flowctl_cfg.period_ms ? (<span class="type">uint64_t</span>)flowctl_cfg.period_ms : <span class="number">2000</span>) * <span class="number">1000</span>;</span><br><span class="line">      <span class="type">uint64_t</span> slot = (phase ? (now_us / phase) : <span class="number">0</span>);</span><br><span class="line">      adv = (slot % <span class="number">2</span> == <span class="number">0</span>) ? flowctl_cfg.high_kbps : flowctl_cfg.low_kbps;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> FLOWCTL_MODE_XOFF:</span><br><span class="line">      <span class="comment">/* handled by caller */</span></span><br><span class="line">      adv = measured_kbps;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      adv = measured_kbps;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Never advertise 0 here. In this file, rate==0 may be treated as &quot;no limit&quot;.</span></span><br><span class="line"><span class="comment">   * If you want &quot;pause&quot;, use XOFF mode.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">if</span> (adv == <span class="number">0</span>) adv = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">if</span> (adv &gt; (<span class="type">uint32_t</span>)INT32_MAX) adv = (<span class="type">uint32_t</span>)INT32_MAX;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> adv;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ===================== End Client-only FlowCtl knobs ===================== */</span></span><br></pre></td></tr></table></figure>
+
+
+
+<hr>
+<h3 id="3-3-Block-C：XON-发送路径改写（L448–L470）"><a href="#3-3-Block-C：XON-发送路径改写（L448–L470）" class="headerlink" title="3.3 Block C：XON 发送路径改写（L448–L470）"></a>3.3 Block C：XON 发送路径改写（L448–L470）</h3><p>这一块是“数据面”入口：在 <code>circuit_send_stream_xon()</code>（或等价函数）里做三件事：</p>
+<ol>
+<li><strong>发送前 reload</strong>：保证配置热更新能即时生效</li>
+<li><strong>AP(client) 限定</strong>：只对 client 侧生效，避免影响 relay&#x2F;exit</li>
+<li><strong>payload 改写</strong>：把 <code>xon_cell_set_kbps_ewma()</code> 的输入由 measured 改为 advertised</li>
+</ol>
+<blockquote>
+<p>没有改变 XON 作为反馈信号的协议语义，只是把反馈值从“纯测量”替换为“实验可控的 advertised_kbps”。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* reload knobs (cheap: mtime check) */</span></span><br><span class="line">(<span class="type">void</span>)flowctl_maybe_reload_cfg();</span><br><span class="line"></span><br><span class="line"><span class="comment">/* If we are the CLIENT (AP conn), we may rewrite what we advertise. */</span></span><br><span class="line"><span class="type">uint32_t</span> measured_kbps = stream-&gt;ewma_drain_rate;</span><br><span class="line"><span class="type">uint32_t</span> advertised_kbps = measured_kbps;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (TO_CONN(stream)-&gt;type == CONN_TYPE_AP) &#123;</span><br><span class="line">  <span class="keyword">if</span> (flowctl_cfg.mode == FLOWCTL_MODE_XOFF) &#123;</span><br><span class="line">    <span class="keyword">if</span> (flowctl_cfg.log_on) &#123;</span><br><span class="line">      log_notice(LD_EDGE, <span class="string">&quot;[flowctl] send XOFF (mode=xoff) stream=%p epoch=%&quot;</span> PRIu64,</span><br><span class="line">                 (<span class="type">void</span>*)stream, (<span class="type">uint64_t</span>)flowctl_epoch);</span><br><span class="line">    &#125;</span><br><span class="line">    circuit_send_stream_xoff(stream);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  advertised_kbps = flowctl_compute_advertised_kbps(measured_kbps);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<hr>
+<h3 id="3-4-Block-D：last-sent-语义统一（L485–L488）"><a href="#3-4-Block-D：last-sent-语义统一（L485–L488）" class="headerlink" title="3.4 Block D：last_sent 语义统一（L485–L488）"></a>3.4 Block D：last_sent 语义统一（L485–L488）</h3><p>你把 <code>stream-&gt;ewma_rate_last_sent</code> 的语义改成：</p>
+<ul>
+<li>记录 <strong>上一次发送的 advertised_kbps</strong></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stream-&gt;ewma_rate_last_sent = advertised_kbps;</span><br></pre></td></tr></table></figure>
+
+
+
+<hr>
+<h3 id="3-5-Block-E：xoff-日志-epoch-等增强（L497–L507）"><a href="#3-5-Block-E：xoff-日志-epoch-等增强（L497–L507）" class="headerlink" title="3.5 Block E：xoff &#x2F; 日志 &#x2F; epoch 等增强（L497–L507）"></a>3.5 Block E：xoff &#x2F; 日志 &#x2F; epoch 等增强（L497–L507）</h3><ul>
+<li>mode&#x3D;xoff 时直接发送 XOFF</li>
+<li>额外日志（measured vs advertised）</li>
+<li>epoch 记录（标记本次发送对应哪一版配置）</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">stream-&gt;flowctl_epoch_last_sent = flowctl_epoch;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (flowctl_cfg.log_on &amp;&amp; TO_CONN(stream)-&gt;type == CONN_TYPE_AP) &#123;</span><br><span class="line">  log_notice(LD_EDGE,</span><br><span class="line">    <span class="string">&quot;[flowctl] sent XON stream=%p measured_kbps=%u adv_kbps=%u outbuf=%&quot;</span> TOR_PRIuSZ <span class="string">&quot; epoch=%&quot;</span> PRIu64,</span><br><span class="line">    (<span class="type">void</span>*)stream, measured_kbps, advertised_kbps,</span><br><span class="line">    connection_get_outbuf_len(TO_CONN(stream)),</span><br><span class="line">    (<span class="type">uint64_t</span>)flowctl_epoch);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-6-Block-F：rate-change-判定逻辑支持方波（L823–L850）"><a href="#3-6-Block-F：rate-change-判定逻辑支持方波（L823–L850）" class="headerlink" title="3.6 Block F：rate-change 判定逻辑支持方波（L823–L850）"></a>3.6 Block F：rate-change 判定逻辑支持方波（L823–L850）</h3><ul>
+<li>对 client 且 mode!&#x3D;off：<ul>
+<li>计算 <code>adv_now</code></li>
+<li><strong>square 模式</strong>：只要 <code>adv_now != last_sent</code> 就触发</li>
+<li>其他模式：用 change_pct 比较 <code>adv_now</code> 与 <code>last_sent</code></li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Client-only: if knobs changed, force an advisory update quickly. */</span></span><br><span class="line"><span class="keyword">if</span> (TO_CONN(stream)-&gt;type == CONN_TYPE_AP &amp;&amp;</span><br><span class="line">    flowctl_cfg.mode != FLOWCTL_MODE_OFF) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="type">uint32_t</span> adv_now = flowctl_compute_advertised_kbps(stream-&gt;ewma_drain_rate);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 如果从未发过，就别触发，避免启动抖动 */</span></span><br><span class="line">  <span class="keyword">if</span> (!stream-&gt;ewma_rate_last_sent)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* square 的核心：相位变了就必须发一次 */</span></span><br><span class="line">  <span class="keyword">if</span> (flowctl_cfg.mode == FLOWCTL_MODE_SQUARE) &#123;</span><br><span class="line">    <span class="keyword">return</span> adv_now != stream-&gt;ewma_rate_last_sent;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 其它模式：保留原来的 change_pct 阈值逻辑（用 measured 或 adv 都行，但要一致） */</span></span><br><span class="line">  <span class="keyword">if</span> (adv_now &gt;</span><br><span class="line">      (<span class="number">100</span>+(<span class="type">uint64_t</span>)xon_change_pct)*stream-&gt;ewma_rate_last_sent/<span class="number">100</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (adv_now &lt;</span><br><span class="line">      (<span class="number">100</span>-(<span class="type">uint64_t</span>)xon_change_pct)*stream-&gt;ewma_rate_last_sent/<span class="number">100</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<hr>
+<h2 id="4-实验现象"><a href="#4-实验现象" class="headerlink" title="4. 实验现象"></a>4. 实验现象</h2><p>下载时按照预期方波随周期从100k波动到3000k下一点。</p>
+<p>电路切换现象</p>
+<p>两条电路 connection-level</p>
+<p>复现错误找原因</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2026/02/12/2.12%20%E7%BB%84%E4%BC%9A/" data-id="cuidBGLNA_ytMZB68WRo4v7dN" data-title="2026-02-12 组会" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2026/02/27/2026-2-27%E6%97%A5%E5%BF%97/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          2026-2-27日志
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">2026-02-05 组会</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">-Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algorithms/">Algorithms</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Article-Reading/">Article Reading</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DL-CO/">DL&CO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Memories/">Memories</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Notes/">Notes</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Research/">Research</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Research/Tor/">Tor</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/">Tor</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/Research/">Research</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/View/">View</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/View/Logs/">Logs</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/physics/">physics</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/">凸优化</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Private/" rel="tag">Private</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Private/" style="font-size: 10px;">Private</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/03/">March 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/01/">January 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/12/">December 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/11/">November 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/10/">October 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/09/">September 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/08/">August 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/07/">July 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">June 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">April 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/02/">February 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/01/">January 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/03/05/2026-03-05-%E7%BB%84%E4%BC%9A/">2026-03-05 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/03/03/2025-7-19%E6%97%A5%E5%BF%97/">2025-7-19日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/27/2026-2-27%E6%97%A5%E5%BF%97/">2026-2-27日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/12/2.12%20%E7%BB%84%E4%BC%9A/">2026-02-12 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/">2026-02-05 组会</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

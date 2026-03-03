@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>2026-02-05 组会 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="2026.2.5组会：仅基于客户端修改的 Stream 级流控可控速率方案说明1. 原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2026-02-05 组会">
+<meta property="og:url" content="http://example.com/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="2026.2.5组会：仅基于客户端修改的 Stream 级流控可控速率方案说明1. 原理">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-02-05T03:25:42.000Z">
+<meta property="article:modified_time" content="2026-03-03T07:00:03.920Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-2026.2.5组会：仅基于客户端修改的 Stream 级流控可控速率方案说明" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/" class="article-date">
+  <time class="dt-published" datetime="2026-02-05T03:25:42.000Z" itemprop="datePublished">2026-02-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Research/">Research</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      2026-02-05 组会
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="2026-2-5组会：仅基于客户端修改的-Stream-级流控可控速率方案说明"><a href="#2026-2-5组会：仅基于客户端修改的-Stream-级流控可控速率方案说明" class="headerlink" title="2026.2.5组会：仅基于客户端修改的 Stream 级流控可控速率方案说明"></a>2026.2.5组会：仅基于客户端修改的 Stream 级流控可控速率方案说明</h1><h2 id="1-原理"><a href="#1-原理" class="headerlink" title="1. 原理"></a>1. 原理</h2><span id="more"></span>
+
+<h3 id="1-1-问题视角"><a href="#1-1-问题视角" class="headerlink" title="1.1 问题视角"></a>1.1 问题视角</h3><p>一次下载过程中，数据方向主要是 <strong>Exit → Client</strong>。<br>我想在下载进行时，主动让吞吐出现明显的“升速”和“降速”。<br>要求是 <strong>只改客户端代码</strong>，Exit 端不改。</p>
+<h3 id="1-2-协议与设计依据"><a href="#1-2-协议与设计依据" class="headerlink" title="1.2 协议与设计依据"></a>1.2 协议与设计依据</h3><p>Tor 的协议层面已经定义了 <strong>Stream 级的 XON&#x2F;XOFF</strong> 控制命令。<br>XON&#x2F;XOFF 属于 RELAY 命令的一部分，可以双向发送。<br>在 Conflux&#x2F;Traffic Splitting 的语境下，文档也明确提到 <strong>Congestion control Stream XON&#x2F;XOFF</strong> 可以在任一方向发送，并影响该 stream 的传输。</p>
+<p>我采用的核心假设是：</p>
+<ul>
+<li><strong>Client 可以通过发送 XON 携带“建议速率”</strong>，影响对端对该 stream 的发送节奏。</li>
+<li>对端（Exit）无需改动，因为其已有实现会把 XON 的建议速率映射为 token bucket 的读写速率。</li>
+</ul>
+<h3 id="1-3-代码闭环"><a href="#1-3-代码闭环" class="headerlink" title="1.3 代码闭环"></a>1.3 代码闭环</h3><p>我关注的闭环是：</p>
+<ol>
+<li><strong>Client 计算 stream 的 drain 速率</strong></li>
+</ol>
+<ul>
+<li>文件：<code>congestion_control_flow.c</code></li>
+<li>逻辑：根据 outbuf 的 drain 速度更新 <code>stream-&gt;ewma_drain_rate</code>。</li>
+</ul>
+<ol>
+<li><strong>Client 发送 XON，并在 XON 中携带速率建议</strong></li>
+</ol>
+<ul>
+<li>文件：<code>congestion_control_flow.c</code></li>
+<li>函数：<code>circuit_send_stream_xon(edge_connection_t *stream)</code></li>
+<li>关键写入：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xon_cell_set_kbps_ewma(&amp;xon, stream-&gt;ewma_drain_rate);</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><strong>Exit 收到 XON 后调整 token bucket</strong></li>
+</ol>
+<ul>
+<li>Exit 端已有逻辑：解析 <code>kbps_ewma</code>，再调用 <code>token_bucket_rw_adjust(...)</code>。</li>
+<li>因此，<strong>只要我改变 Client 发出的 kbps_ewma，Exit 的实际发送速率就会跟着变化</strong>。</li>
+</ul>
+<h3 id="1-4-为什么“只改客户端”可行"><a href="#1-4-为什么“只改客户端”可行" class="headerlink" title="1.4 为什么“只改客户端”可行"></a>1.4 为什么“只改客户端”可行</h3><p>关键点在于：</p>
+<ul>
+<li>XON 是一个协议级信号。</li>
+<li>Exit 的处理逻辑已经存在。</li>
+<li>我只需要改变 <strong>Client 发出去的 XON 的速率字段</strong>。</li>
+<li>Exit 不需要知道“为什么变”，只会按字段值执行限速。</li>
+</ul>
+<hr>
+<h2 id="2-进行的改动方案"><a href="#2-进行的改动方案" class="headerlink" title="2. 进行的改动方案"></a>2. 进行的改动方案</h2><h3 id="2-1-总体思路"><a href="#2-1-总体思路" class="headerlink" title="2.1 总体思路"></a>2.1 总体思路</h3><p>我在客户端加入一个 <strong>FlowCtl 速率塑形器</strong>。<br>它不改变 Exit。<br>它只改变 Client 发出去的 XON 里携带的速率建议。</p>
+<p>我把改动分为三部分。</p>
+<ul>
+<li>A. 改写 XON 里的 <code>kbps_ewma</code>（核心）</li>
+<li>B. 让“旋钮变化”立即触发新的 XON（保证可演示）</li>
+<li>C. 增加运行时控制入口（文件热加载）</li>
+</ul>
+<h3 id="2-2-A：改写-XON-速率字段"><a href="#2-2-A：改写-XON-速率字段" class="headerlink" title="2.2 A：改写 XON 速率字段"></a>2.2 A：改写 XON 速率字段</h3><p>文件：<code>congestion_control_flow.c</code><br>函数：<code>circuit_send_stream_xon(edge_connection_t *stream)</code></p>
+<p>我引入两个值：</p>
+<ul>
+<li><code>measured_kbps</code>：原本的 <code>stream-&gt;ewma_drain_rate</code></li>
+<li><code>advertised_kbps</code>：我塑形后的对外建议值</li>
+</ul>
+<p>核心替换逻辑：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">uint32_t</span> measured_kbps = stream-&gt;ewma_drain_rate;</span><br><span class="line"><span class="type">uint32_t</span> advertised_kbps = measured_kbps;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (TO_CONN(stream)-&gt;type == CONN_TYPE_AP) &#123;</span><br><span class="line">  <span class="comment">/* client only */</span></span><br><span class="line">  advertised_kbps = flowctl_compute_advertised_kbps(measured_kbps);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">xon_cell_set_kbps_ewma(&amp;xon, advertised_kbps);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* very important: store what we actually sent */</span></span><br><span class="line">stream-&gt;ewma_rate_last_sent = advertised_kbps;</span><br></pre></td></tr></table></figure>
+
+<p>补充：强暂停用 XOFF。<br>我不使用 <code>kbps=0</code> 表示暂停。<br>当配置为暂停时，客户端直接发送 XOFF。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (TO_CONN(stream)-&gt;type == CONN_TYPE_AP &amp;&amp; flowctl_cfg.mode == FLOWCTL_MODE_XOFF) &#123;</span><br><span class="line">  circuit_send_stream_xoff(stream);</span><br><span class="line">  <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-B：旋钮变化立即生效"><a href="#2-3-B：旋钮变化立即生效" class="headerlink" title="2.3 B：旋钮变化立即生效"></a>2.3 B：旋钮变化立即生效</h3><p>我引入一个全局版本号 <code>flowctl_epoch</code>。<br>每次配置变化我让 <code>flowctl_epoch++</code>。</p>
+<p>为了让变化尽快反映到下一次 XON，我在 XON 触发判断中加入 epoch 判据。</p>
+<p>我在 <code>edge_connection_t</code> 增加字段：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">uint64_t</span> flowctl_epoch_last_sent;</span><br></pre></td></tr></table></figure>
+
+<p>并在 <code>stream_drain_rate_changed()</code> 增加：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (TO_CONN(stream)-&gt;type == CONN_TYPE_AP) &#123;</span><br><span class="line">  <span class="keyword">if</span> (stream-&gt;flowctl_epoch_last_sent != flowctl_epoch &amp;&amp;</span><br><span class="line">      flowctl_cfg.mode != FLOWCTL_MODE_OFF) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 XON 发送成功后，我更新：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stream-&gt;flowctl_epoch_last_sent = flowctl_epoch;</span><br></pre></td></tr></table></figure>
+
+<p>这样做的效果是：</p>
+<ul>
+<li>我一改配置文件，epoch 立刻变化。</li>
+<li>下一次触发判断必然认为“速率显著变化”。</li>
+<li>新的 XON 会立刻发出。</li>
+</ul>
+<h3 id="2-4-C：运行时控制入口"><a href="#2-4-C：运行时控制入口" class="headerlink" title="2.4 C：运行时控制入口"></a>2.4 C：运行时控制入口</h3><p>我用一个<strong>文件热加载</strong>来实现运行时控制。<br>默认文件：<code>/tmp/tor-flowctl.conf</code><br>也支持：<code>TOR_FLOWCTL_FILE</code> 环境变量。</p>
+<p>我支持的模式：</p>
+<ul>
+<li><code>off</code>：不干预</li>
+<li><code>fixed</code>：固定速率</li>
+<li><code>cap</code>：上限钳制</li>
+<li><code>scale</code>：倍率缩放</li>
+<li><code>square</code>：高低速方波切换</li>
+<li><code>xoff</code>：强暂停</li>
+</ul>
+<hr>
+<h2 id="3-使用说明"><a href="#3-使用说明" class="headerlink" title="3. 使用说明"></a>3. 使用说明</h2><h3 id="3-1-前置条件"><a href="#3-1-前置条件" class="headerlink" title="3.1 前置条件"></a>3.1 前置条件</h3><ul>
+<li>客户端 tor 打开日志输出（至少 notice）。</li>
+<li>客户端开启 ControlPort（用于 BW 事件观测）。</li>
+<li>准备一个足够大的下载文件与足够快的源站。</li>
+</ul>
+<h3 id="3-2-配置文件示例"><a href="#3-2-配置文件示例" class="headerlink" title="3.2 配置文件示例"></a>3.2 配置文件示例</h3><p>固定速率：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mode</span>=fixed</span><br><span class="line"><span class="attr">target_kbps</span>=<span class="number">50000</span></span><br><span class="line"><span class="attr">log</span>=<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>方波模式（组会演示推荐）：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mode</span>=square</span><br><span class="line"><span class="attr">high_kbps</span>=<span class="number">50000</span></span><br><span class="line"><span class="attr">low_kbps</span>=<span class="number">500</span></span><br><span class="line"><span class="attr">period_ms</span>=<span class="number">2000</span></span><br><span class="line"><span class="attr">log</span>=<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>强暂停：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mode</span>=x<span class="literal">off</span></span><br><span class="line"><span class="attr">log</span>=<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-运行与监控命令"><a href="#3-3-运行与监控命令" class="headerlink" title="3.3 运行与监控命令"></a>3.3 运行与监控命令</h3><p>终端 A：看 flowctl 日志</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">tail</span> -f /tmp/tor-client.log | grep flowctl</span><br></pre></td></tr></table></figure>
+
+<p>终端 B：订阅 BW 事件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123; <span class="built_in">echo</span> <span class="string">&#x27;AUTHENTICATE&#x27;</span>; <span class="built_in">echo</span> <span class="string">&#x27;SETEVENTS BW&#x27;</span>; <span class="built_in">cat</span>; &#125; | nc 127.0.0.1 9051</span><br></pre></td></tr></table></figure>
+
+<p>终端 C：启动下载</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl --socks5-hostname 127.0.0.1:9050 -L -o /dev/null https://example.com/large.bin</span><br></pre></td></tr></table></figure>
+
+<p>终端 D：切换配置（写入方波）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt; /tmp/tor-flowctl.conf &lt;&lt;<span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">mode=square</span><br><span class="line">high_kbps=50000</span><br><span class="line">low_kbps=500</span><br><span class="line">period_ms=2000</span><br><span class="line"><span class="built_in">log</span>=1</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-预期看到的结果"><a href="#4-预期看到的结果" class="headerlink" title="4. 预期看到的结果"></a>4. 预期看到的结果</h2><h3 id="4-1-日志层面"><a href="#4-1-日志层面" class="headerlink" title="4.1 日志层面"></a>4.1 日志层面</h3><p>我预期在客户端日志中看到：</p>
+<ul>
+<li>配置 reload 提示（epoch 增加）</li>
+<li>发送 XON 的提示，其中 <code>adv_kbps</code> 按 high&#x2F;low 跳变</li>
+</ul>
+<p>示例输出形态：</p>
+<ul>
+<li><code>reload ... epoch=...</code></li>
+<li><code>sent XON ... measured_kbps=... adv_kbps=50000 epoch=...</code></li>
+<li><code>sent XON ... measured_kbps=... adv_kbps=500 epoch=...</code></li>
+</ul>
+<h3 id="4-2-Tor-层面（BW-事件）"><a href="#4-2-Tor-层面（BW-事件）" class="headerlink" title="4.2 Tor 层面（BW 事件）"></a>4.2 Tor 层面（BW 事件）</h3><p>我预期 ControlPort 的 <code>BW</code> 事件输出出现同步跳变。</p>
+<ul>
+<li>高速档时每秒写入字节显著变大。</li>
+<li>低速档时每秒写入字节显著变小。</li>
+</ul>
+<p>我预期跳变相对配置切换有 0 到 2 秒延迟。<br>延迟来自缓冲区排空与 XON 发送周期。</p>
+<h3 id="4-3-应用层面（下载速度）"><a href="#4-3-应用层面（下载速度）" class="headerlink" title="4.3 应用层面（下载速度）"></a>4.3 应用层面（下载速度）</h3><p>我预期 curl 或 wget 的下载速度明显出现方波。</p>
+<ul>
+<li>高速档接近 <code>high_kbps</code> 对应的吞吐上限（受其它瓶颈影响）。</li>
+<li>低速档接近 <code>low_kbps</code>。</li>
+<li>若切到 <code>xoff</code>，下载应明显停滞并在恢复后继续。</li>
+</ul>
+<h3 id="4-4-可能的上限与边界"><a href="#4-4-可能的上限与边界" class="headerlink" title="4.4 可能的上限与边界"></a>4.4 可能的上限与边界</h3><p>升速未必线性。<br>原因包括电路级拥塞控制和源站限速。<br>但是降速应当非常稳定。<br>因为 Exit 的 token bucket 会直接约束发送节奏。</p>
+<hr>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ul>
+<li>Tor Spec: Relay cells 中的 XON&#x2F;XOFF 定义</li>
+<li>Tor Spec: Flow control 文档</li>
+<li>Proposal 324: RTT-based congestion control（包含 FlowCtrl&#x2F;CC 的整体语境）</li>
+<li>Proposal 329: Traffic splitting（明确提到 Congestion control Stream XON&#x2F;XOFF）</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/" data-id="cuidEEo6-LZp4NhF1YeKGskBX" data-title="2026-02-05 组会" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2026/02/12/2.12%20%E7%BB%84%E4%BC%9A/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          2026-02-12 组会
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2026/01/29/2026-01-29-%E7%BB%84%E4%BC%9A/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">2026-01-29 组会</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">-Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algorithms/">Algorithms</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Article-Reading/">Article Reading</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DL-CO/">DL&CO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Memories/">Memories</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Notes/">Notes</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Research/">Research</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Research/Tor/">Tor</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/">Tor</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/Research/">Research</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/View/">View</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/View/Logs/">Logs</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/physics/">physics</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/">凸优化</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Private/" rel="tag">Private</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Private/" style="font-size: 10px;">Private</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/03/">March 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/01/">January 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/12/">December 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/11/">November 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/10/">October 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/09/">September 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/08/">August 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/07/">July 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">June 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">April 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/02/">February 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/01/">January 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/03/05/2026-03-05-%E7%BB%84%E4%BC%9A/">2026-03-05 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/03/03/2025-7-19%E6%97%A5%E5%BF%97/">2025-7-19日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/27/2026-2-27%E6%97%A5%E5%BF%97/">2026-2-27日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/12/2.12%20%E7%BB%84%E4%BC%9A/">2026-02-12 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/">2026-02-05 组会</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>凸优化作业-1 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="凸优化作业-1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="凸优化作业-1">
+<meta property="og:url" content="http://example.com/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E4%BD%9C%E4%B8%9A-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="凸优化作业-1">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-12-29T10:59:33.000Z">
+<meta property="article:modified_time" content="2025-01-01T13:50:03.557Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-凸优化作业-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E4%BD%9C%E4%B8%9A-1/" class="article-date">
+  <time class="dt-published" datetime="2024-12-29T10:59:33.000Z" itemprop="datePublished">2024-12-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/">凸优化</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      凸优化作业-1
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>凸优化作业-1</p>
+<span id="more"></span>
+
+<p><strong>Problem 1</strong>：<br>$$<br>将优化问题</p>
+<p>\text{最小化 } |Ax - b|_\infty</p>
+<p>满足</p>
+<p>|x|_1 \leq 1</p>
+<p>转化为线性规划。<br>$$</p>
+<h4 id="解答："><a href="#解答：" class="headerlink" title="解答："></a>解答：</h4><ol>
+<li><p><strong>重写 $|Ax - b|_\infty$</strong>：<br>$$<br>根据 \ell_\infty 范数的定义，我们可以引入一个辅助变量 t ，使得：</p>
+<p>\</p>
+<p>|Ax - b|<em>\infty &#x3D; \max</em>{1 \leq i \leq m} |(Ax - b)_i| \leq t</p>
+<p>\</p>
+<p>这可以转化为以下约束：<br>\<br>-(Ax - b)_i \leq t \quad \text{和} \quad (Ax - b)_i \leq t \quad \text{对于所有 } i &#x3D; 1, 2, \ldots, m<br>\</p>
+<p>这意味着我们可以写出以下不等式：</p>
+<p>\<br>Ax - b \leq t \mathbf{1} \quad \text{和} \quad -Ax + b \leq t \mathbf{1}<br>\<br>其中  \mathbf{1}  是一个全1的向量。<br>$$</p>
+</li>
+<li><p><strong>将问题转化为线性规划</strong>：<br>于是我们需要最小化$t$，同时满足以下约束条件：<br>$$<br>Ax - b \leq t \mathbf{1}<br>\</p>
+<p>-Ax + b \leq t \mathbf{1}<br>\</p>
+<p>|x|_1 \leq 1<br>$$<br>最终的线性规划可以表述为：<br>$$<br>\text{最小化 } t<br>\</p>
+<p>\text{满足 } Ax - b &#x3D; t \mathbf{e}<br>\</p>
+<p>-Ax + b &#x3D; t \mathbf{e}<br>\</p>
+<p>\sum_{j&#x3D;1}^{n} |x_j| \leq 1<br>$$</p>
+</li>
+</ol>
+<p><strong>Problem 2</strong>：</p>
+<p>(a)证明所有满足$X$是半正定的，且$I-X$也是半正定的$X$构成的集合$S$是凸集<br>$$<br>假设X_1 , X_2 \in S \<br>	<br>	考虑Y &#x3D; \lambda X_1 + ( 1 - \lambda ) X_2\</p>
+<p>   y^T X_1 y \geq 0 \quad \text{和} \quad y^T X_2 y \geq 0 \quad \text{对于所有 } y \in \mathbb{R}^n<br>   \</p>
+<p>考虑任意向量  y \in \mathbb{R}^n<br>\<br>   计算 y^T Y y :<br>   \<br>   y^T Y y &#x3D; y^T (\lambda X_1 + (1 - \lambda) X_2) y &#x3D; \lambda y^T X_1 y + (1 - \lambda) y^T X_2 y<br>   \<br>   由于 X_1 和 X_2 都是半正定的，得到：</p>
+<p>   \<br>   y^T Y y \geq \lambda \cdot 0 + (1 - \lambda) \cdot 0 &#x3D; 0<br>   \<br>   因此，Y 是半正定的。<br>\<br>   现在考虑  I - Y ：<br>   \<br>   I - Y &#x3D; I - (\lambda X_1 + (1 - \lambda) X_2) &#x3D; (1 - \lambda) I - \lambda X_1 + (1 - \lambda) I - (1 - \lambda) X_2<br>   \<br>   计算 y^T (I - Y) y ：<br>   \<br>   y^T (I - Y) y &#x3D; y^T y - y^T Y y &#x3D; y^T y - (\lambda y^T X_1 y + (1 - \lambda) y^T X_2 y)<br>   \<br>   从而得到：<br>   \<br>   y^T (I - Y) y &#x3D; y^T y - \lambda y^T X_1 y - (1 - \lambda) y^T X_2 y<br>   \<br>   根据 I - X_1 和  I - X_2 都是半正定的，得到：<br>   \<br>   y^T (I - X_1) y \geq 0 \quad \text{和} \quad y^T (I - X_2) y \geq 0<br>   \<br>   所以：<br>   \<br>   y^T y \geq y^T X_1 y \quad \text{和} \quad y^T y \geq y^T X_2 y<br>   \<br>   结合线性组合性质：<br>   \<br>   y^T y \geq \lambda y^T X_1 y + (1 - \lambda) y^T X_2 y<br>   \<br>   因此，<br>   \<br>   y^T (I - Y) y \geq 0<br>   \<br>   这表明  I - Y 也是半正定的。<br>$$<br>(b) 证明集合 $S &#x3D; { X \in S_n : \text{rank}(X) \leq 1 } $是否为凸集</p>
+<p><strong>证明</strong>：<br>$$<br>设X_1, X_2 \in S，这意味着\text{rank}(X_1) \leq 1和\text{rank}(X_2) \leq 1。<br>\</p>
+<p>由于\text{rank}(X_1) \leq 1，我们可以表示 X_1为：<br>\<br>   X_1 &#x3D; u_1 v_1^T<br>   \<br>   其中 u_1 \in \mathbb{R}^m 和 v_1 \in \mathbb{R}^n。同理，X_2  可以表示为：<br>   \<br>   X_2 &#x3D; u_2 v_2^T<br>   \</p>
+<p>对于 \theta \in [0, 1] ，考虑矩阵：<br>   \<br>   X_\theta &#x3D; \theta X_1 + (1 - \theta) X_2 &#x3D; \theta (u_1 v_1^T) + (1 - \theta) (u_2 v_2^T)<br>   \<br>然而两个矩阵的和的秩有可能是2，故而不是凸集<br>$$<br><strong>Problem 3</strong>：</p>
+<p>设$ B(0, 1) \subset \mathbb{R}^n  $是单位欧几里得球，考虑集合$N(x) &#x3D; { u \in \mathbb{R}^n : u^T (y - x) \leq 0 \text{ 对于所有 } y \in B(0, 1) }$</p>
+<p>(a) 证明 ( N(x) ) 是一个凸锥</p>
+<p>$$<br>选择任意u_1, u_2 \in N(x): 根据定义，对于任意 y \in B(0, 1) ，都有：<br>   \<br>   u_1^T (y - x) \leq 0 \quad \text{和} \quad u_2^T (y - x) \leq 0<br>   \</p>
+<p>考虑非负组合：对于任意非负标量  \alpha, \beta \geq 0 ，考虑 u &#x3D; \alpha u_1 + \beta u_2 。<br>\<br>验证条件：我们需要验证 u^T (y - x) \leq 0 对于所有 y \in B(0, 1) ：<br>   \<br>   u^T (y - x) &#x3D; (\alpha u_1 + \beta u_2)^T (y - x) &#x3D; \alpha u_1^T (y - x) + \beta u_2^T (y - x)<br>   \<br>   由于  u_1^T (y - x) \leq 0 和 u_2^T (y - x) \leq 0 ，因此：<br>   \<br>   u^T (y - x) \leq \alpha \cdot 0 + \beta \cdot 0 &#x3D; 0<br>   \<br>   所以，u \in N(x) 。</p>
+<p>因此， N(x) 是一个凸锥。<br>$$</p>
+<p>(b) 给出 ( N(x) ) 的显式描述<br>$$<br>我们可以考虑  N(x)  中的向量 u  的条件。对于任意  y \in B(0, 1)，我们有：<br>\<br>|y|_2 \leq 1<br>\<br>因此，y - x  的范数可以表示为：<br>\<br>|y - x|_2 \leq |y|_2 + |x|_2 \leq 1 + |x|_2<br>\</p>
+<p>要使得  u^T (y - x) \leq 0  对所有  y  成立，u  必须在某个方向上与  y - x  形成一个夹角不小于 90 度。这意味着  u 必须指向  x 的反方向。<br>\<br>因此， N(x)  可以描述为所有指向  x  的反方向的向量的集合：<br>\<br>N(x) &#x3D; { u \in \mathbb{R}^n : u^T x \leq 0 }<br>\<br>$$<br><strong>Problem 4</strong>：</p>
+<p>(a) 找到 $ \Pi_{H^-}(s, c)(x) $ 的公式并证明其正确性</p>
+<p><strong>投影公式</strong>：</p>
+<p>对于任意点 $x \in \mathbb{R}^n $，其在半空间 $ H^-(s, c) $ 上的投影可以通过以下公式给出：<br>$\Pi_{H^-}(s, c)(x) &#x3D; x - \frac{s^T x - c}{|s|^2} s$</p>
+<p><strong>证明</strong>：<br>$$<br>希望找到一个点  y \in H^-(s, c) ，使得  ||y - x||  最小。根据投影的定义，最优解  y  应满足：<br>   \<br>   s^T y &#x3D; c<br>   \</p>
+<p>设 y &#x3D; x + \alpha s ，其中  \alpha  是一个待定的标量。我们需要找到  \alpha  使得 y 满足  s^T y &#x3D; c ：<br>   \<br>   s^T (x + \alpha s) &#x3D; s^T x + \alpha |s|^2 &#x3D; c<br>   \<br>   解这个方程得到：<br>   \<br>   \alpha &#x3D; \frac{c - s^T x}{|s|^2}<br>   \</p>
+<p>代入  y ：<br>   \<br>   y &#x3D; x + \frac{c - s^T x}{|s|^2} s<br>   \</p>
+<p>验证  y  在半空间内：<br>   \<br>   s^T y &#x3D; s^T x + (c - s^T x) &#x3D; c<br>   \<br>   因此  y 在超平面上，且由于 y 是通过向量s 的方向调整得到的，所以 y 在半空间  H^-(s, c) 内。<br>\<br>因此<br>   \<br>   \Pi_{H^-}(s, c)(x) &#x3D; x - \frac{s^T x - c}{|s|^2} s<br>   \<br>$$<br>(b) 证明对于任意 $ v \in \mathbb{R}^n $ 和 $ \delta \in \mathbb{R} $，都有$\Pi_{\Delta}(v) &#x3D; \Pi_{\Delta}(v + \delta e)$</p>
+<p><strong>证明</strong>：<br>$$<br>对于 v  的投影：<br>\<br>\Pi_{\Delta}(v) &#x3D; \text{argmin}_{x \in \Delta} |x - v|<br>\</p>
+<p>对于  v + \delta e  的投影：<br>\<br>\Pi_{\Delta}(v + \delta e) &#x3D; \text{argmin}<em>{x \in \Delta} |x - (v + \delta e)|<br>\<br>由于  e^T x &#x3D; 1  的约束是线性的，且  \delta  只是对所有坐标的均匀偏移，因此投影的结果不会受到  \delta  的影响。<br>\<br>故\Pi</em>{\Delta}(v) &#x3D; \Pi_{\Delta}(v + \delta e)<br>$$</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E4%BD%9C%E4%B8%9A-1/" data-id="cuidS1wEHYMj1YkQNeoav4bU9" data-title="凸优化作业-1" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2024/12/29/%E5%87%B8%E4%BC%98%E5%8C%96%E4%BD%9C%E4%B8%9A-2/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          凸优化作业-2
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2024/12/29/%E5%9B%9E%E5%BF%86%E5%BD%95-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">回忆录-1</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">-Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algorithms/">Algorithms</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Article-Reading/">Article Reading</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DL-CO/">DL&CO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Logs/">Logs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Memories/">Memories</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Notes/">Notes</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Research/">Research</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Research/Tor/">Tor</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/">Tor</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Tor/Research/">Research</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/View/">View</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/View/Logs/">Logs</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/physics/">physics</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%87%B8%E4%BC%98%E5%8C%96/">凸优化</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Private/" rel="tag">Private</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Private/" style="font-size: 10px;">Private</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/03/">March 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/01/">January 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/12/">December 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/11/">November 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/10/">October 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/09/">September 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/08/">August 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/07/">July 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">June 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">April 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/02/">February 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/01/">January 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/03/05/2026-03-05-%E7%BB%84%E4%BC%9A/">2026-03-05 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/03/03/2025-7-19%E6%97%A5%E5%BF%97/">2025-7-19日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/27/2026-2-27%E6%97%A5%E5%BF%97/">2026-2-27日志</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/12/2.12%20%E7%BB%84%E4%BC%9A/">2026-02-12 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/">2026-02-05 组会</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
