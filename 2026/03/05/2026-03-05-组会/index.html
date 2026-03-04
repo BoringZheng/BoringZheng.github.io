@@ -6,17 +6,19 @@
   
   <title>2026-03-05 组会 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="2026.03.05 组会-Tor 客户端选择 Rendezvous Point (RP) 机制汇报核心问题：">
+  <meta name="description" content="2026.03.05 组会-改动Tor客户端源码固定RP节点核心问题：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="2026-03-05 组会">
 <meta property="og:url" content="http://example.com/2026/03/05/2026-03-05-%E7%BB%84%E4%BC%9A/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="2026.03.05 组会-Tor 客户端选择 Rendezvous Point (RP) 机制汇报核心问题：">
+<meta property="og:description" content="2026.03.05 组会-改动Tor客户端源码固定RP节点核心问题：">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/image-20260304175957952.png">
 <meta property="article:published_time" content="2026-03-05T03:25:42.000Z">
-<meta property="article:modified_time" content="2026-03-03T07:00:15.120Z">
+<meta property="article:modified_time" content="2026-03-04T10:00:55.706Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/image-20260304175957952.png">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -99,224 +101,58 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h1 id="2026-03-05-组会-Tor-客户端选择-Rendezvous-Point-RP-机制汇报"><a href="#2026-03-05-组会-Tor-客户端选择-Rendezvous-Point-RP-机制汇报" class="headerlink" title="2026.03.05 组会-Tor 客户端选择 Rendezvous Point (RP) 机制汇报"></a>2026.03.05 组会-Tor 客户端选择 Rendezvous Point (RP) 机制汇报</h1><p>核心问题：</p>
+        <h1 id="2026-03-05-组会-改动Tor客户端源码固定RP节点"><a href="#2026-03-05-组会-改动Tor客户端源码固定RP节点" class="headerlink" title="2026.03.05 组会-改动Tor客户端源码固定RP节点"></a>2026.03.05 组会-改动<code>Tor</code>客户端源码固定<code>RP</code>节点</h1><p>核心问题：</p>
 <span id="more"></span>
 
 <blockquote>
-<p>Tor 客户端在建立隐藏服务连接时，是如何选择 Rendezvous Point (RP) 的？</p>
+<p>通过仅少量改动<code>Tor</code>客户端源码实现固定<code>RP</code>节点到受控制的<code>Exit</code>节点</p>
 </blockquote>
-<p>分析基于 <code>circuitbuild.c</code> 源码。</p>
 <hr>
-<h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>在 v3 Hidden Service 连接过程中，客户端需要：</p>
+<h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>在 <code>v3</code> <code>Hidden Service</code> 连接过程中，客户端需要：</p>
 <ol>
-<li>构建到 RP 的电路</li>
-<li>通知隐藏服务连接该 RP</li>
-<li>通过 RP 汇合形成 6-hop 通路</li>
+<li>随机选择一个<code>RP</code>节点，然后构建到 <code>RP</code> 的电路</li>
+<li>连接一个<code>Introduce</code>节点，然后通过<code>Introduce</code>节点通知隐藏服务目录<code>RP</code>节点的信息</li>
+<li>隐藏服务建立连接<code>RP</code>的三跳电路</li>
+<li>通过 <code>RP</code> 汇合形成 <code>6-hop</code> 通路</li>
 </ol>
-<p>从逻辑上看，RP 是一个特殊角色节点。</p>
-<p>但从源码实现上看，RP 并不是一种特殊类型。</p>
+<p>从逻辑上看，<code>RP</code> 是一个特殊角色节点，但从源码实现上看，<code>RP</code> 并不是一种特殊类型，而是普通的<code>Relay</code>被选中赋予逻辑上的“会合点”含义。</p>
 <hr>
-<h2 id="核心结论"><a href="#核心结论" class="headerlink" title="核心结论"></a>核心结论</h2><p>在当前实现中：</p>
-<blockquote>
-<p>RP 本质上就是这条 internal 电路的“exit”节点。</p>
-</blockquote>
-<p>换句话说：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RP == chosen_exit（当 purpose = C_ESTABLISH_REND）</span><br></pre></td></tr></table></figure>
-
-<p>因此：</p>
-<ul>
-<li>如果未指定 exit，则随机选择一个节点作为 RP</li>
-<li>如果指定了 exit_ei，则该节点直接成为 RP</li>
-</ul>
-<p>即：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">指定 exit == 指定 RP</span><br></pre></td></tr></table></figure>
-
-<p>前提条件：</p>
-<ul>
-<li>电路用途为 <code>CIRCUIT_PURPOSE_C_ESTABLISH_REND</code></li>
-<li>电路必须是 internal</li>
-</ul>
-<hr>
-<h2 id="源码路径分析"><a href="#源码路径分析" class="headerlink" title="源码路径分析"></a>源码路径分析</h2><p>客户端建立 RP 电路的调用链如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">origin_circuit_init()</span><br><span class="line">        ↓</span><br><span class="line">onion_pick_cpath_exit()</span><br><span class="line">        ↓</span><br><span class="line">choose_good_exit_server()</span><br><span class="line">        ↓</span><br><span class="line">router_choose_random_node()</span><br></pre></td></tr></table></figure>
-
-<p>下面逐步说明。</p>
-<hr>
-<h3 id="Step-1：internal-标记的来源"><a href="#Step-1：internal-标记的来源" class="headerlink" title="Step 1：internal 标记的来源"></a>Step 1：internal 标记的来源</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">origin_circuit_t</span> *</span><br><span class="line"><span class="title function_">origin_circuit_init</span><span class="params">(<span class="type">uint8_t</span> purpose, <span class="type">int</span> flags)</span></span><br><span class="line">&#123;</span><br><span class="line">  circ-&gt;build_state-&gt;is_internal =</span><br><span class="line">    ((flags &amp; CIRCLAUNCH_IS_INTERNAL) ? <span class="number">1</span> : <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">  circ-&gt;base_.purpose = purpose;</span><br><span class="line">  <span class="keyword">return</span> circ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>关键点：</p>
-<ul>
-<li><code>is_internal</code> 由 flags 决定</li>
-<li>建立 RP 电路时必须设置 <code>CIRCLAUNCH_IS_INTERNAL</code></li>
-<li>否则后续会触发断言</li>
-</ul>
-<p>internal 电路的含义是：</p>
-<blockquote>
-<p>不用于访问外网，而用于内部目的（如 HS 或目录）</p>
-</blockquote>
-<hr>
-<h3 id="Step-2：决定最后一跳"><a href="#Step-2：决定最后一跳" class="headerlink" title="Step 2：决定最后一跳"></a>Step 2：决定最后一跳</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// onion_pick_cpath_exit()</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (exit_ei) &#123;</span><br><span class="line">  exit_ei = extend_info_dup(exit_ei);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">node_t</span> *node =</span><br><span class="line">    choose_good_exit_server(circ, flags, state-&gt;is_internal);</span><br><span class="line"></span><br><span class="line">  exit_ei = extend_info_from_node(node, ...);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">state-&gt;chosen_exit = exit_ei;</span><br></pre></td></tr></table></figure>
-
-<p>逻辑非常清晰：</p>
-<ul>
-<li>如果调用方给了 exit_ei</li>
-<li>则直接使用该节点</li>
-<li>否则调用选择逻辑</li>
-</ul>
-<p>对于 rendezvous 电路来说：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chosen_exit == RP</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h3 id="Step-3：RP-的实际选择逻辑"><a href="#Step-3：RP-的实际选择逻辑" class="headerlink" title="Step 3：RP 的实际选择逻辑"></a>Step 3：RP 的实际选择逻辑</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// choose_good_exit_server(origin_circuit_t *circ,</span></span><br><span class="line"><span class="comment">//                      router_crn_flags_t flags, int is_internal)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">case</span> CIRCUIT_PURPOSE_C_ESTABLISH_REND:</span><br><span class="line">  tor_assert_nonfatal(is_internal);</span><br><span class="line">  flags |= CRN_FOR_HS;</span><br><span class="line">  FALLTHROUGH;</span><br><span class="line"></span><br><span class="line"><span class="keyword">case</span> CIRCUIT_PURPOSE_C_GENERAL:</span><br><span class="line">  <span class="keyword">if</span> (is_internal)</span><br><span class="line">    <span class="keyword">return</span> router_choose_random_node(<span class="literal">NULL</span>, options-&gt;ExcludeNodes, flags);</span><br></pre></td></tr></table></figure>
-
-<p>逐条解释：</p>
-<ol>
-<li>必须是 internal 电路</li>
-<li>标记该节点用于 Hidden Service</li>
-<li>调用 <code>router_choose_random_node()</code> 随机选择</li>
+<h2 id="可行性分析"><a href="#可行性分析" class="headerlink" title="可行性分析"></a>可行性分析</h2><ol>
+<li><code>RP</code>可固定：在<code>Proposal</code>的逻辑实现当中，客户端随机选择了一个<code>Relay</code>节点作为<code>RP</code>，然后形成了一个到<code>RP</code>的三跳电路，从结构上来说，可以把<code>RP</code>看作是这条<code>Internal</code>电路的“<code>Exit</code>”节点，这意味着可以通过固定普通<code>Exit</code>节点的方式来固定<code>RP</code>节点。</li>
+<li>流量可控：<code>RP</code>节点同时也可以视为隐藏服务连接到<code>RP</code>节点的三跳电路的<code>Exit</code>节点，因此可以通过控制固定的<code>RP</code>的<code>outbuf</code>的方式来进行流量控制从而暴露隐藏服务。</li>
+<li>更严格的猜想：由于<code>Stream</code>级别的流控要到端点才进行处理，所以可能甚至<code>RP</code>是没有对<code>XON</code>进行处理的，会直接转发到隐藏服务进行处理，那么很有可能甚至不需要对<code>RP</code>进行固定和处理，任意的<code>RP</code>直接通过客户端拉流量的方式就能直接暴露隐藏服务。</li>
 </ol>
-<p>因此可以得出结论：</p>
-<blockquote>
-<p>RP 是在满足过滤条件的节点中随机选出的一个普通 relay。</p>
-</blockquote>
-<p>它不是特殊类型节点。</p>
 <hr>
-<h1 id="七、RP-电路的结构"><a href="#七、RP-电路的结构" class="headerlink" title="七、RP 电路的结构"></a>七、RP 电路的结构</h1><p>客户端侧电路结构：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">guard → middle → RP</span><br></pre></td></tr></table></figure>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p>客户端建立 <code>RP</code> 电路的调用链如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">circuit_launch_by_extend_info()</span><br><span class="line">        ↓</span><br><span class="line">circuit_establish_circuit()</span><br><span class="line">        ↓</span><br><span class="line">onion_pick_cpath_exit()</span><br><span class="line">        ↓</span><br><span class="line">choose_good_exit_server()</span><br><span class="line">        ↓</span><br><span class="line">router_choose_random_node()</span><br></pre></td></tr></table></figure>
 
-<p>这是一条三跳 internal 电路。</p>
-<p>RP 只是最后一跳。</p>
-<p>当隐藏服务连接到该 RP 后，形成：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">client:  guard → middle → RP</span><br><span class="line">service: guard → middle → RP</span><br></pre></td></tr></table></figure>
+<p>而客户端建立不同电路的调用链如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">circuit_launch_by_extend_info()</span><br><span class="line">        ↓</span><br><span class="line">circuit_establish_circuit()</span><br><span class="line">        ↓</span><br><span class="line">onion_pick_cpath_exit()</span><br><span class="line">        ↓</span><br><span class="line">choose_good_exit_server()</span><br><span class="line">        ↓</span><br><span class="line">choose_good_exit_server_general()</span><br></pre></td></tr></table></figure>
 
-<p>最终构成 6-hop 通路。</p>
-<hr>
-<h1 id="八、设计思想分析"><a href="#八、设计思想分析" class="headerlink" title="八、设计思想分析"></a>八、设计思想分析</h1><p>为什么 Tor 这样设计？</p>
-<p>原因很简单：</p>
-<ul>
-<li>RP 不需要访问外网</li>
-<li>它只是汇合点</li>
-<li>因此不需要单独设计一种“RP 类型节点”</li>
-</ul>
-<p>实现上直接复用 exit 选择逻辑。</p>
-<p>只是在逻辑层面限制为 internal。</p>
-<hr>
-<h1 id="九、实验启示"><a href="#九、实验启示" class="headerlink" title="九、实验启示"></a>九、实验启示</h1><p>对于源码修改或实验：</p>
-<p>如果希望固定 RP：</p>
-<ul>
-<li>可以在建立电路时指定 exit_ei</li>
-<li>无需修改随机选择函数</li>
-</ul>
-<p>如果希望统计 RP 行为：</p>
-<ul>
-<li>可以在 <code>choose_good_exit_server()</code> 中添加日志</li>
-</ul>
-<hr>
-<h1 id="十、总结"><a href="#十、总结" class="headerlink" title="十、总结"></a>十、总结</h1><p>本次分析说明：</p>
-<ol>
-<li>RP 不是特殊节点类型</li>
-<li>RP 是 internal 电路的 chosen_exit</li>
-<li>未指定时随机选择</li>
-<li>指定 exit 等价于指定 RP</li>
-</ol>
-<p>一句话概括：</p>
-<blockquote>
-<p>在客户端建立 Rendezvous 电路时，RP 就是这条 internal 电路的最后一跳。</p>
-</blockquote>
-<hr>
-<h1 id="十一、6-hop-电路结构解析"><a href="#十一、6-hop-电路结构解析" class="headerlink" title="十一、6-hop 电路结构解析"></a>十一、6-hop 电路结构解析</h1><p>在 v3 Hidden Service 连接完成后，客户端与隐藏服务之间形成如下结构：</p>
-<p>客户端侧电路：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">guard_c → middle_c → RP</span><br></pre></td></tr></table></figure>
+<p>因此可以进行小改动，让<code>client</code>像选普通<code>exit</code>节点一样选择<code>RP</code>节点，从而实现在<code>torrc</code>里面直接配置就能固定<code>RP</code>。</p>
+<h2 id="源码改动"><a href="#源码改动" class="headerlink" title="源码改动"></a>源码改动</h2><p>如何选择节点的关键部分在下面的函数中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//circuitbuild.c</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/** Return a pointer to a suitable router to be the exit node for the</span></span><br><span class="line"><span class="comment"> * circuit of purpose &lt;b&gt;purpose&lt;/b&gt; that we&#x27;re about to build (or NULL</span></span><br><span class="line"><span class="comment"> * if no router is suitable).</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * For general-purpose circuits, pass it off to</span></span><br><span class="line"><span class="comment"> * choose_good_exit_server_general()</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * For client-side rendezvous circuits, choose a random node, weighted</span></span><br><span class="line"><span class="comment"> * toward the preferences in &#x27;options&#x27;.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="type">node_t</span> *</span><br><span class="line"><span class="title function_">choose_good_exit_server</span><span class="params">(<span class="type">origin_circuit_t</span> *circ,</span></span><br><span class="line"><span class="params">                        <span class="type">router_crn_flags_t</span> flags, <span class="type">int</span> is_internal)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">or_options_t</span> *options = get_options();</span><br><span class="line">  flags |= CRN_NEED_DESC;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">switch</span> (TO_CIRCUIT(circ)-&gt;purpose) &#123;</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_C_HSDIR_GET:</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_S_HSDIR_POST:</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_HS_VANGUARDS:</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_C_ESTABLISH_REND:</span><br><span class="line">      <span class="comment">/* For these three, we want to pick the exit like a middle hop,</span></span><br><span class="line"><span class="comment">       * since it should be random. */</span></span><br><span class="line">      tor_assert_nonfatal(is_internal);</span><br><span class="line">      <span class="comment">/* We want to avoid picking certain nodes for HS purposes. */</span></span><br><span class="line">      flags |= CRN_FOR_HS;</span><br><span class="line">      FALLTHROUGH;</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_CONFLUX_UNLINKED:</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_C_GENERAL:</span><br><span class="line">      <span class="keyword">if</span> (is_internal) <span class="comment">/* pick it like a middle hop */</span></span><br><span class="line">        <span class="keyword">return</span> router_choose_random_node(<span class="literal">NULL</span>, options-&gt;ExcludeNodes, flags);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> choose_good_exit_server_general(flags);</span><br><span class="line">  &#125;</span><br><span class="line">  log_warn(LD_BUG,<span class="string">&quot;Unhandled purpose %d&quot;</span>, TO_CIRCUIT(circ)-&gt;purpose);</span><br><span class="line">  tor_fragile_assert();</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>隐藏服务侧电路：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">guard_s → middle_s → RP</span><br></pre></td></tr></table></figure>
+<p>选择<code>RP</code>节点的时候会调用<code>router_choose_random_node</code>函数，而正常选择<code>exit</code>节点的时候会调用<code>choose_good_exit_server_general</code>函数。因此可以在这个分支做改动，在发现是<code>CIRCUIT_PROPOSE_C_REND</code>的时候直接调用新加入的<code>choose_good_exit_server_from_routerset</code>函数来选择一个符合<code>torrc</code>配置中正常<code>exit</code>节点的节点作为<code>RP</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// circuitbuild.c</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/** Return a pointer to a suitable router to be the exit node for the</span></span><br><span class="line"><span class="comment"> * circuit of purpose &lt;b&gt;purpose&lt;/b&gt; that we&#x27;re about to build (or NULL</span></span><br><span class="line"><span class="comment"> * if no router is suitable).</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * For general-purpose circuits, pass it off to</span></span><br><span class="line"><span class="comment"> * choose_good_exit_server_general()</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * For client-side rendezvous circuits, choose a random node, weighted</span></span><br><span class="line"><span class="comment"> * toward the preferences in &#x27;options&#x27;.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="type">node_t</span> *</span><br><span class="line"><span class="title function_">choose_good_exit_server</span><span class="params">(<span class="type">origin_circuit_t</span> *circ,</span></span><br><span class="line"><span class="params">                        <span class="type">router_crn_flags_t</span> flags, <span class="type">int</span> is_internal)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">or_options_t</span> *options = get_options();</span><br><span class="line">  flags |= CRN_NEED_DESC;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">switch</span> (TO_CIRCUIT(circ)-&gt;purpose) &#123;</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_C_HSDIR_GET:</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_S_HSDIR_POST:</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_HS_VANGUARDS:</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_C_ESTABLISH_REND:</span><br><span class="line">      <span class="comment">/* For these three, we want to pick the exit like a middle hop,</span></span><br><span class="line"><span class="comment">       * since it should be random. */</span></span><br><span class="line">      tor_assert_nonfatal(is_internal);</span><br><span class="line">      <span class="comment">/* We want to avoid picking certain nodes for HS purposes. */</span></span><br><span class="line">      flags |= CRN_FOR_HS;</span><br><span class="line">      <span class="comment">/* BORING TEST */</span></span><br><span class="line">      <span class="comment">/* If ExitNodes is configured, force the client rendezvous point to be</span></span><br><span class="line"><span class="comment">       * chosen from that set as well, including IP-based routerset entries. */</span></span><br><span class="line">      <span class="keyword">if</span> (TO_CIRCUIT(circ)-&gt;purpose == CIRCUIT_PURPOSE_C_ESTABLISH_REND &amp;&amp;</span><br><span class="line">          options-&gt;ExitNodes) &#123;</span><br><span class="line">        <span class="type">const</span> <span class="type">node_t</span> *node = choose_good_exit_server_from_routerset(</span><br><span class="line">            options-&gt;ExitNodes, options-&gt;ExcludeExitNodesUnion_, flags);</span><br><span class="line">        <span class="keyword">if</span> (!node) &#123;</span><br><span class="line">          log_warn(LD_CIRC,</span><br><span class="line">                   <span class="string">&quot;No nodes in ExitNodes%s seem usable as a rendezvous &quot;</span></span><br><span class="line">                   <span class="string">&quot;point: can&#x27;t choose a rendezvous point.&quot;</span>,</span><br><span class="line">                   options-&gt;ExcludeExitNodesUnion_ ?</span><br><span class="line">                   <span class="string">&quot;, except possibly those excluded by your configuration, &quot;</span> :</span><br><span class="line">                   <span class="string">&quot;&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> node;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">/* BORING TEST */</span></span><br><span class="line">      FALLTHROUGH;</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_CONFLUX_UNLINKED:</span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_C_GENERAL:</span><br><span class="line">      <span class="keyword">if</span> (is_internal) <span class="comment">/* pick it like a middle hop */</span></span><br><span class="line">        <span class="keyword">return</span> router_choose_random_node(<span class="literal">NULL</span>, options-&gt;ExcludeNodes, flags);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> choose_good_exit_server_general(flags);</span><br><span class="line">  &#125;</span><br><span class="line">  log_warn(LD_BUG,<span class="string">&quot;Unhandled purpose %d&quot;</span>, TO_CIRCUIT(circ)-&gt;purpose);</span><br><span class="line">  tor_fragile_assert();</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>合并后形成完整 6-hop 通路：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">client</span><br><span class="line">   ↓</span><br><span class="line">guard_c → middle_c → RP ← middle_s ← guard_s</span><br><span class="line">                                   ↑</span><br><span class="line">                                service</span><br></pre></td></tr></table></figure>
+<p>新加入的<code>choose_good_exit_server_from_routerset</code>函数如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// circuitbuild.c</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Pick a node from a configured routerset, but still enforce the normal</span></span><br><span class="line"><span class="comment"> * suitability checks for this circuit position and purpose. */</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="type">node_t</span> *</span><br><span class="line"><span class="title function_">choose_good_exit_server_from_routerset</span><span class="params">(<span class="type">const</span> <span class="type">routerset_t</span> *pick_from,</span></span><br><span class="line"><span class="params">                                       <span class="type">const</span> <span class="type">routerset_t</span> *exclude_set,</span></span><br><span class="line"><span class="params">                                       <span class="type">router_crn_flags_t</span> flags)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">node_t</span> *node = <span class="literal">NULL</span>;</span><br><span class="line">  <span class="type">smartlist_t</span> *live_nodes = smartlist_new();</span><br><span class="line"></span><br><span class="line">  tor_assert(pick_from);</span><br><span class="line"></span><br><span class="line">  routerset_get_all_nodes(live_nodes, pick_from, exclude_set, <span class="number">1</span>);</span><br><span class="line">  SMARTLIST_FOREACH_BEGIN(live_nodes, <span class="type">const</span> <span class="type">node_t</span> *, live_node) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!router_can_choose_node(live_node, flags)) &#123;</span><br><span class="line">      SMARTLIST_DEL_CURRENT(live_nodes, live_node);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; SMARTLIST_FOREACH_END(live_node);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (smartlist_len(live_nodes) &lt;= MAX_SANE_RESTRICTED_NODES) &#123;</span><br><span class="line">    node = smartlist_choose(live_nodes);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    node = node_sl_choose_by_bandwidth(live_nodes, NO_WEIGHTING);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  smartlist_free(live_nodes);</span><br><span class="line">  <span class="keyword">return</span> node;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>注意：</p>
-<ul>
-<li>RP 是双方电路的汇合点</li>
-<li>RP 不知道 client 或 service 的真实身份</li>
-<li>两侧电路在密码学上彼此独立</li>
-</ul>
-<p>因此：</p>
-<blockquote>
-<p>6-hop 结构本质上是两条 3-hop internal 电路在 RP 处拼接。</p>
-</blockquote>
-<hr>
-<h1 id="十二、Tor-Proposal-中的原文描述"><a href="#十二、Tor-Proposal-中的原文描述" class="headerlink" title="十二、Tor Proposal 中的原文描述"></a>十二、Tor Proposal 中的原文描述</h1><p>在 Tor Proposal 224（Next-Generation Hidden Services）中，对 rendezvous 机制的描述如下：</p>
-<blockquote>
-<p>“The client builds a circuit to a randomly chosen rendezvous point (RP) and sends a RENDEZVOUS1 cell.”</p>
-</blockquote>
-<p>以及：</p>
-<blockquote>
-<p>“The service builds a circuit to the rendezvous point and sends a RENDEZVOUS2 cell to complete the handshake.”</p>
-</blockquote>
-<p>关键点可以提炼为：</p>
-<ol>
-<li>Client 随机选择 RP</li>
-<li>Client 先建立到 RP 的电路</li>
-<li>Service 再建立到同一个 RP 的电路</li>
-<li>双方在 RP 处完成握手</li>
-</ol>
-<p>这与我们在源码中看到的逻辑完全一致：</p>
-<ul>
-<li>RP 是随机选取</li>
-<li>RP 是 internal 电路的最后一跳</li>
-<li>双方各自构建独立电路</li>
-</ul>
-<hr>
-<h1 id="十三、Proposal-与源码的对应关系"><a href="#十三、Proposal-与源码的对应关系" class="headerlink" title="十三、Proposal 与源码的对应关系"></a>十三、Proposal 与源码的对应关系</h1><table>
-<thead>
-<tr>
-<th>Proposal 描述</th>
-<th>源码实现</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Client randomly chooses RP</td>
-<td>router_choose_random_node()</td>
-</tr>
-<tr>
-<td>Client builds circuit to RP</td>
-<td>CIRCUIT_PURPOSE_C_ESTABLISH_REND</td>
-</tr>
-<tr>
-<td>Service connects to RP</td>
-<td>服务端构建 internal 电路</td>
-</tr>
-<tr>
-<td>Rendezvous handshake</td>
-<td>RP 处 relay cell 交换</td>
-</tr>
-</tbody></table>
-<p>可以看到：</p>
-<blockquote>
-<p>Proposal 是协议层描述，源码是工程实现。</p>
-</blockquote>
-<p>RP 并不是协议层的特殊节点类型。</p>
-<p>它只是一个普通 relay，被选作汇合点。</p>
-<hr>
-<h1 id="十四、结构总结"><a href="#十四、结构总结" class="headerlink" title="十四、结构总结"></a>十四、结构总结</h1><p>结合协议与源码，可以得到完整理解：</p>
-<ol>
-<li>RP 是普通 relay</li>
-<li>RP 通过 internal 电路被选出</li>
-<li>6-hop 是两条 3-hop 电路拼接</li>
-<li>指定 exit 等价于指定 RP</li>
-</ol>
-<p>从实现角度看：</p>
-<blockquote>
-<p>Tor 没有专门的 RP 类型或 RP 选择函数。</p>
-</blockquote>
-<p>RP 只是 exit 选择逻辑在特定 purpose 下的复用。</p>
-<hr>
-<p>以上为结合 Proposal 与源码的完整机制说明。</p>
+<p>这个函数从限定的<code>pick_from</code>集中选择仍然活跃的节点，也就是配置了指定<code>exit</code>节点的时候选择指定节点，未指定时随机选择符合要求的<code>exit</code>节点。</p>
+<p>除此之外，需要进行修正让<code>RP</code>的排除检查与普通出口一致：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// circuitbuild.c warn_if_last_router_excluded()    </span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">case</span> CIRCUIT_PURPOSE_C_REND_JOINED:</span><br><span class="line">      <span class="comment">/* BORING TEST */</span></span><br><span class="line">      <span class="comment">/* Rendezvous points now follow the same exit exclusion set as normal</span></span><br><span class="line"><span class="comment">       * exits so diagnostics match the enforced selection behavior. */</span></span><br><span class="line">      description = <span class="string">&quot;chosen rendezvous point&quot;</span>;</span><br><span class="line">      rs = options-&gt;ExcludeExitNodesUnion_;</span><br><span class="line">      <span class="comment">/* BORING TEST */</span></span><br><span class="line">      <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这样可以防止节点选择后的检查报警。</p>
+<p>另一方面，由于<code>HS_client_rend</code>电路有时可能不会重新完整建路，而是复用一条已经打开的<code>internall circuit</code>。一旦发生这种复用，原来那条电路会被继承从而绕过上面改动的<code>RP</code>选择逻辑，因此需要禁用已有的<code>internal circuit</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// circuituse.c</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Return true for the set of conditions for which it is OK to use</span></span><br><span class="line"><span class="comment"> * a cannibalized circuit.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Don&#x27;t cannibalize for onehops, or certain purposes.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="type">int</span></span><br><span class="line"><span class="title function_">circuit_should_cannibalize_to_build</span><span class="params">(<span class="type">uint8_t</span> purpose_to_build,</span></span><br><span class="line"><span class="params">                                    <span class="type">int</span> has_extend_info,</span></span><br><span class="line"><span class="params">                                    <span class="type">int</span> onehop_tunnel)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">or_options_t</span> *options = get_options();</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Do not try to cannibalize if this is a one hop circuit. */</span></span><br><span class="line">  <span class="keyword">if</span> (onehop_tunnel) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Don&#x27;t try to cannibalize for general purpose circuits that do not</span></span><br><span class="line"><span class="comment">   * specify a custom exit. */</span></span><br><span class="line">  <span class="keyword">if</span> (purpose_to_build == CIRCUIT_PURPOSE_C_GENERAL &amp;&amp; !has_extend_info) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Don&#x27;t cannibalize for testing circuits. We want to see if they</span></span><br><span class="line"><span class="comment">   * complete normally. Also don&#x27;t cannibalize for vanguard-purpose</span></span><br><span class="line"><span class="comment">   * circuits, since those are specially pre-built for later</span></span><br><span class="line"><span class="comment">   * cannibalization by the actual specific circuit types that need</span></span><br><span class="line"><span class="comment">   * vanguards.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">if</span> (purpose_to_build == CIRCUIT_PURPOSE_TESTING ||</span><br><span class="line">      purpose_to_build == CIRCUIT_PURPOSE_HS_VANGUARDS) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* The server-side intro circ is not cannibalized because it only</span></span><br><span class="line"><span class="comment">   * needs a 3 hop circuit. It is also long-lived, so it is more</span></span><br><span class="line"><span class="comment">   * important that it have lower latency than get built fast.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">if</span> (purpose_to_build == CIRCUIT_PURPOSE_S_ESTABLISH_INTRO) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Do not cannibalize for conflux circuits */</span></span><br><span class="line">  <span class="keyword">if</span> (purpose_to_build == CIRCUIT_PURPOSE_CONFLUX_UNLINKED) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* BORING TEST */</span></span><br><span class="line">  <span class="comment">/* A client rendezvous circuit with ExitNodes configured must be built with</span></span><br><span class="line"><span class="comment">   * a freshly chosen final hop, otherwise cannibalizing an existing internal</span></span><br><span class="line"><span class="comment">   * circuit would keep its random endpoint and bypass the forced RP choice. */</span></span><br><span class="line">  <span class="keyword">if</span> (purpose_to_build == CIRCUIT_PURPOSE_C_ESTABLISH_REND &amp;&amp;</span><br><span class="line">      options-&gt;ExitNodes) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/* BORING TEST */</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="实验结果"><a href="#实验结果" class="headerlink" title="实验结果"></a>实验结果</h2><p>代码改动之后随意访问一个<code>.onion</code>服务，可以看到<code>6-hop</code>电路的建立，并且选取的<code>RP</code>节点和普通<code>exit</code>节点一样：</p>
+<p><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/image-20260304175957952.png" alt="image-20260304175957952"></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2026/03/05/2026-03-05-%E7%BB%84%E4%BC%9A/" data-id="cuid-eCmS0remDKqMCn9C_h97" data-title="2026-03-05 组会" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2026/03/05/2026-03-05-%E7%BB%84%E4%BC%9A/" data-id="cuidU1X_P1ARPCt8DeREwMTiN" data-title="2026-03-05 组会" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -327,9 +163,9 @@
 <nav id="article-nav">
   
   
-    <a href="/2026/03/03/2025-7-19%E6%97%A5%E5%BF%97/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2026/02/27/2026-2-27%E6%97%A5%E5%BF%97/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">2025-7-19日志</div>
+      <div class="article-nav-title">2026-2-27日志</div>
     </a>
   
 </nav>
@@ -392,10 +228,6 @@
           </li>
         
           <li>
-            <a href="/2026/03/03/2025-7-19%E6%97%A5%E5%BF%97/">2025-7-19日志</a>
-          </li>
-        
-          <li>
             <a href="/2026/02/27/2026-2-27%E6%97%A5%E5%BF%97/">2026-2-27日志</a>
           </li>
         
@@ -405,6 +237,10 @@
         
           <li>
             <a href="/2026/02/05/2026.2.5%E7%BB%84%E4%BC%9A%EF%BC%9A%E4%BB%85%E5%9F%BA%E4%BA%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BF%AE%E6%94%B9%E7%9A%84%20Stream%20%E7%BA%A7%E6%B5%81%E6%8E%A7%E5%8F%AF%E6%8E%A7%E9%80%9F%E7%8E%87%E6%96%B9%E6%A1%88%E8%AF%B4%E6%98%8E/">2026-02-05 组会</a>
+          </li>
+        
+          <li>
+            <a href="/2026/01/29/2026-01-29-%E7%BB%84%E4%BC%9A/">2026-01-29 组会</a>
           </li>
         
       </ul>
