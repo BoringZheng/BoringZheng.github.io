@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026-03-26 组会-实验矩阵设计 | Hexo</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+  <body>
+    <button class="nav-toggle" id="nav-toggle" aria-controls="site-sidebar" aria-expanded="false" aria-label="切换导航">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="shell">
+      
+<aside class="sidebar" id="site-sidebar">
+  <div class="sidebar-brand">
+    <a href="/">Hexo</a>
+    
+  </div>
+
+  <nav class="main-nav" aria-label="主导航">
+    
+      <a class="nav-link " href="/">首页</a>
+    
+      <a class="nav-link " href="/research/">研究</a>
+    
+      <a class="nav-link " href="/life/">生活</a>
+    
+      <a class="nav-link " href="/study/">学习</a>
+    
+  </nav>
+</aside>
+
+      <div class="overlay" id="nav-overlay"></div>
+      <main class="main-content">
+        
+<article class="article-page">
+  <header>
+    <p class="eyebrow">研究</p>
+    <h1>2026-03-26 组会-实验矩阵设计</h1>
+    <time datetime="2026-03-24T16:00:00.000Z">2026-03-25 00:00</time>
+  </header>
+
+  
+    <div class="article-content"><h1 id="2026-03-26-组会：实验矩阵设计"><a href="#2026-03-26-组会：实验矩阵设计" class="headerlink" title="2026-03-26 组会：实验矩阵设计"></a>2026-03-26 组会：实验矩阵设计</h1><h2 id="1-实验目标"><a href="#1-实验目标" class="headerlink" title="1. 实验目标"></a>1. 实验目标</h2><p>本文实验围绕四个核心问题展开：</p>
+<ul>
+<li><strong>RQ1 可注入性</strong>：客户端侧 XON&#x2F;XOFF 控制是否能够稳定诱导 HS 到 Guard 的特征流量。</li>
+<li><strong>RQ2 可识别性</strong>：攻击者在 Guard 侧是否能够准确识别目标水印。</li>
+<li><strong>RQ3 并发可区分性</strong>：在多个客户端同时访问同一 HS 时，攻击者是否仍能定位目标连接。</li>
+<li><strong>RQ4 防御有效性</strong>：现有或设计中的防御机制能否识别、削弱或抹平该水印。</li>
+</ul>
+<hr>
+<h2 id="2-总体实验划分"><a href="#2-总体实验划分" class="headerlink" title="2. 总体实验划分"></a>2. 总体实验划分</h2><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>名称</th>
+<th>目标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>水印注入能力验证</td>
+<td>证明客户端可以稳定调制 HS 到 Guard 的发送速率</td>
+</tr>
+<tr>
+<td>B</td>
+<td>短时流量识别实验</td>
+<td>证明在小文件和短窗口下仍可识别水印</td>
+</tr>
+<tr>
+<td>C</td>
+<td>长时流量识别实验</td>
+<td>证明在大文件和长下载下加入水印不会被HS识别</td>
+</tr>
+<tr>
+<td>D</td>
+<td>并发访问识别实验</td>
+<td>证明在多客户端同时访问同一 HS 时仍能定位目标连接</td>
+</tr>
+<tr>
+<td>E</td>
+<td>参数敏感性实验</td>
+<td>研究周期、幅度、XOFF 时长等参数对识别性能的影响</td>
+</tr>
+<tr>
+<td>F</td>
+<td>边界与最小可检测条件实验</td>
+<td>找出最弱水印、最短观测时间和最大并发容忍度</td>
+</tr>
+<tr>
+<td>G</td>
+<td>消融实验</td>
+<td>验证各设计组件的必要性</td>
+</tr>
+<tr>
+<td>H</td>
+<td>防御机制识别与抑制实验</td>
+<td>测试防御侧能否检测或削弱该水印</td>
+</tr>
+<tr>
+<td>I</td>
+<td>开销与实用性实验</td>
+<td>评估吞吐损失、时延增加和可部署性</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="3-统一实验变量"><a href="#3-统一实验变量" class="headerlink" title="3. 统一实验变量"></a>3. 统一实验变量</h2><h3 id="3-1-文件大小"><a href="#3-1-文件大小" class="headerlink" title="3.1 文件大小"></a>3.1 文件大小</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>文件大小</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>短时</td>
+<td>500KB, 1MB, 5MB, 10MB, 20MB</td>
+</tr>
+<tr>
+<td>长时</td>
+<td>50MB, 100MB, 500MB, 1000MB</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-水印模式"><a href="#3-2-水印模式" class="headerlink" title="3.2 水印模式"></a>3.2 水印模式</h3><table>
+<thead>
+<tr>
+<th>模式编号</th>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>M0</td>
+<td>Baseline</td>
+<td>不注入水印，正常下载</td>
+</tr>
+<tr>
+<td>M1</td>
+<td>XOFF-XON 脉冲</td>
+<td>先阻塞再恢复，形成脉冲特征</td>
+</tr>
+<tr>
+<td>M2</td>
+<td>低速 XON</td>
+<td>通过压低 advisory rate 形成低速特征</td>
+</tr>
+<tr>
+<td>M3</td>
+<td>方波 33%</td>
+<td>周期性高低速切换，幅度 33%</td>
+</tr>
+<tr>
+<td>M4</td>
+<td>方波 50%</td>
+<td>周期性高低速切换，幅度 50%</td>
+</tr>
+<tr>
+<td>M5</td>
+<td>方波 75%</td>
+<td>周期性高低速切换，幅度 75%</td>
+</tr>
+<tr>
+<td>M6</td>
+<td>梯度递增</td>
+<td>速率按时间分段上升</td>
+</tr>
+<tr>
+<td>M7</td>
+<td>伪随机序列</td>
+<td>按预定义二进制序列切换速率</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-并发规模"><a href="#3-3-并发规模" class="headerlink" title="3.3 并发规模"></a>3.3 并发规模</h3><table>
+<thead>
+<tr>
+<th>并发客户端数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1, 2, 4, 8, 16</td>
+</tr>
+</tbody></table>
+<h3 id="3-4-观测窗口"><a href="#3-4-观测窗口" class="headerlink" title="3.4 观测窗口"></a>3.4 观测窗口</h3><table>
+<thead>
+<tr>
+<th>窗口长度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>5s, 10s, 20s, 30s, 60s, full</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="4-核心评价指标"><a href="#4-核心评价指标" class="headerlink" title="4. 核心评价指标"></a>4. 核心评价指标</h2><table>
+<thead>
+<tr>
+<th>类别</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>调制能力</td>
+<td>平均吞吐率、峰值、谷值、高低速差、模板相关系数、调制成功率</td>
+</tr>
+<tr>
+<td>二分类识别</td>
+<td>Accuracy, Precision, Recall, F1, FPR, FNR, AUC</td>
+</tr>
+<tr>
+<td>多分类识别</td>
+<td>Accuracy, Macro-F1, 混淆矩阵</td>
+</tr>
+<tr>
+<td>并发识别</td>
+<td>命中率, 误报率</td>
+</tr>
+<tr>
+<td>时效性</td>
+<td>最小观测时长、平均检测时延</td>
+</tr>
+<tr>
+<td>开销</td>
+<td>吞吐率损失、下载完成时间增加比例</td>
+</tr>
+<tr>
+<td>鲁棒性</td>
+<td>跨轮次方差、跨参数稳定性、最大可承受并发</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="5-主实验矩阵"><a href="#5-主实验矩阵" class="headerlink" title="5. 主实验矩阵"></a>5. 主实验矩阵</h2><h3 id="A-水印注入能力验证"><a href="#A-水印注入能力验证" class="headerlink" title="A. 水印注入能力验证"></a>A. 水印注入能力验证</h3><table>
+<thead>
+<tr>
+<th>实验编号</th>
+<th>实验名称</th>
+<th>自变量</th>
+<th>因变量</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A1</td>
+<td>不同模式的吞吐时间序列验证</td>
+<td>文件大小, 水印模式</td>
+<td>吞吐率曲线, 高低速差, 周期稳定性</td>
+<td>验证不同模式是否能在 Guard 侧形成预期流量结构</td>
+</tr>
+<tr>
+<td>A2</td>
+<td>多轮重复下的平均波形实验</td>
+<td>水印模式, 重复轮次</td>
+<td>平均波形, 方差</td>
+<td>验证模式是否具有重复性</td>
+</tr>
+<tr>
+<td>A3</td>
+<td>调制成功率实验</td>
+<td>文件大小, 水印模式</td>
+<td>调制成功率</td>
+<td>定量评估注入成功概率</td>
+</tr>
+<tr>
+<td>A4</td>
+<td>模板相关性实验</td>
+<td>水印模式</td>
+<td>Pearson 相关系数, DTW 距离</td>
+<td>量化目标模板与实测流量的一致程度</td>
+</tr>
+</tbody></table>
+<h3 id="B-短时流量识别实验"><a href="#B-短时流量识别实验" class="headerlink" title="B. 短时流量识别实验"></a>B. 短时流量识别实验</h3><table>
+<thead>
+<tr>
+<th>实验编号</th>
+<th>实验名称</th>
+<th>自变量</th>
+<th>因变量</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>B1</td>
+<td>不同小文件大小下的识别实验</td>
+<td>文件大小, 水印模式</td>
+<td>Accuracy, Precision, Recall, F1</td>
+<td>验证短时下载中是否可识别水印</td>
+</tr>
+<tr>
+<td>B2</td>
+<td>不同观测窗口下的早期检测实验</td>
+<td>观测窗口, 水印模式</td>
+<td>F1, 检测时延</td>
+<td>找到完成可靠检测所需的最短时间</td>
+</tr>
+</tbody></table>
+<h3 id="C-长时流量识别实验"><a href="#C-长时流量识别实验" class="headerlink" title="C. 长时流量识别实验"></a>C. 长时流量识别实验</h3><table>
+<thead>
+<tr>
+<th>实验编号</th>
+<th>实验名称</th>
+<th>自变量</th>
+<th>因变量</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C1</td>
+<td>不同大文件大小下的识别实验</td>
+<td>文件大小, 水印模式</td>
+<td>Accuracy, Macro-F1</td>
+<td>验证长时下载中识别性能</td>
+</tr>
+<tr>
+<td>C2</td>
+<td>不同观测长度下的识别实验</td>
+<td>观测窗口</td>
+<td>Accuracy, F1</td>
+<td>分析长时观测对识别性能的提升</td>
+</tr>
+<tr>
+<td>C3</td>
+<td>长时稳定性实验</td>
+<td>时间段, 水印模式</td>
+<td>高低速差, 后半段 F1</td>
+<td>验证模式是否随时间漂移或衰减</td>
+</tr>
+<tr>
+<td>C4</td>
+<td>多模式多分类识别实验</td>
+<td>水印模式</td>
+<td>Accuracy, Macro-F1, 混淆矩阵</td>
+<td>验证不同模式之间是否可区分</td>
+</tr>
+</tbody></table>
+<h3 id="D-目标-HS-定位实验"><a href="#D-目标-HS-定位实验" class="headerlink" title="D. 目标 HS 定位实验"></a>D. 目标 HS 定位实验</h3><table>
+<thead>
+<tr>
+<th>实验编号</th>
+<th>实验名称</th>
+<th>自变量</th>
+<th>因变量</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>D1</td>
+<td>单目标 HS 多背景定位实验</td>
+<td>候选流数量, 背景类型</td>
+<td>MRR, FPR</td>
+<td>在多个 Guard 侧候选流量中定位目标 HS</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>高并发背景下的目标 HS 排序实验</td>
+<td>候选流数量, 背景类型</td>
+<td>Mean Rank</td>
+<td>分析背景流量增加时目标 HS 排名如何退化</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-增强实验矩阵"><a href="#6-增强实验矩阵" class="headerlink" title="6. 增强实验矩阵"></a>6. 增强实验矩阵</h2><h3 id="E-参数敏感性实验"><a href="#E-参数敏感性实验" class="headerlink" title="E. 参数敏感性实验"></a>E. 参数敏感性实验</h3><table>
+<thead>
+<tr>
+<th>实验编号</th>
+<th>实验名称</th>
+<th>自变量</th>
+<th>因变量</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>E1</td>
+<td>周期长度敏感性实验</td>
+<td>周期 0.5s, 1s, 2s, 5s, 10s</td>
+<td>F1, 检测时延</td>
+<td>分析周期长度对识别性能的影响</td>
+</tr>
+<tr>
+<td>E2</td>
+<td>调制幅度敏感性实验</td>
+<td>高低速差 30%, 50%, 70%</td>
+<td>F1, AUC</td>
+<td>找到最合适的幅度区间</td>
+</tr>
+<tr>
+<td>E3</td>
+<td>XOFF 持续时间敏感性实验</td>
+<td>1s, 2s</td>
+<td>F1, 吞吐损失</td>
+<td>分析阻塞时长对识别性与开销的影响</td>
+</tr>
+<tr>
+<td>E4</td>
+<td>advisory rate 强度实验</td>
+<td>80, 100, 150, 200, 300 KB&#x2F;s</td>
+<td>F1, 平均吞吐率</td>
+<td>分析速率建议强度的影响</td>
+</tr>
+</tbody></table>
+<h3 id="F-边界实验"><a href="#F-边界实验" class="headerlink" title="F. 边界实验"></a>F. 边界实验</h3><table>
+<thead>
+<tr>
+<th>实验编号</th>
+<th>实验名称</th>
+<th>自变量</th>
+<th>因变量</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F1</td>
+<td>最小可检测幅度实验</td>
+<td>幅度逐渐减小</td>
+<td>达到目标 F1 所需最小幅度</td>
+<td>找到最弱可识别水印</td>
+</tr>
+<tr>
+<td>F2</td>
+<td>最小观测时长实验</td>
+<td>观测窗口逐渐增加</td>
+<td>达到目标 Accuracy 所需最短时间</td>
+<td>评估最短检测时间</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>最大可承受并发实验</td>
+<td>并发数逐渐增加</td>
+<td>Top-1, F1</td>
+<td>找到识别明显失效的并发边界</td>
+</tr>
+</tbody></table>
+<h3 id="G-消融实验"><a href="#G-消融实验" class="headerlink" title="G. 消融实验"></a>G. 消融实验</h3><table>
+<thead>
+<tr>
+<th>实验编号</th>
+<th>实验名称</th>
+<th>对比项</th>
+<th>因变量</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>G1</td>
+<td>去掉 XOFF 的消融实验</td>
+<td>仅 XON vs XOFF+XON</td>
+<td>F1, Top-1</td>
+<td>验证 XOFF 是否带来额外区分度</td>
+</tr>
+<tr>
+<td>G2</td>
+<td>去掉周期结构的消融实验</td>
+<td>恒定低速 vs 周期模式</td>
+<td>Accuracy, F1</td>
+<td>验证时间结构是否关键</td>
+</tr>
+<tr>
+<td>G3</td>
+<td>去掉预处理的消融实验</td>
+<td>有预处理 vs 无预处理</td>
+<td>Accuracy, F1</td>
+<td>验证预处理对检测性能的贡献</td>
+</tr>
+</tbody></table>
+<p><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/image-20260325230141417.png" alt="image-20260325230141417"></p>
+</div>
+  
+
+  
+    <footer class="article-footer">
+      
+        <p>分类：<span class="taxonomy">research</span></p>
+      
+      
+    </footer>
+  
+</article>
+
+      </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>
