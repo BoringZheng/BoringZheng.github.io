@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026-04-02 组会-Analysis Framework | Hexo</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+  <body>
+    <button class="nav-toggle" id="nav-toggle" aria-controls="site-sidebar" aria-expanded="false" aria-label="切换导航">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="shell">
+      
+<aside class="sidebar" id="site-sidebar">
+  <div class="sidebar-brand">
+    <a href="/">Hexo</a>
+    
+  </div>
+
+  <nav class="main-nav" aria-label="主导航">
+    
+      <a class="nav-link " href="/">首页</a>
+    
+      <a class="nav-link " href="/research/">研究</a>
+    
+      <a class="nav-link " href="/life/">生活</a>
+    
+      <a class="nav-link " href="/study/">学习</a>
+    
+  </nav>
+</aside>
+
+      <div class="overlay" id="nav-overlay"></div>
+      <main class="main-content">
+        
+<article class="article-page">
+  <header>
+    <p class="eyebrow">研究</p>
+    <h1>2026-04-02 组会-Analysis Framework</h1>
+    <time datetime="2026-04-01T16:00:00.000Z">2026-04-02 00:00</time>
+  </header>
+
+  
+    <div class="article-content"><h1 id="2026-04-02-组会：Analysis-Framework"><a href="#2026-04-02-组会：Analysis-Framework" class="headerlink" title="2026-04-02 组会：Analysis Framework"></a>2026-04-02 组会：Analysis Framework</h1><h2 id="一、框架设计"><a href="#一、框架设计" class="headerlink" title="一、框架设计"></a>一、框架设计</h2><h3 id="1-Framework-Overview"><a href="#1-Framework-Overview" class="headerlink" title="1. Framework Overview"></a>1. Framework Overview</h3><p>本框架是 C 端用于 A&#x2F;B 对齐分析的实验分析框架，工作目录为 <code>/root/flowctl_client/analysis_C</code>。其目标是对 A 端控制序列与 B 端连续出口观测序列进行统一对齐，并在此基础上完成延迟估计、符号恢复与分类指标计算。</p>
+<p>该框架面向的不是一次性 trigger-response 实验，而是<strong>持续调制实验</strong>。在这类实验中，A 端会持续输出控制符号，B 端会持续处于活跃状态，因此分析目标不再是“寻找某次触发后的单次响应”，而是“判断在某个延迟下，A 端不同符号对应的 B 端窗口统计量是否能够稳定分离”。</p>
+<p>当前实验形态为：</p>
+<ul>
+<li>A 端输出控制序列，记录于 <code>A_control_log.jsonl</code></li>
+<li>B 端记录连续出口速率，记录于 <code>B_egress_rate.csv</code></li>
+<li>实验为持续下载下的速率调制</li>
+<li>典型符号序列为交替 <code>adv_kbps=100</code> 与 <code>adv_kbps=133</code></li>
+</ul>
+<hr>
+<h3 id="2-Directory-Layout"><a href="#2-Directory-Layout" class="headerlink" title="2. Directory Layout"></a>2. Directory Layout</h3><p>框架目录组织如下：</p>
+<ul>
+<li><code>bin/</code><ul>
+<li><code>analyze_run.py</code>：执行单次实验的对齐、特征提取与指标计算</li>
+<li><code>render_report.py</code>：将处理结果转换为 Markdown 报告</li>
+<li><code>analyze_all_runs.sh</code>：批量分析脚本</li>
+</ul>
+</li>
+<li><code>config/</code><ul>
+<li><code>analyzer.env</code>：lag 扫描范围、步长和阈值相关配置</li>
+</ul>
+</li>
+<li><code>raw/&lt;exp_id&gt;/</code><ul>
+<li>保存 B 端原始输入，如 <code>B_egress_rate.csv</code> 与 <code>B_meta.json</code></li>
+</ul>
+</li>
+<li><code>processed/&lt;exp_id&gt;/</code><ul>
+<li>保存中间结果与结构化指标，如 <code>aligned_trace.csv</code>、<code>labels.json</code>、<code>detection_result.json</code>、<code>metrics.json</code></li>
+</ul>
+</li>
+<li><code>reports/&lt;exp_id&gt;/</code><ul>
+<li>保存最终人类可读 Markdown 报告 <code>report.md</code></li>
+</ul>
+</li>
+</ul>
+<p>该目录设计将原始数据、中间处理结果和最终报告明确分层，便于后续复现实验、排查异常及扩展分析指标。</p>
+<hr>
+<h3 id="3-Input-Specification"><a href="#3-Input-Specification" class="headerlink" title="3. Input Specification"></a>3. Input Specification</h3><p>框架依赖三类输入：</p>
+<ul>
+<li>A side truth log: <code>/root/flowctl_client/runs/&lt;exp_id&gt;/A_control_log.jsonl</code></li>
+<li>B side egress trace: <code>/root/flowctl_client/analysis_C/raw/&lt;exp_id&gt;/B_egress_rate.csv</code></li>
+<li>B side metadata: <code>/root/flowctl_client/analysis_C/raw/&lt;exp_id&gt;/B_meta.json</code></li>
+</ul>
+<p>其中：</p>
+<h4 id="3-1-A-side-log"><a href="#3-1-A-side-log" class="headerlink" title="3.1 A-side log"></a>3.1 A-side log</h4><p><code>A_control_log.jsonl</code> 提供 A 端控制行为的时间序列记录。当前分析仅使用满足以下条件的记录：</p>
+<ul>
+<li><code>event_type == XON</code></li>
+<li>存在 <code>adv_kbps</code></li>
+<li>存在 <code>ts_unix_ms</code></li>
+</ul>
+<p>这些字段分别表示：</p>
+<ul>
+<li>事件类型为有效控制事件</li>
+<li>当前符号对应的建议速率值</li>
+<li>事件发生时间戳</li>
+</ul>
+<h4 id="3-2-B-side-trace"><a href="#3-2-B-side-trace" class="headerlink" title="3.2 B-side trace"></a>3.2 B-side trace</h4><p><code>B_egress_rate.csv</code> 记录 B 端连续出口观测。当前主分析使用字段：</p>
+<ul>
+<li><code>ts_ns</code>：纳秒级时间戳，后续统一转换为 <code>ts_unix_ms</code></li>
+<li><code>kbps</code>：对应时刻的出口速率，作为主观测信号</li>
+</ul>
+<h4 id="3-3-B-side-metadata"><a href="#3-3-B-side-metadata" class="headerlink" title="3.3 B-side metadata"></a>3.3 B-side metadata</h4><p><code>B_meta.json</code> 用于补充实验运行信息与上下文元数据。虽然其内容不直接进入当前分类公式，但对实验一致性检查和报表生成仍有辅助价值。</p>
+<hr>
+<h3 id="4-Core-Analysis-Pipeline"><a href="#4-Core-Analysis-Pipeline" class="headerlink" title="4. Core Analysis Pipeline"></a>4. Core Analysis Pipeline</h3><p>框架主流程由五个阶段构成：</p>
+<ol>
+<li>构造 A 端 truth symbol windows</li>
+<li>将 B 端视为连续观测信号</li>
+<li>扫描候选 lag 并评估窗口级可分性</li>
+<li>选取最优 <code>best_lag_ms</code></li>
+<li>在最优 lag 下完成符号分类与指标计算</li>
+</ol>
+<p>下面分别展开。</p>
+<hr>
+<h3 id="5-A-side-Truth-Construction"><a href="#5-A-side-Truth-Construction" class="headerlink" title="5. A-side Truth Construction"></a>5. A-side Truth Construction</h3><h4 id="5-1-Record-filtering"><a href="#5-1-Record-filtering" class="headerlink" title="5.1 Record filtering"></a>5.1 Record filtering</h4><p>首先读取 <code>A_control_log.jsonl</code>，并保留满足分析条件的 XON 记录。此步骤的目的是从原始控制日志中提取可作为真值的符号事件序列。</p>
+<h4 id="5-2-Cleanup-step-1-dedup-within-the-same-millisecond"><a href="#5-2-Cleanup-step-1-dedup-within-the-same-millisecond" class="headerlink" title="5.2 Cleanup step 1: dedup within the same millisecond"></a>5.2 Cleanup step 1: dedup within the same millisecond</h4><p>若同一毫秒存在多条 XON 记录，仅保留最后一条。这样处理的原因是：</p>
+<ul>
+<li>在启动或状态切换时，日志可能在同一时间戳下连续记录多个临时值</li>
+<li>同一时刻真正生效的状态应视为最后一次写入的状态</li>
+<li>如果不去重，会导致同一时刻被错误拆成多个符号</li>
+</ul>
+<h4 id="5-3-Cleanup-step-2-keep-only-change-points"><a href="#5-3-Cleanup-step-2-keep-only-change-points" class="headerlink" title="5.3 Cleanup step 2: keep only change points"></a>5.3 Cleanup step 2: keep only change points</h4><p>在时间顺序上，仅保留 <code>adv_kbps</code> 发生变化的位置。这样做的原因是：</p>
+<ul>
+<li>如果 A 端连续多次记录相同 <code>adv_kbps</code>，这些记录并不对应新的符号切换</li>
+<li>对齐分析关心的是符号边界，而不是重复日志条目</li>
+</ul>
+<p>完成上述两步清理后，得到一个按时间排序的 change-point 序列。</p>
+<h4 id="5-4-Convert-change-points-into-symbol-windows"><a href="#5-4-Convert-change-points-into-symbol-windows" class="headerlink" title="5.4 Convert change points into symbol windows"></a>5.4 Convert change points into symbol windows</h4><p>随后，将相邻 change points 转换为 symbol windows。每个窗口由以下字段定义：</p>
+<ul>
+<li><code>a_start_ts_unix_ms</code>：符号起始时间</li>
+<li><code>a_end_ts_unix_ms</code>：符号结束时间</li>
+<li><code>a_adv_kbps</code>：该窗口内 A 端符号值</li>
+<li><code>a_label</code>：用于分类评估的二值真值标签</li>
+</ul>
+<p>该转换的本质是将离散事件日志重建为一段分段常值信号，以便与 B 端连续时间序列按区间对齐。</p>
+<h4 id="5-5-Binary-labeling-rule"><a href="#5-5-Binary-labeling-rule" class="headerlink" title="5.5 Binary labeling rule"></a>5.5 Binary labeling rule</h4><p>当前版本采用简单的二值标签规则：</p>
+<ul>
+<li>当前 run 中最低 <code>adv_kbps</code> 档位记为 <code>0</code></li>
+<li>任何更高 <code>adv_kbps</code> 档位记为 <code>1</code></li>
+</ul>
+<p>因此在本实验中：</p>
+<ul>
+<li><code>100 -&gt; label 0</code></li>
+<li><code>133 -&gt; label 1</code></li>
+</ul>
+<p>这一设计适合当前二值持续调制场景，同时也明确指出：当前框架属于 binary modulation v1，不直接支持多档位多分类。</p>
+<hr>
+<h3 id="6-B-side-Observation-Modeling"><a href="#6-B-side-Observation-Modeling" class="headerlink" title="6. B-side Observation Modeling"></a>6. B-side Observation Modeling</h3><h4 id="6-1-Continuous-signal-view"><a href="#6-1-Continuous-signal-view" class="headerlink" title="6.1 Continuous-signal view"></a>6.1 Continuous-signal view</h4><p>B 端 <code>B_egress_rate.csv</code> 不再被解释为由若干独立响应事件构成，而是被视为一个<strong>连续时间观测信号</strong>。这一建模假设更符合持续下载任务，因为：</p>
+<ul>
+<li>B 端始终处于传输过程中</li>
+<li>速率变化具有连续性而不是瞬时离散跳变</li>
+<li>单个窗口的观测值可能受前后窗口残留影响</li>
+</ul>
+<p>因此，分析对象不再是“某个 rise 事件”，而是“某个时间区间上的统计特征”。</p>
+<h4 id="6-2-Main-signal-field"><a href="#6-2-Main-signal-field" class="headerlink" title="6.2 Main signal field"></a>6.2 Main signal field</h4><p>主分析使用 B 端的 <code>kbps</code> 作为连续观测值，并将 <code>ts_ns</code> 统一换算到 <code>ts_unix_ms</code> 时间轴，以便与 A 端窗口对齐。</p>
+<h4 id="6-3-Legacy-state-machine-output"><a href="#6-3-Legacy-state-machine-output" class="headerlink" title="6.3 Legacy state-machine output"></a>6.3 Legacy state-machine output</h4><p>脚本仍保留旧逻辑派生的 <code>B_state_machine.csv</code>，其中包含：</p>
+<ul>
+<li><code>is_low</code></li>
+<li><code>low_streak</code></li>
+<li><code>zero_armed</code></li>
+<li><code>rise_1</code></li>
+</ul>
+<p>但该文件仅作为诊断性 side output。它可以帮助检查：</p>
+<ul>
+<li>B 端是否曾显著回到低状态</li>
+<li>旧逻辑在某些特殊 run 中为何失效</li>
+<li>当前 run 是否存在明显异常</li>
+</ul>
+<hr>
+<h3 id="7-Lag-Scan-Based-Alignment"><a href="#7-Lag-Scan-Based-Alignment" class="headerlink" title="7. Lag-Scan Based Alignment"></a>7. Lag-Scan Based Alignment</h3><h4 id="7-1-Main-assumption"><a href="#7-1-Main-assumption" class="headerlink" title="7.1 Main assumption"></a>7.1 Main assumption</h4><p>当前框架采用如下假设：</p>
+<ul>
+<li>A 端是已知真实调制序列</li>
+<li>B 端是该序列经过传播时延、网络抖动和缓冲平滑后的延迟观测</li>
+</ul>
+<p>因此，与其逐事件匹配，不如扫描候选 lag，并检验在该 lag 下高低符号窗口的可分性是否最强。</p>
+<h4 id="7-2-Lag-search-range"><a href="#7-2-Lag-search-range" class="headerlink" title="7.2 Lag search range"></a>7.2 Lag search range</h4><p>lag 扫描范围由 <code>config/analyzer.env</code> 控制，主要参数包括：</p>
+<ul>
+<li><code>DELAY_MIN_MS</code></li>
+<li><code>DELAY_MAX_MS</code></li>
+<li><code>LAG_STEP_MS</code></li>
+</ul>
+<p>当前配置为：</p>
+<ul>
+<li>最小 lag：<code>0 ms</code></li>
+<li>最大 lag：<code>5000 ms</code></li>
+<li>扫描步长：<code>100 ms</code></li>
+</ul>
+<p>因此，候选 lag 集合为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0, 100, 200, ..., 5000 ms</span><br></pre></td></tr></table></figure>
+
+<h4 id="7-3-Per-lag-window-alignment"><a href="#7-3-Per-lag-window-alignment" class="headerlink" title="7.3 Per-lag window alignment"></a>7.3 Per-lag window alignment</h4><p>对每一个候选 lag，执行如下步骤：</p>
+<ol>
+<li>将所有 A-side symbol windows 整体向后平移该 lag</li>
+<li>在 B 端截取落入平移后窗口区间内的所有采样点</li>
+<li>对每个窗口计算聚合统计量</li>
+<li>将这些窗口值按 A 标签划分为 high group 与 low group</li>
+<li>计算该 lag 下的类间可分性指标</li>
+</ol>
+<p>这里的核心是：对齐是在<strong>窗口层面</strong>而不是事件层面完成的。</p>
+<h4 id="7-4-Window-level-B-features"><a href="#7-4-Window-level-B-features" class="headerlink" title="7.4 Window-level B features"></a>7.4 Window-level B features</h4><p>当前框架为每个对齐后的窗口计算多个 B-side 聚合特征：</p>
+<ul>
+<li><code>b_mean_kbps</code></li>
+<li><code>b_median_kbps</code></li>
+<li><code>b_max_kbps</code></li>
+<li><code>b_p90_kbps</code></li>
+</ul>
+<p>其中，当前分类与可分性分析的主特征是：</p>
+<ul>
+<li><code>b_mean_kbps</code></li>
+</ul>
+<p>保留其他统计量的原因是：</p>
+<ul>
+<li>便于后续扩展更稳健的分类器</li>
+<li>便于分析异常窗口</li>
+<li>便于比较不同聚合统计量对分离效果的影响</li>
+</ul>
+<hr>
+<h3 id="8-Best-Lag-Selection-by-Separability"><a href="#8-Best-Lag-Selection-by-Separability" class="headerlink" title="8. Best Lag Selection by Separability"></a>8. Best Lag Selection by Separability</h3><h4 id="8-1-Separation-score"><a href="#8-1-Separation-score" class="headerlink" title="8.1 Separation score"></a>8.1 Separation score</h4><p>对于每个候选 lag，框架计算：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">separation_score = (mean_high - mean_low) / (std_high + std_low + eps)</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>mean_high</code>：A 标签为 <code>1</code> 的窗口在 B 端 <code>b_mean_kbps</code> 的均值</li>
+<li><code>mean_low</code>：A 标签为 <code>0</code> 的窗口在 B 端 <code>b_mean_kbps</code> 的均值</li>
+<li><code>std_high</code>：高符号窗口 <code>b_mean_kbps</code> 的总体标准差</li>
+<li><code>std_low</code>：低符号窗口 <code>b_mean_kbps</code> 的总体标准差</li>
+<li><code>eps</code>：防止分母为零的极小项</li>
+</ul>
+<h4 id="8-2-Interpretation"><a href="#8-2-Interpretation" class="headerlink" title="8.2 Interpretation"></a>8.2 Interpretation</h4><p>该分数可解释为“类间距离相对于类内波动的归一化程度”：</p>
+<ul>
+<li>分子越大，说明高低两类中心差距越大</li>
+<li>分母越大，说明两类内部噪声越强</li>
+<li>因此，分数越大，说明该 lag 下两类越容易分离</li>
+</ul>
+<p>具体而言：</p>
+<ul>
+<li><code>separation_score &gt; 0</code>：高符号窗口整体上高于低符号窗口</li>
+<li>接近 <code>0</code>：两类高度重叠</li>
+<li>小于 <code>0</code>：当前 lag 与真实传播延迟不匹配</li>
+</ul>
+<h4 id="8-3-Why-this-criterion-is-used"><a href="#8-3-Why-this-criterion-is-used" class="headerlink" title="8.3 Why this criterion is used"></a>8.3 Why this criterion is used</h4><p>选择 separability 而非单点误差最小化的原因在于：</p>
+<ul>
+<li>当前实验目标是恢复符号类别，而非拟合某条连续曲线</li>
+<li>持续调制实验中，B 端观测受窗口平滑与残留影响，单事件误差不稳定</li>
+<li>类间可分性更直接对应“该延迟是否能支持可靠分类”</li>
+</ul>
+<h4 id="8-4-Best-lag-selection-rule"><a href="#8-4-Best-lag-selection-rule" class="headerlink" title="8.4 Best lag selection rule"></a>8.4 Best lag selection rule</h4><p>最终，将 <code>separation_score</code> 最大的 lag 记为：</p>
+<ul>
+<li><code>best_lag_ms</code></li>
+</ul>
+<p>这意味着：当前框架将“使高低类最容易分开”的延迟，作为 A 到 B 的最佳估计传播时延。</p>
+<hr>
+<h3 id="9-Classification-After-Lag-Fixing"><a href="#9-Classification-After-Lag-Fixing" class="headerlink" title="9. Classification After Lag Fixing"></a>9. Classification After Lag Fixing</h3><h4 id="9-1-Final-aligned-trace"><a href="#9-1-Final-aligned-trace" class="headerlink" title="9.1 Final aligned trace"></a>9.1 Final aligned trace</h4><p>在确定 <code>best_lag_ms</code> 后，框架生成最终 <code>aligned_trace.csv</code>。该文件是最关键的中间结果，每一行对应一个 A-side symbol window 在 B 端的对齐结果。</p>
+<p>关键字段包括：</p>
+<ul>
+<li><code>symbol_idx</code></li>
+<li><code>a_start_ts_iso</code>, <code>a_end_ts_iso</code></li>
+<li><code>a_adv_kbps</code></li>
+<li><code>a_label</code></li>
+<li><code>best_lag_ms</code></li>
+<li><code>b_mean_kbps</code>, <code>b_median_kbps</code>, <code>b_max_kbps</code>, <code>b_p90_kbps</code></li>
+<li><code>b_pred_label</code></li>
+<li><code>has_valid_b_window</code></li>
+</ul>
+<h4 id="9-2-Threshold-definition"><a href="#9-2-Threshold-definition" class="headerlink" title="9.2 Threshold definition"></a>9.2 Threshold definition</h4><p>在固定最优 lag 后，框架不再继续搜索分类阈值，而是直接使用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">classification_threshold_kbps = (median_high_kbps + median_low_kbps) / 2</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>median_high_kbps</code>：所有 A 标签为 <code>1</code> 的 aligned windows 中，<code>b_mean_kbps</code> 的中位数</li>
+<li><code>median_low_kbps</code>：所有 A 标签为 <code>0</code> 的 aligned windows 中，<code>b_mean_kbps</code> 的中位数</li>
+</ul>
+<h4 id="9-3-Rationale-for-median-midpoint-threshold"><a href="#9-3-Rationale-for-median-midpoint-threshold" class="headerlink" title="9.3 Rationale for median-midpoint threshold"></a>9.3 Rationale for median-midpoint threshold</h4><p>该阈值定义具有三个优点：</p>
+<ol>
+<li><strong>鲁棒性更强。</strong> 中位数相较均值更不容易受尖峰值影响。</li>
+<li><strong>解释性更好。</strong> 阈值位于两类中心趋势之间，符合直观分类边界。</li>
+<li><strong>避免过拟合。</strong> 阈值由类分布直接给出，而不是针对单次 run 复杂调参。</li>
+</ol>
+<p>最终分类规则为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">b_pred_label = 1 if b_mean_kbps &gt;= classification_threshold_kbps else 0</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="10-Output-Files-and-Their-Roles"><a href="#10-Output-Files-and-Their-Roles" class="headerlink" title="10. Output Files and Their Roles"></a>10. Output Files and Their Roles</h3><h4 id="10-1-aligned-trace-csv"><a href="#10-1-aligned-trace-csv" class="headerlink" title="10.1 aligned_trace.csv"></a>10.1 <code>aligned_trace.csv</code></h4><p>最重要的中间文件，用于保存窗口级对齐结果。它支撑：</p>
+<ul>
+<li>单窗口案例检查</li>
+<li>错误样本定位</li>
+<li>可视化与后续统计分析</li>
+</ul>
+<h4 id="10-2-labels-json"><a href="#10-2-labels-json" class="headerlink" title="10.2 labels.json"></a>10.2 <code>labels.json</code></h4><p>记录标签与阈值定义，包括：</p>
+<ul>
+<li>A 侧标签映射规则</li>
+<li>B 侧预测标签规则</li>
+<li><code>best_lag_ms</code></li>
+<li><code>classification_threshold_kbps</code></li>
+</ul>
+<h4 id="10-3-detection-result-json"><a href="#10-3-detection-result-json" class="headerlink" title="10.3 detection_result.json"></a>10.3 <code>detection_result.json</code></h4><p>保存分类评估结果，包括：</p>
+<ul>
+<li><code>accuracy</code></li>
+<li><code>precision</code></li>
+<li><code>recall</code></li>
+<li><code>f1</code></li>
+<li><code>fpr</code></li>
+<li><code>fnr</code></li>
+<li>confusion matrix</li>
+</ul>
+<h4 id="10-4-metrics-json"><a href="#10-4-metrics-json" class="headerlink" title="10.4 metrics.json"></a>10.4 <code>metrics.json</code></h4><p>保存整体对齐与分类质量摘要，包括：</p>
+<ul>
+<li>符号数量统计</li>
+<li><code>best_lag_ms</code></li>
+<li><code>separation_score</code></li>
+<li>高低类统计特征</li>
+<li><code>window_coverage_rate</code></li>
+<li>分类指标</li>
+<li>附加说明</li>
+</ul>
+<h4 id="10-5-B-state-machine-csv"><a href="#10-5-B-state-machine-csv" class="headerlink" title="10.5 B_state_machine.csv"></a>10.5 <code>B_state_machine.csv</code></h4><p>仅作为调试辅助输出，用于与旧方法对照，不作为主报告结论依据。</p>
+<hr>
+<h3 id="11-Metric-Definitions"><a href="#11-Metric-Definitions" class="headerlink" title="11. Metric Definitions"></a>11. Metric Definitions</h3><h4 id="11-1-Delay-and-alignment-metrics"><a href="#11-1-Delay-and-alignment-metrics" class="headerlink" title="11.1 Delay and alignment metrics"></a>11.1 Delay and alignment metrics</h4><ul>
+<li><code>best_lag_ms</code><ul>
+<li>使高低类窗口在 B 端最可分的延迟估计</li>
+</ul>
+</li>
+<li><code>separation_score</code><ul>
+<li>当前 lag 下的类间可分性得分，值越大越好</li>
+</ul>
+</li>
+<li><code>mean_high_kbps</code><ul>
+<li>A&#x3D;1 窗口对应的 B-side <code>b_mean_kbps</code> 均值</li>
+</ul>
+</li>
+<li><code>mean_low_kbps</code><ul>
+<li>A&#x3D;0 窗口对应的 B-side <code>b_mean_kbps</code> 均值</li>
+</ul>
+</li>
+<li><code>median_high_kbps</code><ul>
+<li>A&#x3D;1 窗口对应的 B-side <code>b_mean_kbps</code> 中位数</li>
+</ul>
+</li>
+<li><code>median_low_kbps</code><ul>
+<li>A&#x3D;0 窗口对应的 B-side <code>b_mean_kbps</code> 中位数</li>
+</ul>
+</li>
+<li><code>window_coverage_rate</code><ul>
+<li>经过最优 lag 平移后，仍能提取到有效 B-side 样本的窗口占比</li>
+</ul>
+</li>
+<li><code>classification_threshold_kbps</code><ul>
+<li>最终对 <code>b_mean_kbps</code> 执行分类时使用的阈值</li>
+</ul>
+</li>
+</ul>
+<h4 id="11-2-Classification-metrics"><a href="#11-2-Classification-metrics" class="headerlink" title="11.2 Classification metrics"></a>11.2 Classification metrics</h4><p>在固定最佳 lag 与阈值后，计算如下指标：</p>
+<ul>
+<li><code>accuracy = (TP + TN) / (TP + TN + FP + FN)</code></li>
+<li><code>precision = TP / (TP + FP)</code></li>
+<li><code>recall = TP / (TP + FN)</code></li>
+<li><code>f1 = 2 * precision * recall / (precision + recall)</code></li>
+<li><code>fpr = FP / (FP + TN)</code></li>
+<li><code>fnr = FN / (FN + TP)</code></li>
+</ul>
+<h4 id="11-3-Confusion-matrix-terms"><a href="#11-3-Confusion-matrix-terms" class="headerlink" title="11.3 Confusion matrix terms"></a>11.3 Confusion matrix terms</h4><ul>
+<li><code>tp</code>：A-label-1 被正确预测为 <code>1</code></li>
+<li><code>tn</code>：A-label-0 被正确预测为 <code>0</code></li>
+<li><code>fp</code>：A-label-0 被误判为 <code>1</code></li>
+<li><code>fn</code>：A-label-1 被误判为 <code>0</code></li>
+</ul>
+<hr>
+<h2 id="二、原始实验报告"><a href="#二、原始实验报告" class="headerlink" title="二、原始实验报告"></a>二、原始实验报告</h2><h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><ul>
+<li>first_symbol_ts: 2026-03-31T07:25:55-04:00</li>
+<li>last_symbol_ts: 2026-03-31T08:50:28-04:00</li>
+<li>best_lag_ms: 1400</li>
+<li>classification_threshold_kbps: 934.272</li>
+</ul>
+<h2 id="Metrics"><a href="#Metrics" class="headerlink" title="Metrics"></a>Metrics</h2><table>
+<thead>
+<tr>
+<th>metric</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>symbol_count_total</td>
+<td>1401</td>
+</tr>
+<tr>
+<td>symbol_count_high</td>
+<td>700</td>
+</tr>
+<tr>
+<td>symbol_count_low</td>
+<td>701</td>
+</tr>
+<tr>
+<td>best_lag_ms</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>separation_score</td>
+<td>0.245</td>
+</tr>
+<tr>
+<td>mean_high_kbps</td>
+<td>1076.346</td>
+</tr>
+<tr>
+<td>mean_low_kbps</td>
+<td>851.456</td>
+</tr>
+<tr>
+<td>median_high_kbps</td>
+<td>1044.360</td>
+</tr>
+<tr>
+<td>median_low_kbps</td>
+<td>824.184</td>
+</tr>
+<tr>
+<td>window_coverage_rate</td>
+<td>1.000</td>
+</tr>
+<tr>
+<td>accuracy</td>
+<td>0.989</td>
+</tr>
+<tr>
+<td>precision</td>
+<td>0.983</td>
+</tr>
+<tr>
+<td>recall</td>
+<td>0.994</td>
+</tr>
+<tr>
+<td>f1</td>
+<td>0.989</td>
+</tr>
+<tr>
+<td>fpr</td>
+<td>0.017</td>
+</tr>
+<tr>
+<td>fnr</td>
+<td>0.006</td>
+</tr>
+</tbody></table>
+<h2 id="Confusion-Matrix"><a href="#Confusion-Matrix" class="headerlink" title="Confusion Matrix"></a>Confusion Matrix</h2><table>
+<thead>
+<tr>
+<th>item</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tp</td>
+<td>696</td>
+</tr>
+<tr>
+<td>tn</td>
+<td>689</td>
+</tr>
+<tr>
+<td>fp</td>
+<td>12</td>
+</tr>
+<tr>
+<td>fn</td>
+<td>4</td>
+</tr>
+</tbody></table>
+<h2 id="Notes"><a href="#Notes" class="headerlink" title="Notes"></a>Notes</h2><ul>
+<li>none</li>
+</ul>
+<h2 id="Sample-Aligned-Windows"><a href="#Sample-Aligned-Windows" class="headerlink" title="Sample Aligned Windows"></a>Sample Aligned Windows</h2><table>
+<thead>
+<tr>
+<th>symbol_idx</th>
+<th>a_adv_kbps</th>
+<th>a_label</th>
+<th>b_mean_kbps</th>
+<th>b_pred_label</th>
+<th>best_lag_ms</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>100</td>
+<td>0</td>
+<td>826.9019999999998</td>
+<td>0</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>1</td>
+<td>133</td>
+<td>1</td>
+<td>1042.0480000000007</td>
+<td>1</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>2</td>
+<td>100</td>
+<td>0</td>
+<td>812.1499999999978</td>
+<td>0</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>3</td>
+<td>133</td>
+<td>1</td>
+<td>1053.8739999999984</td>
+<td>1</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>4</td>
+<td>100</td>
+<td>0</td>
+<td>819.2459999999992</td>
+<td>0</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>5</td>
+<td>133</td>
+<td>1</td>
+<td>1035.1860000000001</td>
+<td>1</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>6</td>
+<td>100</td>
+<td>0</td>
+<td>959.6419999999983</td>
+<td>1</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>7</td>
+<td>133</td>
+<td>1</td>
+<td>1038.453999999995</td>
+<td>1</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>8</td>
+<td>100</td>
+<td>0</td>
+<td>808.4479999999982</td>
+<td>0</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>9</td>
+<td>133</td>
+<td>1</td>
+<td>1039.6280000000029</td>
+<td>1</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>10</td>
+<td>100</td>
+<td>0</td>
+<td>811.0399999999936</td>
+<td>0</td>
+<td>1400</td>
+</tr>
+<tr>
+<td>11</td>
+<td>133</td>
+<td>1</td>
+<td>1050.5640000000028</td>
+<td>1</td>
+<td>1400</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="三、实验结果分析"><a href="#三、实验结果分析" class="headerlink" title="三、实验结果分析"></a>三、实验结果分析</h2><p>这一部分开始进入具体实验结果。</p>
+<h3 id="1-样本数量与平衡性"><a href="#1-样本数量与平衡性" class="headerlink" title="1. 样本数量与平衡性"></a>1. 样本数量与平衡性</h3><ul>
+<li><code>symbol_count_total = 1401</code></li>
+<li><code>symbol_count_high = 700</code></li>
+<li><code>symbol_count_low = 701</code></li>
+</ul>
+<p>这说明本次实验总共分析了 1401 个符号窗口，而且高低符号几乎完全平衡。</p>
+<p>这个平衡性很重要，因为这样分类准确率不会被类别分布偏置影响。</p>
+<h3 id="2-separation-score-0-245"><a href="#2-separation-score-0-245" class="headerlink" title="2. separation_score &#x3D; 0.245"></a>2. separation_score &#x3D; 0.245</h3><p>这个指标表示高低两类在 B 端观测值上的可分离程度。</p>
+<p>可以这样讲：</p>
+<ul>
+<li>这个值越大，说明两类越容易分开。</li>
+<li>这个值不是特别夸张地大，说明两类并不是完全没有重叠。</li>
+<li>但后面的分类结果依然很高，说明虽然存在一定重叠，但整体上仍然足够区分。</li>
+</ul>
+<p>所以这个值传达的信息是：</p>
+<p><strong>两类不是完全分离，但已经具备稳定可判别性。</strong></p>
+<h3 id="3-高低符号在-B-端的均值和中位数"><a href="#3-高低符号在-B-端的均值和中位数" class="headerlink" title="3. 高低符号在 B 端的均值和中位数"></a>3. 高低符号在 B 端的均值和中位数</h3><ul>
+<li><code>mean_high_kbps = 1076.346</code></li>
+<li><code>mean_low_kbps = 851.456</code></li>
+<li><code>median_high_kbps = 1044.360</code></li>
+<li><code>median_low_kbps = 824.184</code></li>
+</ul>
+<p>这四个值可以一起讲。</p>
+<p>先看均值，高符号比低符号大约高出：</p>
+<ul>
+<li>1076.346 - 851.456 ≈ 224.89 kbps</li>
+</ul>
+<p>再看中位数，高符号和低符号也有明显差距。</p>
+<p>这说明：</p>
+<ul>
+<li>A 端的高低速率调制，确实在 B 端留下了清楚的统计差异。</li>
+<li>这种差异不是少数异常值造成的，因为中位数也同样分开了。</li>
+</ul>
+<p>所以这里的核心结论是：</p>
+<p><strong>高低符号在 B 端的观测分布中心是明显分离的。</strong></p>
+<h3 id="4-window-coverage-rate-1-000"><a href="#4-window-coverage-rate-1-000" class="headerlink" title="4. window_coverage_rate &#x3D; 1.000"></a>4. window_coverage_rate &#x3D; 1.000</h3><p>这个指标表示窗口覆盖率是 100%。</p>
+<p>也就是说，1401 个符号窗口全部都成功对齐并参与了分析，没有出现大面积丢窗或无效窗口。</p>
+<p>这说明实验数据完整性很好。</p>
+<hr>
+<h3 id="2-分类效果"><a href="#2-分类效果" class="headerlink" title="2. 分类效果"></a>2. 分类效果</h3><h3 id="1-accuracy-0-989"><a href="#1-accuracy-0-989" class="headerlink" title="1. accuracy &#x3D; 0.989"></a>1. accuracy &#x3D; 0.989</h3><p>总体准确率是 98.9%。</p>
+<p>也就是在全部 1401 个符号窗口里，有 98.9% 被正确恢复。</p>
+<p>这已经说明恢复效果非常强。</p>
+<h3 id="2-precision-0-983"><a href="#2-precision-0-983" class="headerlink" title="2. precision &#x3D; 0.983"></a>2. precision &#x3D; 0.983</h3><p>精确率表示：所有被预测成高符号 1 的窗口里，有 98.3% 真实就是 1。</p>
+<p>这个值高，说明误报不多。</p>
+<h3 id="3-recall-0-994"><a href="#3-recall-0-994" class="headerlink" title="3. recall &#x3D; 0.994"></a>3. recall &#x3D; 0.994</h3><p>召回率表示：所有真实的高符号 1 里，有 99.4% 被成功检测出来。</p>
+<p>这个值更高，说明漏检很少。</p>
+<h3 id="4-f1-0-989"><a href="#4-f1-0-989" class="headerlink" title="4. f1 &#x3D; 0.989"></a>4. f1 &#x3D; 0.989</h3><p>F1 是 precision 和 recall 的综合指标。</p>
+<p>接近 0.99，说明整体分类质量非常稳定。</p>
+<h3 id="5-fpr-和-fnr"><a href="#5-fpr-和-fnr" class="headerlink" title="5. fpr 和 fnr"></a>5. fpr 和 fnr</h3><ul>
+<li><code>fpr = 0.017</code></li>
+<li><code>fnr = 0.006</code></li>
+</ul>
+<p>可以讲成：</p>
+<ul>
+<li>真正的低符号中，只有 1.7% 被误判成高符号。</li>
+<li>真正的高符号中，只有 0.6% 被误判成低符号。</li>
+</ul>
+<p>这说明系统对高符号尤其敏感，漏检率很低。</p>
+<hr>
+<h3 id="3-混淆矩阵"><a href="#3-混淆矩阵" class="headerlink" title="3. 混淆矩阵"></a>3. 混淆矩阵</h3><p>混淆矩阵如下：</p>
+<ul>
+<li><code>tp = 696</code></li>
+<li><code>tn = 689</code></li>
+<li><code>fp = 12</code></li>
+<li><code>fn = 4</code></li>
+</ul>
+<p>你可以直接这样给老师解释：</p>
+<ul>
+<li>696 个高符号被正确识别出来。</li>
+<li>689 个低符号被正确识别出来。</li>
+<li>只有 12 个低符号被误报成高符号。</li>
+<li>只有 4 个高符号被漏判成低符号。</li>
+</ul>
+<p>所以总错误数只有：</p>
+<ul>
+<li>12 + 4 &#x3D; 16</li>
+</ul>
+<p>总正确数是：</p>
+<ul>
+<li>696 + 689 &#x3D; 1385</li>
+</ul>
+<p>这就是为什么准确率能达到 98.9%。</p>
+<p>这里可以顺着给出一句结论：</p>
+<p><strong>B 端几乎可以完整恢复 A 端的二值符号序列。</strong></p>
+<hr>
+<h3 id="4-Sample-Aligned-Windows"><a href="#4-Sample-Aligned-Windows" class="headerlink" title="4. Sample Aligned Windows"></a>4. Sample Aligned Windows</h3><p>这张表是一些具体样本，用来展示分类过程不是黑箱，而是可以落到单个窗口上检查的。</p>
+<p>例如：</p>
+<h3 id="样本-0"><a href="#样本-0" class="headerlink" title="样本 0"></a>样本 0</h3><ul>
+<li>A 端发出 100 kbps</li>
+<li>标签是 0</li>
+<li>B 端测得平均吞吐率 826.902 kbps</li>
+<li>低于阈值 934.272 kbps</li>
+<li>所以预测成 0</li>
+</ul>
+<p>这个分类是正确的。</p>
+<h3 id="样本-1"><a href="#样本-1" class="headerlink" title="样本 1"></a>样本 1</h3><ul>
+<li>A 端发出 133 kbps</li>
+<li>标签是 1</li>
+<li>B 端测得平均吞吐率 1042.048 kbps</li>
+<li>高于阈值</li>
+<li>所以预测成 1</li>
+</ul>
+<p>这个分类也是正确的。</p>
+<h3 id="样本-6"><a href="#样本-6" class="headerlink" title="样本 6"></a>样本 6</h3><ul>
+<li>A 端发出 100 kbps</li>
+<li>标签是 0</li>
+<li>但 B 端测得 959.642 kbps</li>
+<li>高于阈值 934.272 kbps</li>
+<li>所以被误判成 1</li>
+</ul>
+<p>这个样本很有价值，因为它解释了错误是怎么来的。</p>
+<p>也就是说，虽然 A 端真实发的是低符号，但由于网络波动、缓冲残留或者窗口串扰，B 端这个窗口的平均吞吐率被抬高了，于是被分错。</p>
+</div>
+  
+
+  
+    <footer class="article-footer">
+      
+        <p>分类：<span class="taxonomy">research</span></p>
+      
+      
+    </footer>
+  
+</article>
+
+      </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>
