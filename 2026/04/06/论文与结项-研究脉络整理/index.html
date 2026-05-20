@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hexo</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+  <body>
+    <button class="nav-toggle" id="nav-toggle" aria-controls="site-sidebar" aria-expanded="false" aria-label="切换导航">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="shell">
+      
+<aside class="sidebar" id="site-sidebar">
+  <div class="sidebar-brand">
+    <a href="/">Hexo</a>
+    
+  </div>
+
+  <nav class="main-nav" aria-label="主导航">
+    
+      <a class="nav-link " href="/">首页</a>
+    
+      <a class="nav-link " href="/research/">研究</a>
+    
+      <a class="nav-link " href="/life/">生活</a>
+    
+      <a class="nav-link " href="/study/">学习</a>
+    
+  </nav>
+</aside>
+
+      <div class="overlay" id="nav-overlay"></div>
+      <main class="main-content">
+        
+<article class="article-page">
+  <header>
+    <p class="eyebrow">待整理</p>
+    <h1></h1>
+    <time datetime="2026-04-06T08:06:47.859Z">2026-04-06 16:06</time>
+  </header>
+
+  
+    <div class="article-content"><h1 id="论文与结项-研究脉络整理"><a href="#论文与结项-研究脉络整理" class="headerlink" title="论文与结项-研究脉络整理"></a>论文与结项-研究脉络整理</h1><h2 id="一句话概括"><a href="#一句话概括" class="headerlink" title="一句话概括"></a>一句话概括</h2><p>本研究围绕 Tor 隐藏服务通信链路中的 <code>stream-level flow control</code> 展开：攻击者在客户端侧通过伪造&#x2F;改写 <code>XON/XOFF</code> 反馈注入可控流量水印，使隐藏服务端按照该反馈调制发送速率，并在隐藏服务侧的 <code>Guard</code> 出口观测中识别该水印，从而完成目标隐藏服务定位。</p>
+<h2 id="一、研究主线"><a href="#一、研究主线" class="headerlink" title="一、研究主线"></a>一、研究主线</h2><h3 id="1-起点：把不可控的接收侧反馈变成可控的调制接口"><a href="#1-起点：把不可控的接收侧反馈变成可控的调制接口" class="headerlink" title="1. 起点：把不可控的接收侧反馈变成可控的调制接口"></a>1. 起点：把不可控的接收侧反馈变成可控的调制接口</h3><p>最初的研究切入点来自 Tor 的 <code>stream-level</code> 流控机制。客户端会基于自身接收&#x2F;排空能力向对端发送 <code>XON/XOFF</code>：</p>
+<ul>
+<li><code>XOFF</code> 表示“暂时不要继续发送”</li>
+<li><code>XON(kbps_ewma)</code> 表示“建议按照某个速率继续发送”</li>
+</ul>
+<p>原始实现中，<code>XON</code> 携带的 <code>kbps_ewma</code> 来自客户端真实测得的 <code>ewma_drain_rate</code>，因此它本来是一个“被动测量值”，而不是一个“主动控制量”。</p>
+<p>你的第一步工作，就是把这个本来不可控的反馈量改造成一个可以实验操控的调制接口。为此，你在客户端流控发送路径上实现了一套低侵入的控制面，支持：</p>
+<ul>
+<li>固定速率</li>
+<li>上限截断</li>
+<li>比例缩放</li>
+<li>方波高低速切换</li>
+<li>强制 <code>XOFF</code></li>
+<li>配置文件热更新</li>
+</ul>
+<p>这一阶段的核心意义是：<strong>把 Tor 原本用于自适应流控的机制，转化为了可编程的水印注入通道。</strong></p>
+<h3 id="2-第一阶段假设：是否需要固定-RP-才能控制隐藏服务"><a href="#2-第一阶段假设：是否需要固定-RP-才能控制隐藏服务" class="headerlink" title="2. 第一阶段假设：是否需要固定 RP 才能控制隐藏服务"></a>2. 第一阶段假设：是否需要固定 RP 才能控制隐藏服务</h3><p>在研究早期，你曾提出一个自然假设：如果要通过客户端侧控制隐藏服务流量，也许需要把 <code>RP</code> 固定到受控节点，或者至少把 <code>RP</code> 当成关键处理位置。</p>
+<p>基于这个判断，你完成了两类探索：</p>
+<ul>
+<li>修改客户端建路逻辑，使 <code>C_ESTABLISH_REND</code> 选择 <code>RP</code> 时能够像普通 <code>Exit</code> 一样受 <code>ExitNodes</code> 控制</li>
+<li>禁用部分 <code>internal circuit</code> 复用，避免旧电路绕过新的 <code>RP</code> 固定逻辑</li>
+</ul>
+<p>这一阶段的价值不只是“做了固定 RP 的实现”，更重要的是它为后续研究提供了一个明确的过渡问题：</p>
+<p><strong>XON&#x2F;XOFF 究竟是在 RP 被处理，还是会继续传递到 HS？</strong></p>
+<h3 id="3-关键机制确认：RP-不是处理终点，XON-XOFF-会被转发到-HS"><a href="#3-关键机制确认：RP-不是处理终点，XON-XOFF-会被转发到-HS" class="headerlink" title="3. 关键机制确认：RP 不是处理终点，XON&#x2F;XOFF 会被转发到 HS"></a>3. 关键机制确认：RP 不是处理终点，XON&#x2F;XOFF 会被转发到 HS</h3><p>随后，你对隐藏服务链路结构和 relay cell 处理逻辑进行了确认，得到两个关键结论。</p>
+<p>第一，隐藏服务到 <code>RP</code> 的实际电路不是简单三跳，而是：</p>
+<p><code>HS -&gt; S Guard -&gt; S Middle1 -&gt; S Middle2 -&gt; RP</code></p>
+<p>因此整个通信链路是：</p>
+<p><code>Client -&gt; C Guard -&gt; C Middle -&gt; RP &lt;- S Middle2 &lt;- S Middle1 &lt;- S Guard &lt;- HS</code></p>
+<p>第二，<code>RP</code> 并不会作为 <code>stream endpoint</code> 处理 <code>XON/XOFF</code>，而是仅作为中继转发这些控制单元，真正处理它们的是隐藏服务本身。</p>
+<p>这个结论非常关键，因为它直接把研究从“控制某个特定 RP”收束为“只要客户端能稳定发出控制信号，任意 RP 下都可能影响 HS 发送行为”。</p>
+<p>也就是说，研究主问题从：</p>
+<ul>
+<li>“如何固定 RP 并在 RP 侧施加控制”</li>
+</ul>
+<p>收束成了：</p>
+<ul>
+<li>“如何通过客户端侧流控水印稳定调制 HS 发送，并在 Guard 侧识别这种调制”</li>
+</ul>
+<p>这一步实际上完成了你的研究问题定型。</p>
+<h3 id="4-现象验证：客户端注入的调制确实能传到-HS，并在-Guard-侧留下可观测特征"><a href="#4-现象验证：客户端注入的调制确实能传到-HS，并在-Guard-侧留下可观测特征" class="headerlink" title="4. 现象验证：客户端注入的调制确实能传到 HS，并在 Guard 侧留下可观测特征"></a>4. 现象验证：客户端注入的调制确实能传到 HS，并在 Guard 侧留下可观测特征</h3><p>在机制确认之后，研究重点从“能不能控制”转向“能否稳定留下可识别特征”。</p>
+<p>现阶段你已经得到几类重要实验现象：</p>
+<ul>
+<li>在客户端开启方波控制时，隐藏服务侧监控到的上传流量会呈现相应方波模式</li>
+<li>此时 <code>RP</code> 可以是随机公网 relay，仍然能观察到相同效果</li>
+<li>平均发送速率通常稳定在 <code>XON</code> 建议值的约 <code>0.75-0.78</code> 区间</li>
+<li>建议值越大，越不容易逼近上界，但不会超过建议值</li>
+</ul>
+<p>这些结果说明：</p>
+<ol>
+<li>客户端侧 <code>XON/XOFF</code> 确实构成了有效调制信号</li>
+<li>HS 会对该信号做出稳定而可重复的速率响应</li>
+<li>虽然存在平滑和衰减，但响应足以形成统计上可识别的模板</li>
+</ol>
+<h3 id="5-从“现象”走向“水印设计”：寻找最短时间和最隐蔽幅度"><a href="#5-从“现象”走向“水印设计”：寻找最短时间和最隐蔽幅度" class="headerlink" title="5. 从“现象”走向“水印设计”：寻找最短时间和最隐蔽幅度"></a>5. 从“现象”走向“水印设计”：寻找最短时间和最隐蔽幅度</h3><p>在 3 月中旬的实验中，你已经开始把问题进一步收敛到“可识别边界”：</p>
+<ul>
+<li>用 <code>慢 -&gt; 快</code> 作为检测指标时，约 <code>4-5s</code> 延迟即可检测到特征</li>
+<li>当前认为约 <code>33%</code> 的高低速差可以作为较隐蔽但仍可区分的幅度</li>
+<li>设计目标转向“既能识别，又不容易被隐藏服务察觉”</li>
+</ul>
+<p>这意味着你的研究不再停留在“我能造出一个明显波形”，而是开始进入更有论文价值的命题：</p>
+<p><strong>在隐蔽性约束下，最弱多强的水印仍然可被 Guard 侧可靠识别？</strong></p>
+<h3 id="6-系统化阶段：把研究问题展开成完整实验矩阵"><a href="#6-系统化阶段：把研究问题展开成完整实验矩阵" class="headerlink" title="6. 系统化阶段：把研究问题展开成完整实验矩阵"></a>6. 系统化阶段：把研究问题展开成完整实验矩阵</h3><p>到 3 月下旬，你已经把实验问题抽象成较完整的论文式框架，主要覆盖四个核心研究问题：</p>
+<ul>
+<li><code>RQ1</code> 可注入性：客户端是否能稳定诱导 HS 到 Guard 的特征流量</li>
+<li><code>RQ2</code> 可识别性：攻击者能否在 Guard 侧准确识别水印</li>
+<li><code>RQ3</code> 并发可区分性：多个客户端同时访问同一 HS 时是否仍可定位目标连接</li>
+<li><code>RQ4</code> 防御有效性：防御机制能否识别或削弱该水印</li>
+</ul>
+<p>与之对应，你已经设计了从注入验证、短时识别、长时识别、目标定位，到参数敏感性、边界实验、消融实验、防御实验和开销实验的一整套实验矩阵。</p>
+<p>这说明你的研究已经从“证明一个机制存在”上升为“评估一个攻击框架的有效性、边界与防御面”。</p>
+<h3 id="7-分析框架阶段：从人工看波形转向可复现的自动分析"><a href="#7-分析框架阶段：从人工看波形转向可复现的自动分析" class="headerlink" title="7. 分析框架阶段：从人工看波形转向可复现的自动分析"></a>7. 分析框架阶段：从人工看波形转向可复现的自动分析</h3><p>到 4 月初，你进一步搭建了 A&#x2F;B 对齐分析框架，把实验分析从“肉眼观察方波”推进为结构化、批量化、可重复的统计分析。</p>
+<p>框架的核心思想是：</p>
+<ul>
+<li>A 端记录真实控制序列</li>
+<li>B 端记录连续出口速率</li>
+<li>通过扫描候选时延 <code>lag</code>，找到让高低符号窗口可分性最强的对齐方式</li>
+<li>在最佳 <code>lag</code> 下恢复符号并计算分类指标</li>
+</ul>
+<p>这一步的意义很大，因为它把你的研究从“现象实验”推进到了“可量化识别实验”，并且已经具备论文中实验方法章节的雏形。</p>
+<h2 id="二、当前已经形成的核心研究结论"><a href="#二、当前已经形成的核心研究结论" class="headerlink" title="二、当前已经形成的核心研究结论"></a>二、当前已经形成的核心研究结论</h2><p>基于现有笔记，已经可以提炼出下面几条核心结论。</p>
+<h3 id="1-攻击入口成立"><a href="#1-攻击入口成立" class="headerlink" title="1. 攻击入口成立"></a>1. 攻击入口成立</h3><p>Tor 客户端侧的 <code>stream-level XON/XOFF</code> 反馈通道可以被低侵入改写，从而作为可编程的流量调制接口。</p>
+<h3 id="2-作用路径成立"><a href="#2-作用路径成立" class="headerlink" title="2. 作用路径成立"></a>2. 作用路径成立</h3><p><code>XON/XOFF</code> 不在 <code>RP</code> 被终止处理，而是会被转发到隐藏服务，由隐藏服务调整其发送行为。</p>
+<h3 id="3-无需固定-RP"><a href="#3-无需固定-RP" class="headerlink" title="3. 无需固定 RP"></a>3. 无需固定 RP</h3><p>固定 <code>RP</code> 是研究初期的工程假设，但在后续机制确认后已经被弱化。对于“客户端通过流控影响 HS”这一主命题来说，<code>RP</code> 并不是必须控制的处理点。</p>
+<h3 id="4-Guard-侧存在可检测响应"><a href="#4-Guard-侧存在可检测响应" class="headerlink" title="4. Guard 侧存在可检测响应"></a>4. Guard 侧存在可检测响应</h3><p>隐藏服务侧对 <code>XON/XOFF</code> 的响应会在 <code>HS -&gt; Guard</code> 方向留下连续速率特征，能够被 Guard 出口观测到。</p>
+<h3 id="5-特征具备可重复性与可量化性"><a href="#5-特征具备可重复性与可量化性" class="headerlink" title="5. 特征具备可重复性与可量化性"></a>5. 特征具备可重复性与可量化性</h3><p>注入后的高低速模式不是一次性偶发现象，而是可以通过窗口对齐、延迟估计和阈值分类稳定恢复。</p>
+<h3 id="6-该问题具备完整论文展开空间"><a href="#6-该问题具备完整论文展开空间" class="headerlink" title="6. 该问题具备完整论文展开空间"></a>6. 该问题具备完整论文展开空间</h3><p>该研究已经自然覆盖了机制设计、攻击建模、实验验证、鲁棒性边界和防御分析几个维度，不是单点现象，而是一个完整的系统安全研究问题。</p>
+<h2 id="三、适合写论文的叙事方式"><a href="#三、适合写论文的叙事方式" class="headerlink" title="三、适合写论文的叙事方式"></a>三、适合写论文的叙事方式</h2><p>如果你现在开始写论文，最顺的叙事不应该是“我先改 RP，再做分析”，而应该是下面这条主线。</p>
+<h3 id="1-研究背景"><a href="#1-研究背景" class="headerlink" title="1. 研究背景"></a>1. 研究背景</h3><p>Tor 隐藏服务定位长期关注路径关联、流量指纹和时序分析，但较少讨论：<strong>客户端是否能够主动利用协议自身的流控反馈机制，对隐藏服务发送行为施加可控调制，并在 Guard 侧恢复该调制。</strong></p>
+<h3 id="2-核心洞察"><a href="#2-核心洞察" class="headerlink" title="2. 核心洞察"></a>2. 核心洞察</h3><p>Tor 的 <code>stream-level flow control</code> 虽然设计目标是接收侧拥塞反馈，但其 <code>XON/XOFF</code> 实际上构成了一条可被攻击者利用的“反向控制信道”。</p>
+<h3 id="3-攻击思路"><a href="#3-攻击思路" class="headerlink" title="3. 攻击思路"></a>3. 攻击思路</h3><p>攻击者作为客户端，向目标 <code>.onion</code> 服务发起请求，并通过改写客户端侧 <code>XON/XOFF</code> 序列向隐藏服务注入水印；随后在隐藏服务侧 Guard 的出口流量中检测对应的速率模式，从而判断该 Guard 是否承载了目标隐藏服务流量。</p>
+<h3 id="4-关键技术挑战"><a href="#4-关键技术挑战" class="headerlink" title="4. 关键技术挑战"></a>4. 关键技术挑战</h3><ul>
+<li>如何把原本不可控的 <code>XON</code> 速率建议变成可编程控制量</li>
+<li><code>XON/XOFF</code> 到底在哪个节点被处理</li>
+<li>在持续下载和缓冲平滑下，如何从连续速率序列中恢复水印</li>
+<li>水印在并发背景下是否仍然可分</li>
+<li>多大幅度、多长时间的注入才既可检测又足够隐蔽</li>
+</ul>
+<h3 id="5-你的解决方案"><a href="#5-你的解决方案" class="headerlink" title="5. 你的解决方案"></a>5. 你的解决方案</h3><ul>
+<li>在客户端侧实现可热更新的流控控制面</li>
+<li>用源码分析和实测确认 <code>XON/XOFF</code> 最终由 HS 处理</li>
+<li>设计多种注入模式，尤其是高低速交替的持续调制模式</li>
+<li>搭建基于 <code>lag scan + window separability</code> 的分析框架</li>
+<li>用分类指标而不是主观观察来评估识别效果</li>
+</ul>
+<h3 id="6-贡献点写法"><a href="#6-贡献点写法" class="headerlink" title="6. 贡献点写法"></a>6. 贡献点写法</h3><p>论文里可以把贡献概括为：</p>
+<ol>
+<li>发现并验证了 Tor 隐藏服务通信中一条可被利用的基于 <code>XON/XOFF</code> 的主动流量调制路径。</li>
+<li>设计并实现了一个低侵入的客户端侧流控水印注入机制，支持多种可配置调制模式。</li>
+<li>证明了该调制无需控制 <code>RP</code> 即可传递到隐藏服务，并在 Guard 侧形成可恢复特征。</li>
+<li>提出了一套面向持续调制场景的 A&#x2F;B 对齐分析框架，可自动完成延迟估计、符号恢复与识别评估。</li>
+<li>通过系统实验刻画了该攻击的识别能力、隐蔽性边界、并发影响及潜在防御面。</li>
+</ol>
+<h2 id="四、适合写国创结项材料的表达"><a href="#四、适合写国创结项材料的表达" class="headerlink" title="四、适合写国创结项材料的表达"></a>四、适合写国创结项材料的表达</h2><p>国创结项材料通常更看重“做了什么、解决了什么、有什么结果”。可以整理成下面这套口径。</p>
+<h3 id="1-已完成工作"><a href="#1-已完成工作" class="headerlink" title="1. 已完成工作"></a>1. 已完成工作</h3><ul>
+<li>分析了 Tor 隐藏服务通信中 <code>stream-level flow control</code> 的工作机制</li>
+<li>在客户端实现了可控 <code>XON/XOFF</code> 注入模块，支持多种水印模式与热更新</li>
+<li>验证了控制信号会经由 <code>RP</code> 转发至隐藏服务并影响其发送速率</li>
+<li>设计了面向隐藏服务 Guard 定位的攻击模型与实验方法</li>
+<li>搭建了实验分析框架，实现控制序列与出口观测序列的自动对齐分析</li>
+<li>初步获得了高精度识别结果</li>
+</ul>
+<h3 id="2-阶段性结果"><a href="#2-阶段性结果" class="headerlink" title="2. 阶段性结果"></a>2. 阶段性结果</h3><p>根据现有分析报告，某次持续调制实验已经得到：</p>
+<ul>
+<li><code>best_lag_ms = 1400</code></li>
+<li><code>accuracy = 0.989</code></li>
+<li><code>precision = 0.983</code></li>
+<li><code>recall = 0.994</code></li>
+<li><code>f1 = 0.989</code></li>
+</ul>
+<p>这些结果说明在当前实验条件下，注入的高低速控制符号已经可以在观测侧被稳定恢复。</p>
+<h3 id="3-创新点"><a href="#3-创新点" class="headerlink" title="3. 创新点"></a>3. 创新点</h3><ul>
+<li>将 Tor 正常协议中的 <code>XON/XOFF</code> 流控机制转化为攻击侧可利用的水印注入通道</li>
+<li>证明隐藏服务侧的流控响应可在 Guard 观测中留下稳定可识别特征</li>
+<li>针对持续调制场景设计了新的窗口对齐与分类分析方法</li>
+</ul>
+<h3 id="4-应用意义"><a href="#4-应用意义" class="headerlink" title="4. 应用意义"></a>4. 应用意义</h3><p>该研究揭示了匿名通信系统中“正常性能控制机制”可能被转化为“主动定位信道”的风险，对隐藏服务匿名性分析和协议防御设计都具有参考价值。</p>
+<h2 id="五、你现在最适合补齐的内容"><a href="#五、你现在最适合补齐的内容" class="headerlink" title="五、你现在最适合补齐的内容"></a>五、你现在最适合补齐的内容</h2><p>如果你的目标是尽快写论文和结项材料，下面几部分最值得优先补。</p>
+<h3 id="1-威胁模型写清楚"><a href="#1-威胁模型写清楚" class="headerlink" title="1. 威胁模型写清楚"></a>1. 威胁模型写清楚</h3><p>要明确说明：</p>
+<ul>
+<li>攻击者能力边界是什么</li>
+<li>客户端侧和 Guard 侧的控制&#x2F;观测条件是什么</li>
+<li>攻击目标是“定位 HS 对应 Guard”还是“直接确认某个 HS 身份”</li>
+</ul>
+<h3 id="2-把“固定-RP”处理成研究中的中间假设，而不是最终方案"><a href="#2-把“固定-RP”处理成研究中的中间假设，而不是最终方案" class="headerlink" title="2. 把“固定 RP”处理成研究中的中间假设，而不是最终方案"></a>2. 把“固定 RP”处理成研究中的中间假设，而不是最终方案</h3><p>这部分不要写成主贡献，更适合写成：</p>
+<ul>
+<li>研究初期的工程探索</li>
+<li>用来帮助确认处理位置和链路机制</li>
+<li>最终结论是攻击不依赖固定 RP</li>
+</ul>
+<p>这样论文会更干净，逻辑也更强。</p>
+<h3 id="3-补齐并发和定位实验"><a href="#3-补齐并发和定位实验" class="headerlink" title="3. 补齐并发和定位实验"></a>3. 补齐并发和定位实验</h3><p>你现在已经有较强的单连接识别结果，但如果论文目标是“定位 HS”，那么还需要更明确回答：</p>
+<ul>
+<li>多条候选 Guard 流里能否找到目标</li>
+<li>多客户端并发访问同一 HS 时能否区分目标连接</li>
+</ul>
+<h3 id="4-补齐隐蔽性与防御部分"><a href="#4-补齐隐蔽性与防御部分" class="headerlink" title="4. 补齐隐蔽性与防御部分"></a>4. 补齐隐蔽性与防御部分</h3><p>目前你已经有“33% 幅度”和“4-5 秒检测延迟”的初步判断，这非常适合进一步扩展成：</p>
+<ul>
+<li>最小可检测幅度</li>
+<li>最短可检测时间</li>
+<li>吞吐损失和可察觉性</li>
+<li>防御方是否可通过平滑、限幅或随机扰动削弱水印</li>
+</ul>
+<h2 id="六、可以直接放进论文摘要的短版表述"><a href="#六、可以直接放进论文摘要的短版表述" class="headerlink" title="六、可以直接放进论文摘要的短版表述"></a>六、可以直接放进论文摘要的短版表述</h2><p>本文研究 Tor 隐藏服务通信中的一种基于 <code>stream-level flow control</code> 的主动流量水印攻击。攻击者通过改写客户端侧 <code>XON/XOFF</code> 反馈，将原本用于接收侧速率建议的协议机制转化为可编程调制通道，从而诱导隐藏服务按预定模式调整发送速率。我们进一步证明，该控制信号不会在 rendezvous point 被终止处理，而是会被转发至隐藏服务，并在隐藏服务侧 Guard 的出口流量中形成可观测特征。基于此，本文设计了多种流量调制模式，并提出一套面向持续调制场景的 A&#x2F;B 对齐分析框架，用于完成延迟估计、符号恢复与识别评估。初步实验结果表明，该方法能够在持续下载场景下实现高精度识别，说明匿名通信协议中的正常流控机制可能被攻击者利用为隐藏服务定位信道。</p>
+<h2 id="七、可以直接放进结项简介的短版表述"><a href="#七、可以直接放进结项简介的短版表述" class="headerlink" title="七、可以直接放进结项简介的短版表述"></a>七、可以直接放进结项简介的短版表述</h2><p>本项目围绕 Tor 隐藏服务匿名性展开研究，发现并验证了一条基于 <code>XON/XOFF</code> 流控反馈的主动定位路径。项目实现了客户端侧的可控流量水印注入模块，证明了控制信号可经由隐藏服务通信链路传递至服务端并影响其发送速率，同时构建了面向 Guard 侧观测的分析框架，实现了水印模式的自动识别。相关结果表明，该类攻击在一定条件下具有较高识别准确率，为匿名通信协议的安全分析与防御设计提供了新的研究视角。</p>
+<h2 id="八、目前这条研究脉络最简洁的总结"><a href="#八、目前这条研究脉络最简洁的总结" class="headerlink" title="八、目前这条研究脉络最简洁的总结"></a>八、目前这条研究脉络最简洁的总结</h2><p>你的研究不是“改 Tor 做方波实验”，而是一条很完整的安全研究链条：</p>
+<ol>
+<li>发现 Tor 流控反馈里存在可被主动利用的控制变量。</li>
+<li>将该变量工程化为可配置的客户端侧水印注入接口。</li>
+<li>验证控制信号经 <code>RP</code> 转发并最终作用于隐藏服务。</li>
+<li>证明该作用会在 <code>HS -&gt; Guard</code> 流量上留下稳定特征。</li>
+<li>设计分析框架在 Guard 侧恢复该特征，从而实现隐藏服务定位。</li>
+<li>进一步研究该攻击的边界、并发表现、隐蔽性与防御可能。</li>
+</ol>
+</div>
+  
+
+  
+</article>
+
+      </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026-05-21 组会-Buffer 感知与 TD2 编码实验进展 | Hexo</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+  <body>
+    <button class="nav-toggle" id="nav-toggle" aria-controls="site-sidebar" aria-expanded="false" aria-label="切换导航">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="shell">
+      
+<aside class="sidebar" id="site-sidebar">
+  <div class="sidebar-brand">
+    <a href="/">Hexo</a>
+    
+  </div>
+
+  <nav class="main-nav" aria-label="主导航">
+    
+      <a class="nav-link " href="/">首页</a>
+    
+      <a class="nav-link " href="/research/">研究</a>
+    
+      <a class="nav-link " href="/life/">生活</a>
+    
+      <a class="nav-link " href="/study/">学习</a>
+    
+  </nav>
+</aside>
+
+      <div class="overlay" id="nav-overlay"></div>
+      <main class="main-content">
+        
+<article class="article-page">
+  <header>
+    <p class="eyebrow">研究</p>
+    <h1>2026-05-21 组会-Buffer 感知与 TD2 编码实验进展</h1>
+    <time datetime="2026-05-20T16:00:00.000Z">2026-05-21 00:00</time>
+  </header>
+
+  
+    <div class="article-content"><h1 id="2026-05-21-组会：Buffer-感知与-TD2-编码实验进展"><a href="#2026-05-21-组会：Buffer-感知与-TD2-编码实验进展" class="headerlink" title="2026-05-21 组会：Buffer 感知与 TD2 编码实验进展"></a>2026-05-21 组会：Buffer 感知与 TD2 编码实验进展</h1><h2 id="1-问题背景"><a href="#1-问题背景" class="headerlink" title="1. 问题背景"></a>1. 问题背景</h2><p>在基于 Tor 隐藏服务的 TD2 水印系统中，A 端通过 XON 流控机制控制 B 端 relay 的发送速率，从而在 B 端出口流量中嵌入高低速率方波信号。然而 B 端 kernel TCP 接收缓冲区（rmem）的大小直接影响方波信号的边沿质量和可解码性：</p>
+<ul>
+<li><strong>小 buffer（≤16 KB）</strong>：TCP 窗口快速参与控制，方波边沿干净，但高速率下容易出现 fill-drain 断流（gap）。</li>
+<li><strong>大 buffer（≥64 KB，或 6 MB 自动调优）</strong>：不易溢出，但 LOW→HIGH 转换慢，伴随过冲（overshoot）和突发抖动（burst），边沿拖尾严重。</li>
+</ul>
+<p>在无法直接登录 B 端检查 <code>sysctl</code> 配置的场景下，需要一种<strong>仅通过 B 端出口流量特征即可感知 buffer 大小</strong>的方法，并据此校准最优的 <code>low_kbps</code> &#x2F; <code>high_kbps</code> 参数。</p>
+<hr>
+<h2 id="2-Buffer-感知方法"><a href="#2-Buffer-感知方法" class="headerlink" title="2. Buffer 感知方法"></a>2. Buffer 感知方法</h2><h3 id="2-1-感知信号设计"><a href="#2-1-感知信号设计" class="headerlink" title="2.1 感知信号设计"></a>2.1 感知信号设计</h3><p>使用固定极端率对 <strong>(low&#x3D;100 KB&#x2F;s, high&#x3D;500 KB&#x2F;s)</strong>，以 800 ms 周期、30 s 时长发送 square wave，在 B 端以 100 ms 窗口采样网卡出口流量（<code>tx_bytes</code>）。</p>
+<p>选择 100&#x2F;500 的原因：该率对具有最大高低差值，能充分暴露不同 buffer 的行为差异——小 buffer 被 high&#x3D;500 推至容量边界而出现 gap，大 buffer 因转换惯性而表现出 burst 和过冲。</p>
+<h3 id="2-2-理论模型"><a href="#2-2-理论模型" class="headerlink" title="2.2 理论模型"></a>2.2 理论模型</h3><p>令 B 为 TCP 接收缓冲区大小，$R_{high}$ 为 XON 通告速率，$R_{drain}$ 为 Tor 从 socket 读取数据的速率。缓冲区占用量 $B(t)$ 满足：</p>
+<p>$$
+\frac{dB(t)}{dt} = R_{in}(t) - R_{drain}(t)
+$$</p>
+<p>当 $R_{high} &gt; R_{drain}$ 且 B 较小时，系统进入 fill-drain 循环：</p>
+<p>$$
+T_{fill} = \frac{B}{R_{high} - R_{drain}}, \quad T_{drain} = \frac{B}{R_{drain}}
+$$</p>
+<p>以 KB16 为例：$T_{fill} \approx 80$ ms，$T_{drain} \approx 53$ ms，循环周期约 133 ms，跨越 1-2 个采样窗口。在 drain 阶段 $R_{in}&#x3D;0$，对应采样窗口记录为零值。</p>
+<p>当 B 较大时，TCP 窗口几乎不会收缩，瓶颈转移至 Tor 内部 circuit buffer。此时 LOW→HIGH 切换后，relay 积压的数据一次性释放，表现为短时过冲：</p>
+<p>$$
+R_{peak} \approx R_{high} + \frac{Q_{buffered}}{T_{burst}}
+$$</p>
+<p>更精确地，大 buffer 的响应可建模为卷积：</p>
+<p>$$
+TX(t) \approx R_{bg}(t) + (R_{xon} * h_B)(t) + \epsilon(t)
+$$</p>
+<p>其中 $h_B$ 为 buffer 相关的响应核：小 buffer 的 $h_B$ 窄，边沿陡峭；大 buffer 的 $h_B$ 宽，L→H 边沿被拉长。</p>
+<h3 id="2-3-诊断指标"><a href="#2-3-诊断指标" class="headerlink" title="2.3 诊断指标"></a>2.3 诊断指标</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>定义</th>
+<th>物理意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>gaps3</td>
+<td>连续 ≥3 个近零窗口（≥300 ms 断流）的次数</td>
+<td>小 buffer 溢出循环的指纹</td>
+</tr>
+<tr>
+<td>zeros%</td>
+<td>零值窗口占比</td>
+<td>同上，辅助判断</td>
+</tr>
+<tr>
+<td>high_cv</td>
+<td>HIGH 状态的变异系数 $\sigma_{high} &#x2F; \mu_{high}$</td>
+<td>大 buffer 的 burst-dip 交替导致 CV 高</td>
+</tr>
+<tr>
+<td>overshoot_ratio</td>
+<td>$P_{95}(R_{high}) &#x2F; E[R_{high}]$</td>
+<td>大 buffer 过冲使 p95 显著高于 mean</td>
+</tr>
+<tr>
+<td>mean_rise_samples</td>
+<td>L→H 转换平均窗口数（100 ms&#x2F;窗口）</td>
+<td>大 buffer 转换慢，rise_samples 大</td>
+</tr>
+</tbody></table>
+<h3 id="2-4-感知判定树"><a href="#2-4-感知判定树" class="headerlink" title="2.4 感知判定树"></a>2.4 感知判定树</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">             sense(100, 500, 30s)</span><br><span class="line">                   │</span><br><span class="line">           ┌───────┴───────┐</span><br><span class="line">   gaps3 &gt; 20 且          gaps3 ≤ 20</span><br><span class="line">   zeros &gt; 2%                 │</span><br><span class="line">           │            ┌─────┴─────┐</span><br><span class="line">PRESSURE-LIMITED    high_cv &gt; 0.3</span><br><span class="line">  SMALL BUFFER      或 overshoot &gt; 1.35</span><br><span class="line">     (≤16KB)        或 rise_samples &gt; 3</span><br><span class="line">                         │           │</span><br><span class="line">                   LARGE BUFFER   MEDIUM</span><br><span class="line">                   (≥ 64KB)</span><br></pre></td></tr></table></figure>
+
+<p>实验验证：KB16 在 sense 阶段 gaps3&#x3D;50、zeros&#x3D;2.6%，被正确分类为 small；KB64&#x2F;KB256&#x2F;DEFAULT 均被分类为 large。large 内部（64 KB vs 256 KB vs 6 MB）因 B 端 relay 背景噪声（~800-1000 KB&#x2F;s，σ ≈ 100-200 KB&#x2F;s）无法进一步区分，但对速率校准而言不需要区分。</p>
+<hr>
+<h2 id="3-速率校准方法"><a href="#3-速率校准方法" class="headerlink" title="3. 速率校准方法"></a>3. 速率校准方法</h2><h3 id="3-1-稳定性条件"><a href="#3-1-稳定性条件" class="headerlink" title="3.1 稳定性条件"></a>3.1 稳定性条件</h3><p>率对 $(R_{low}, R_{high})$ 稳定的<strong>必要条件</strong>：在半个周期内 buffer 不被填满。</p>
+<p>$$
+R_{high} < R_{drain} + \frac{B}{T_{half\_period}}
+$$</p>
+<p>对于 period&#x3D;800 ms（$T_{half}&#x3D;400$ ms）、$R_{drain} \approx 300$ KB&#x2F;s：</p>
+<ul>
+<li>KB16: $R_{high} &lt; 300 + 40 &#x3D; 340$ KB&#x2F;s → 理论最优 high ≈ 350</li>
+<li>KB64: $R_{high} &lt; 300 + 160 &#x3D; 460$ KB&#x2F;s → 可承受 high&#x3D;400 甚至 500</li>
+</ul>
+<h3 id="3-2-low-下界：保持管道温热"><a href="#3-2-low-下界：保持管道温热" class="headerlink" title="3.2 low 下界：保持管道温热"></a>3.2 low 下界：保持管道温热</h3><p>$R_{low}$ 过低会导致 Tor circuit 进入 idle、token bucket 过度节流、L→H 转换变慢。经验下界为：</p>
+<p>$$
+R_{low} \geq 150\text{-}200 \text{ KB/s}
+$$</p>
+<p>实验证据：low&#x3D;100→200 后，KB16 的 L→H 平均窗口从 2.1 降至 1.1，DEFAULT 从 3.8 降至 2.3。</p>
+<h3 id="3-3-high-上界：转换时间约束"><a href="#3-3-high-上界：转换时间约束" class="headerlink" title="3.3 high 上界：转换时间约束"></a>3.3 high 上界：转换时间约束</h3><p>high 的选择不能仅追求更大的 separation，还需满足 L→H 转换时间不超过半周期的合理比例：</p>
+<p>$$
+T_{LH}^{obs}(R_{low}, R_{high}, B) < \beta T_h, \quad \beta \approx 0.5
+$$</p>
+<p>综合目标函数：</p>
+<p>$$
+J(R_l, R_h) = S(R_l, R_h) - \lambda_z P_{zero} - \lambda_g N_{gap3} - \lambda_t \frac{T_{LH}^{obs}}{T_h} - \lambda_o(\text{overshoot} - 1)
+$$</p>
+<h3 id="3-4-推荐参数"><a href="#3-4-推荐参数" class="headerlink" title="3.4 推荐参数"></a>3.4 推荐参数</h3><table>
+<thead>
+<tr>
+<th>Buffer 级别</th>
+<th>推荐 (low, high)</th>
+<th>Score</th>
+<th>Separation</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Small (≤16 KB)</td>
+<td><strong>(200, 350)</strong></td>
+<td>100.7</td>
+<td>1.81</td>
+<td>窄范围避免断流</td>
+</tr>
+<tr>
+<td>Large (≥64 KB)</td>
+<td><strong>(200, 400)</strong></td>
+<td>101.4-110.1</td>
+<td>2.89-3.51</td>
+<td>宽范围最大化分离度</td>
+</tr>
+</tbody></table>
+<p><strong>200&#x2F;400 是跨所有 buffer 的安全默认值</strong>：在 KB16&#x2F;KB64&#x2F;KB256&#x2F;DEFAULT 下 score 均 ≥ 95。</p>
+<h3 id="3-5-Buffer-Sweep-完整数据"><a href="#3-5-Buffer-Sweep-完整数据" class="headerlink" title="3.5 Buffer Sweep 完整数据"></a>3.5 Buffer Sweep 完整数据</h3><table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>rmem_max</th>
+<th>最佳 low</th>
+<th>最佳 high</th>
+<th>Score</th>
+<th>Separation</th>
+<th>zeros%</th>
+<th>gaps3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>KB16</td>
+<td>16 KB</td>
+<td>200</td>
+<td>350</td>
+<td>100.7</td>
+<td>1.81</td>
+<td>0.3%</td>
+<td>4</td>
+</tr>
+<tr>
+<td>KB64</td>
+<td>64 KB</td>
+<td>200</td>
+<td>400</td>
+<td>110.1</td>
+<td>2.89</td>
+<td>0.3%</td>
+<td>2</td>
+</tr>
+<tr>
+<td>KB256</td>
+<td>256 KB</td>
+<td>150</td>
+<td>400</td>
+<td>98.8</td>
+<td>1.82</td>
+<td>0.3%</td>
+<td>5</td>
+</tr>
+<tr>
+<td>DEFAULT</td>
+<td>6 MB</td>
+<td>200</td>
+<td>400</td>
+<td>101.4</td>
+<td>3.51</td>
+<td>0.2%</td>
+<td>8</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="4-TD2-编码实验结果（200-400-KB-s-下）"><a href="#4-TD2-编码实验结果（200-400-KB-s-下）" class="headerlink" title="4. TD2 编码实验结果（200&#x2F;400 KB&#x2F;s 下）"></a>4. TD2 编码实验结果（200&#x2F;400 KB&#x2F;s 下）</h2><p>基于感知与校准结论，以 <strong>low&#x3D;200 KB&#x2F;s, high&#x3D;400 KB&#x2F;s</strong> 为固定参数，在不同 slot 时长下测试 TD2 趋势编码的可解码性。B 端 buffer 为 DEFAULT（6 MB 自动调优）。E20260520_002（slot&#x3D;300 ms）因解码结果异常被排除，下表中 slot_ms 为实际 slot 时长（&#x3D; encoder_slot_ms × 2）。</p>
+<table>
+<thead>
+<tr>
+<th align="center">encoder_slot_ms</th>
+<th align="center">实际 slot_ms</th>
+<th align="center">bit_accuracy</th>
+<th align="center">block_accuracy</th>
+<th align="center">hamming ≤1 rate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">200</td>
+<td align="center">400</td>
+<td align="center">98.50%</td>
+<td align="center">90.00%</td>
+<td align="center">98.00%</td>
+</tr>
+<tr>
+<td align="center">300</td>
+<td align="center">600</td>
+<td align="center">99.38%</td>
+<td align="center">96.00%</td>
+<td align="center">99.00%</td>
+</tr>
+<tr>
+<td align="center">400</td>
+<td align="center">800</td>
+<td align="center">99.63%</td>
+<td align="center">97.00%</td>
+<td align="center">100.00%</td>
+</tr>
+<tr>
+<td align="center">500</td>
+<td align="center">1000</td>
+<td align="center">99.38%</td>
+<td align="center">95.00%</td>
+<td align="center">100.00%</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注</strong>：E20260520_002（encoder_slot_ms&#x3D;250, 实际 slot&#x3D;500 ms）因 encoding_bit_accuracy&#x3D;74.2%、td2_trend_presence_accuracy&#x3D;95.5%、block_exact_match&#x3D;71.0%，显著低于同系列其他实验，已从 slot charts 中排除。该实验的 baseline_threshold（1754 KB&#x2F;s）明显低于其他实验（2240-2270 KB&#x2F;s），初步判断为 B 端背景流量异常或 Tor circuit 状态不一致。</p>
+</blockquote>
+<h3 id="4-1-关键发现"><a href="#4-1-关键发现" class="headerlink" title="4.1 关键发现"></a>4.1 关键发现</h3><ol>
+<li><strong>slot ≥ 600 ms 时解码可靠</strong>：block_accuracy ≥ 96%，hamming ≤1 rate ≥ 99%，汉明码纠错后可达 100% 正确率。</li>
+<li><strong>slot &#x3D; 400 ms 仍有实用价值</strong>：bit_accuracy&#x3D;98.5%，block_accuracy&#x3D;90.0%，适合需要更高嵌入速率的场景。</li>
+<li><strong>slot &#x3D; 800 ms 表现最佳</strong>：三项指标均达到或接近 100%，是当前参数下的推荐 slot 时长。</li>
+<li><strong>slot &gt; 800 ms 出现边际递减</strong>：block_accuracy 从 97% 略降至 95%，可能由过长的 slot 增加了 Tor circuit 状态漂移的影响。</li>
+</ol>
+<h3 id="4-2-结果图"><a href="#4-2-结果图" class="headerlink" title="4.2 结果图"></a>4.2 结果图</h3><div align="center">
+
+<p><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/bit_accuracy.svg" alt="bit_accuracy"></p>
+<p><strong>图 1</strong>: 不同 slot 时长下的 bit accuracy</p>
+<p><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/block_accuracy.svg" alt="block_accuracy"></p>
+<p><strong>图 2</strong>: 不同 slot 时长下的 block accuracy</p>
+<p><img src="https://boring-picture1.oss-cn-hangzhou.aliyuncs.com/block_accuracy_hamming_le_1_rate.svg" alt="block_accuracy_hamming_le_1_rate"></p>
+<p><strong>图 3</strong>: 不同 slot 时长下的 hamming ≤1 rate（汉明码可纠错比例）</p>
+</div>
+
+<hr>
+<h2 id="5-总结与下一步"><a href="#5-总结与下一步" class="headerlink" title="5. 总结与下一步"></a>5. 总结与下一步</h2><ol>
+<li><p><strong>Buffer 感知可行</strong>：通过 100&#x2F;500 KB&#x2F;s 的 30s 方波探测，可以可靠区分小 buffer（≤16 KB）与大 buffer（≥64 KB）。感知的物理基础是 TCP 接收缓冲区的 fill-drain 动力学和转换惯性差异。</p>
+</li>
+<li><p><strong>速率校准有理论支撑</strong>：low&#x3D;200 KB&#x2F;s 保证管道温热，high&#x3D;350-400 KB&#x2F;s 在稳定性条件和转换时间约束之间取得平衡。200&#x2F;400 是通用安全默认值。</p>
+</li>
+<li><p><strong>200&#x2F;400 + slot ≥ 600 ms 可实用</strong>：在 DEFAULT buffer 下，slot&#x3D;600 ms 即可达到 block_accuracy&#x3D;96%、hamming ≤1 rate&#x3D;99%。slot&#x3D;800 ms 达到最优。</p>
+</li>
+</ol>
+<p>下一步计划：</p>
+<ul>
+<li>在 KB16（小 buffer）条件下测试 200&#x2F;350 + 各 slot 时长的 TD2 表现</li>
+<li>将 buffer 感知集成至正式实验流程作为前置探测步骤</li>
+</ul>
+<hr>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ul>
+<li>理论推导与实验报告：<code>/root/sound/docs/buffer_sensing_theory.md</code>、<code>/root/sound/docs/buffer_sensing_report.md</code></li>
+<li>Sweep 实验数据：<code>/root/sound/results/SWEEP_20260516_120620/sweep_summary.json</code></li>
+<li>TD2 编码说明：<code>/root/flowctl_client/docs/TD2_METRICS_GUIDE.md</code></li>
+<li>Slot charts 数据：<code>/root/flowctl_client/analysis_C/reports/E20260520_slot_charts/</code></li>
+</ul>
+</div>
+  
+
+  
+    <footer class="article-footer">
+      
+        <p>分类：<span class="taxonomy">research</span></p>
+      
+      
+    </footer>
+  
+</article>
+
+      </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>

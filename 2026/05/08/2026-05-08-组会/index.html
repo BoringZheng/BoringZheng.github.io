@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026-05-08 组会-Slot 下界推导与短时特征编码方案 | Hexo</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+  <body>
+    <button class="nav-toggle" id="nav-toggle" aria-controls="site-sidebar" aria-expanded="false" aria-label="切换导航">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="shell">
+      
+<aside class="sidebar" id="site-sidebar">
+  <div class="sidebar-brand">
+    <a href="/">Hexo</a>
+    
+  </div>
+
+  <nav class="main-nav" aria-label="主导航">
+    
+      <a class="nav-link " href="/">首页</a>
+    
+      <a class="nav-link " href="/research/">研究</a>
+    
+      <a class="nav-link " href="/life/">生活</a>
+    
+      <a class="nav-link " href="/study/">学习</a>
+    
+  </nav>
+</aside>
+
+      <div class="overlay" id="nav-overlay"></div>
+      <main class="main-content">
+        
+<article class="article-page">
+  <header>
+    <p class="eyebrow">研究</p>
+    <h1>2026-05-08 组会-Slot 下界推导与短时特征编码方案</h1>
+    <time datetime="2026-05-07T16:00:00.000Z">2026-05-08 00:00</time>
+  </header>
+
+  
+    <div class="article-content"><h1 id="2026-05-07-组会：Slot-下界推导与短时特征编码方案"><a href="#2026-05-07-组会：Slot-下界推导与短时特征编码方案" class="headerlink" title="2026-05-07 组会：Slot 下界推导与短时特征编码方案"></a>2026-05-07 组会：Slot 下界推导与短时特征编码方案</h1><h2 id="0-本次汇报要说明什么"><a href="#0-本次汇报要说明什么" class="headerlink" title="0. 本次汇报要说明什么"></a>0. 本次汇报要说明什么</h2><p>本次汇报主要回答三个问题：</p>
+<ol>
+<li>当前实验中，为什么 1000 ms slot 明显比 800 ms slot 稳定。</li>
+<li>当前 slot 已经不算很小，为什么它仍然具有研究价值。</li>
+<li>接下来应如何从复杂 payload 恢复转向短特征识别，并控制误报风险。</li>
+</ol>
+<p>核心结论：</p>
+<ul>
+<li><p>当前 1000 ms slot 是一个有模型支撑的经验工作点。根据现有实验，800 ms slot 的 bit 准确率约为 87%，1000 ms slot 的 bit 准确率约为 98%–99%。600 ms slot 已经处于失效区，参考意义较弱。用 800 ms 与 1000 ms 两个有效点反推，当前系统存在约 0.56–0.61 s 的有效恢复开销，边界噪声尺度约为 0.17–0.22 s。因此，达到 99% bit accuracy 所需的 slot 大约在 1.00–1.06 s 附近。</p>
+</li>
+<li><p>800 ms 与 1000 ms 的准确率差距不是线性差距。slot 从 800 ms 增加到 1000 ms，名义上只增加了 25%。但扣除流控恢复、队列平滑和边界抖动后，可用于稳定判决的净窗口接近翻倍。因此，准确率会从 87% 左右跃迁到 98%–99%。这说明当前系统正处在一个比较明显的临界区。</p>
+</li>
+<li><p>slot 过小时准确率下降并不是因为高低速本身“数不出来”。在当前 bulk transfer 条件下，单窗口 cell 计数误差并不是主要瓶颈。主要问题是速率切换边界被多跳队列、XON 生效延迟、relay outbuf、KIST 调度和 TCP 抖动共同拉宽。一旦边界偏移超过半个 slot，检测器会出现相位错位，并可能连续影响后续多个 chip。</p>
+</li>
+<li><p>下一阶段不应继续把重点放在复杂 payload 解码上。当前更合适的目标是：在较短时间内生成一个预注册、可高置信识别、可计算误报上界的短特征。推荐方案是 <strong>1000 ms slot + keyed binary template</strong>。默认参数可取 <code>L=40, e=3</code>，总时长约 44 s；高置信版本可取 <code>L=48, e=4</code>，总时长约 52 s。</p>
+</li>
+</ul>
+<hr>
+<h2 id="1-当前实验数据与问题定义"><a href="#1-当前实验数据与问题定义" class="headerlink" title="1. 当前实验数据与问题定义"></a>1. 当前实验数据与问题定义</h2><h3 id="1-1-当前数据口径"><a href="#1-1-当前数据口径" class="headerlink" title="1.1 当前数据口径"></a>1.1 当前数据口径</h3><p>当前有效数据如下。</p>
+<table>
+<thead>
+<tr>
+<th align="right">chip slot</th>
+<th align="right">bit&#x2F;chip 准确率结论</th>
+<th>当前解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">600 ms</td>
+<td align="right">基本无参考价值</td>
+<td>slot 已接近流控恢复和路径平滑的失效区</td>
+</tr>
+<tr>
+<td align="right">800 ms</td>
+<td align="right">约 87%</td>
+<td>位于临界区，可以看到结构，但 bit 判决不稳</td>
+</tr>
+<tr>
+<td align="right">1000 ms</td>
+<td align="right">约 98%–99%</td>
+<td>接近当前实现下的稳定工作点</td>
+</tr>
+</tbody></table>
+<p>另一个重要观察是：800 ms 在部分 window-level 或 duration-level 指标上仍有较高表现，但它在 payload chip 或 template 级别并不稳定。已有实验中，1000 ms 的 payload chip accuracy 可达到约 98.27%，而 800 ms 的 payload chip accuracy 约为 82.12%。因此，后续设计不应只看 window bit accuracy，而应以 <strong>可支撑最终识别的 chip-level 稳定性</strong> 为准。</p>
+<h3 id="1-2-表述边界"><a href="#1-2-表述边界" class="headerlink" title="1.2 表述边界"></a>1.2 表述边界</h3><p>本文采用“模型化推导”和“经验下界”口径。也就是说，本文不主张 1000 ms 是协议层面的绝对理论极限。更准确的说法是：在当前实现、当前检测器和当前 onion service rendezvous 实验设置下，1000 ms 是接近 99% bit accuracy 的稳健工作点。</p>
+<p>本文中的准确率均指 <strong>bit-level &#x2F; chip-level accuracy</strong>，不是最终序列识别率。相关实验仅面向自建私有 Tor 测试网、受控 onion service、授权实验环境和离线 benign trace 评估。</p>
+<hr>
+<h2 id="2-Tor-源码机制与文献结论带来的约束"><a href="#2-Tor-源码机制与文献结论带来的约束" class="headerlink" title="2. Tor 源码机制与文献结论带来的约束"></a>2. Tor 源码机制与文献结论带来的约束</h2><h3 id="2-1-Onion-service-路径不同于普通三跳访问"><a href="#2-1-Onion-service-路径不同于普通三跳访问" class="headerlink" title="2.1 Onion service 路径不同于普通三跳访问"></a>2.1 Onion service 路径不同于普通三跳访问</h3><p>普通 Tor 出口访问通常可以抽象为三跳路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Client -&gt; Guard -&gt; Middle -&gt; Exit -&gt; Server</span><br></pre></td></tr></table></figure>
+
+<p>Onion service 场景不同。它由客户端侧 circuit 和服务端侧 circuit 通过 rendezvous point 拼接：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Client -&gt; Guard_c -&gt; Middle_c -&gt; RP &lt;- Middle_s &lt;- Guard_s &lt;- HS</span><br></pre></td></tr></table></figure>
+
+<p>从 relay 数量看，这是两条三跳 circuit 通过 RP 连接。从端到端传输段看，控制信号和数据响应会经过更多 TLS-over-TCP 连接、relay outbuf、kernel socket buffer 和 rendezvous 侧平滑。因此，速率变化在检测端不是理想阶跃，而是一个被延迟、扩散和平滑后的响应。</p>
+<p>这也是本文不能直接采用 SDN traceback 中 800 ms 参数的原因。SDN traceback 的 Tor 实验更接近普通三跳路径，而我们面对的是 onion service rendezvous 路径。路径更长，排队点更多，边界抖动也更明显。</p>
+<h3 id="2-2-源码机制中的关键因素"><a href="#2-2-源码机制中的关键因素" class="headerlink" title="2.2 源码机制中的关键因素"></a>2.2 源码机制中的关键因素</h3><p>从当前 Tor 流控路径看，slot 下界主要受以下因素影响。</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>对 slot 的影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>XON&#x2F;XOFF feedback</td>
+<td>决定高低速状态如何反馈给发送端</td>
+</tr>
+<tr>
+<td>congestion control &#x2F; drain-rate EWMA</td>
+<td>速率变化不是瞬时阶跃，而是有恢复过程</td>
+</tr>
+<tr>
+<td>relay outbuf</td>
+<td>造成短时缓存和 flush 延迟</td>
+</tr>
+<tr>
+<td>connection write path</td>
+<td>使写入和真实发出之间存在间隔</td>
+</tr>
+<tr>
+<td>KIST &#x2F; kernel socket buffer</td>
+<td>把拥塞和排队集中到 egress socket buffer</td>
+</tr>
+<tr>
+<td>多段 TCP 连接</td>
+<td>引入 RTT 抖动、ACK 压缩、重传和 cwnd 恢复</td>
+</tr>
+<tr>
+<td>rendezvous 双电路</td>
+<td>比普通三跳路径带来更强平滑和更长相位延迟</td>
+</tr>
+</tbody></table>
+<p>这些因素说明，slot 下界不是简单的“传播时延”问题，也不是简单的“高低速是否能分开”问题。真正限制 800 ms 的，是 <strong>边界抖动</strong> 与 <strong>失锁传播</strong>。</p>
+<h3 id="2-3-与-DUSTER-和-SDN-traceback-的关系"><a href="#2-3-与-DUSTER-和-SDN-traceback-的关系" class="headerlink" title="2.3 与 DUSTER 和 SDN traceback 的关系"></a>2.3 与 DUSTER 和 SDN traceback 的关系</h3><p>DUSTER 的核心是 SENDME burst。它通过提前释放 SENDME，使发送端短时间内多发数据，然后在检测端观察是否出现紧凑的 IN-cell burst。这个方案短而直接，但它主要依赖旧式 SENDME 机制，并且判决对象是 burst，而不是稳定的速率序列。</p>
+<p>SDN traceback 与本文更接近。它通过修改 TCP advertised window 来制造高低速结构。每个 bit 使用一个 time interval，并分成前后两个半区间。检测端根据前后半区间的速率大小关系恢复 bit，再用 Hamming distance 判断是否匹配。</p>
+<p>本文的方案可以看作两者之间的折中：</p>
+<ul>
+<li>借鉴 DUSTER 的“短时可识别特征”思想；</li>
+<li>借鉴 SDN traceback 的“速率结构 + Hamming&#x2F;template 判决”思想；</li>
+<li>但控制面从 TCP advertised window 或旧 SENDME 转为 Tor stream-level XON&#x2F;XOFF 速率反馈。</li>
+</ul>
+<hr>
+<h2 id="3-Slot-下界推导"><a href="#3-Slot-下界推导" class="headerlink" title="3. Slot 下界推导"></a>3. Slot 下界推导</h2><h3 id="3-1-信号模型"><a href="#3-1-信号模型" class="headerlink" title="3.1 信号模型"></a>3.1 信号模型</h3><p>设 chip slot 为 (T)。编码端在每个 slot 内选择高低两种速率状态：</p>
+<ul>
+<li>high state：(R_H)</li>
+<li>low state：(R_L)</li>
+</ul>
+<p>检测端在服务端 guard 一侧统计 RELAY_DATA cell 到达速率，并将每个 slot 判为 high 或 low。</p>
+<p>第 (n) 次速率边界在检测端观测到的时间可写为：</p>
+<p>$$
+t_n^{obs}=nT+D_n^{xon}+D_n^{data}+\epsilon_n.
+$$</p>
+<p>其中，(D_n^{xon}) 是控制反馈生效路径上的延迟，(D_n^{data}) 是数据侧响应传播延迟，(\epsilon_n) 是检测器本身的残余对齐误差。</p>
+<p>相邻 slot 的实际观测宽度为：</p>
+<p>$$
+T_n^{obs}=T+\Delta D_n+\Delta\epsilon_n.
+$$</p>
+<p>其中：</p>
+<p>$$
+\Delta D_n=(D_{n+1}^{xon}+D_{n+1}^{data})-(D_n^{xon}+D_n^{data}).
+$$</p>
+<p>固定传播分量会在相邻差分中抵消，留下的是队列、TCP、buffer flush 和检测器锁相残差造成的有效边界抖动。</p>
+<h3 id="3-2-单跳延迟分解"><a href="#3-2-单跳延迟分解" class="headerlink" title="3.2 单跳延迟分解"></a>3.2 单跳延迟分解</h3><p>每段 Tor TLS-over-TCP 链路上的延迟可分解为：</p>
+<p>$$
+D_i(t)=\tau_i^{prop}+\tau_i^{proc}+\tau_i^{queue}(t)+\tau_i^{tcp}(t).
+$$</p>
+<p>其中：</p>
+<table>
+<thead>
+<tr>
+<th>分量</th>
+<th>是否随时间变化</th>
+<th>对本文的影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>传播延迟 (\tau^{prop})</td>
+<td>基本固定</td>
+<td>主要影响平均 lag，不直接决定 slot 下界</td>
+</tr>
+<tr>
+<td>处理延迟 (\tau^{proc})</td>
+<td>小幅变化</td>
+<td>通常不是主导因素</td>
+</tr>
+<tr>
+<td>队列延迟 (\tau^{queue})</td>
+<td>明显变化</td>
+<td>影响边界抖动</td>
+</tr>
+<tr>
+<td>TCP 延迟 (\tau^{tcp})</td>
+<td>有尖峰</td>
+<td>重传、ACK 压缩和 cwnd 恢复会造成 burst error</td>
+</tr>
+</tbody></table>
+<p>KIST 的结论说明，Tor 的拥塞主要集中在 egress kernel socket buffer 中。这意味着速率变化在 relay 发送侧会被缓冲和平滑。对于短 slot，这种平滑会直接污染边界判决。</p>
+<h3 id="3-3-为什么单纯-cell-计数不是主要瓶颈"><a href="#3-3-为什么单纯-cell-计数不是主要瓶颈" class="headerlink" title="3.3 为什么单纯 cell 计数不是主要瓶颈"></a>3.3 为什么单纯 cell 计数不是主要瓶颈</h3><p>假设每个 relay data cell 的有效 payload 约为 498 bytes。若速率为 (R)，则单位时间内的期望 cell 到达率为：</p>
+<p>$$
+\rho=\frac{R}{8\cdot 498}.
+$$</p>
+<p>如果只考虑理想对齐下的高低速可分性，则：</p>
+<p>$$
+N_H\sim Poisson(\rho_HT),\qquad N_L\sim Poisson(\rho_LT).
+$$</p>
+<p>Poisson 判决误差可以用 Bhattacharyya bound 上界：</p>
+<p>$$
+P_{count}(T)\leq \frac{1}{2}\exp\left[-T(\sqrt{\rho_H}-\sqrt{\rho_L})^2\right].
+$$</p>
+<p>以 (R_H&#x3D;300) kbps、(R_L&#x3D;100) kbps 为例：</p>
+<p>$$
+\rho_H\approx 75.3\ cells/s,\qquad \rho_L\approx 25.1\ cells/s.
+$$</p>
+<p>若只要求 (P_{count}\leq 1%)，所需 slot 大约为：</p>
+<p>$$
+T\gtrsim \frac{\ln 50}{(\sqrt{75.3}-\sqrt{25.1})^2}\approx 0.29\ s.
+$$</p>
+<p>这说明：只要流量是持续 bulk transfer，且高低速差异足够明显，单纯 cell 计数并不是 800–1000 ms 的主要瓶颈。真正的问题在于速率边界是否能稳定落在检测窗口内。</p>
+<h3 id="3-4-边界偏移与失锁传播"><a href="#3-4-边界偏移与失锁传播" class="headerlink" title="3.4 边界偏移与失锁传播"></a>3.4 边界偏移与失锁传播</h3><p>设有效边界偏移为 (\delta)。它包含路径抖动和检测器锁相误差。可以近似写成：</p>
+<p>$$
+\delta\sim \mathcal{N}(0,\sigma_{eff}^2).
+$$</p>
+<p>对于中点判决器，如果边界偏移超过半个 slot，则窗口内会混入更多相邻状态的数据。其临界条件为：</p>
+<p>$$
+|\delta|>\frac{T}{2}.
+$$</p>
+<p>因此，单次边界越界概率为：</p>
+<p>$$
+p_{cross}(T)=2Q\left(\frac{T}{2\sigma_{eff}}\right).
+$$</p>
+<p>这里 (Q(\cdot)) 是标准正态右尾函数。</p>
+<p>边界越界的影响不是只错一个 bit。短 slot 下，一次越界可能导致检测器相位失锁。检测器需要等待后续稳定转换点才能重新对齐。因此，引入重同步时间 (\tau_{recover})。同步误差项可以近似写成：</p>
+<p>$$
+P_{sync}(T)\approx p_{cross}(T)\left(1+\frac{\tau_{recover}}{T}\right).
+$$</p>
+<p>于是，总 chip 误差可近似写为：</p>
+<p>$$
+P_{chip}(T)\approx P_{count}(T)+2Q\left(\frac{T}{2\sigma_{eff}}\right)\left(1+\frac{\tau_{recover}}{T}\right).
+$$</p>
+<p>这个公式给出本文的核心解释：</p>
+<blockquote>
+<p>800 ms 与 1000 ms 的差异主要来自第二项，也就是边界越界概率和失锁传播项，而不是 Poisson cell 计数项。</p>
+</blockquote>
+<h3 id="3-5-用当前数据反推有效参数"><a href="#3-5-用当前数据反推有效参数" class="headerlink" title="3.5 用当前数据反推有效参数"></a>3.5 用当前数据反推有效参数</h3><p>为了给导师汇报时更直观，我们再用一个等价的 probit 模型拟合当前 bit accuracy：</p>
+<p>$$
+A(T)=\Phi\left(\frac{T-\tau_0}{\sigma_T}\right).
+$$</p>
+<p>其中：</p>
+<ul>
+<li>(\tau_0)：流控恢复、队列平滑和检测器重锁相造成的有效固定开销；</li>
+<li>(\sigma_T)：边界抖动和统计噪声的等效尺度；</li>
+<li>(A(T))：bit-level accuracy。</li>
+</ul>
+<p>当前数据为：</p>
+<p>$$
+A(0.8)\approx0.87,
+$$</p>
+<p>$$
+A(1.0)\in[0.98,0.99].
+$$</p>
+<p>取中间值 (A(1.0)&#x3D;0.985)，有：</p>
+<p>$$
+\Phi^{-1}(0.87)\approx1.126,
+$$</p>
+<p>$$
+\Phi^{-1}(0.985)\approx2.170.
+$$</p>
+<p>由：</p>
+<p>$$
+z_T=\frac{T-\tau_0}{\sigma_T},
+$$</p>
+<p>得到：</p>
+<p>$$
+\sigma_T=\frac{1.0-0.8}{2.170-1.126}\approx0.192\ s,
+$$</p>
+<p>$$
+\tau_0=0.8-0.192\times1.126\approx0.584\ s.
+$$</p>
+<p>如果将 1000 ms 的准确率范围看作 98%–99%，则结果为：</p>
+<table>
+<thead>
+<tr>
+<th align="right">假设 (A(1000))</th>
+<th align="right">(\sigma_T)</th>
+<th align="right">(\tau_0)</th>
+<th align="right">达到 99% bit accuracy 的 (T_{min})</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">98.0%</td>
+<td align="right">0.216 s</td>
+<td align="right">0.557 s</td>
+<td align="right">1.06 s</td>
+</tr>
+<tr>
+<td align="right">98.5%</td>
+<td align="right">0.192 s</td>
+<td align="right">0.584 s</td>
+<td align="right">1.03 s</td>
+</tr>
+<tr>
+<td align="right">99.0%</td>
+<td align="right">0.167 s</td>
+<td align="right">0.612 s</td>
+<td align="right">1.00 s</td>
+</tr>
+</tbody></table>
+<p>因此，在当前实验设置下：</p>
+<p>$$
+T_{min}^{99\%}\approx1.00\text{--}1.06\ s.
+$$</p>
+<p>这也是后续默认使用 1000 ms，而不是 800 ms 的主要依据。</p>
+<h3 id="3-6-为什么-800-ms-到-1000-ms-会出现明显跃迁"><a href="#3-6-为什么-800-ms-到-1000-ms-会出现明显跃迁" class="headerlink" title="3.6 为什么 800 ms 到 1000 ms 会出现明显跃迁"></a>3.6 为什么 800 ms 到 1000 ms 会出现明显跃迁</h3><p>取中间拟合值：</p>
+<p>$$
+\tau_0\approx0.584\ s.
+$$</p>
+<p>则 800 ms 的净有效判决时间为：</p>
+<p>$$
+T_{e,800}=0.800-0.584=0.216\ s.
+$$</p>
+<p>1000 ms 的净有效判决时间为：</p>
+<p>$$
+T_{e,1000}=1.000-0.584=0.416\ s.
+$$</p>
+<p>从名义 slot 看，1000 ms 只比 800 ms 增加 25%。但从净有效判决时间看：</p>
+<p>$$
+\frac{T_{e,1000}}{T_{e,800}}\approx1.93.
+$$</p>
+<p>也就是说，真正用于稳定判决的时间几乎翻倍。再加上正态尾部函数本身是非线性的，z-score 从约 1.13 提升到 2.05–2.33 后，bit accuracy 就会从约 87% 提升到 98%–99%。</p>
+<p>这说明 800 ms 正处在临界区，1000 ms 则基本跨过了当前检测器的稳定门槛。</p>
+<h3 id="3-7-600-ms-为什么不再作为主参考点"><a href="#3-7-600-ms-为什么不再作为主参考点" class="headerlink" title="3.7 600 ms 为什么不再作为主参考点"></a>3.7 600 ms 为什么不再作为主参考点</h3><p>同样使用 (\tau_0\approx0.584) s，有：</p>
+<p>$$
+T_{e,600}=0.600-0.584=0.016\ s.
+$$</p>
+<p>这意味着 600 ms slot 中几乎没有稳定判决区间。此时结果会高度依赖局部排队、TCP burst、XON 生效时间和检测器偶然对齐。它不再稳定测量同一个机制。因此，后续实验中 600 ms 可以作为失效点保留，但不应作为核心趋势点。</p>
+<h3 id="3-8-Slot-过小时准确率下降的具体原因"><a href="#3-8-Slot-过小时准确率下降的具体原因" class="headerlink" title="3.8 Slot 过小时准确率下降的具体原因"></a>3.8 Slot 过小时准确率下降的具体原因</h3><p>这一部分可以作为给导师解释实验现象的核心口径。当前数据中，600 ms 基本不可用，800 ms 只有约 87%，而 1000 ms 可以达到 98%–99%。这个现象不是由单一因素造成的，而是由以下几个因素叠加形成。</p>
+<h4 id="3-8-1-原因一：速率变化不是瞬时阶跃"><a href="#3-8-1-原因一：速率变化不是瞬时阶跃" class="headerlink" title="3.8.1 原因一：速率变化不是瞬时阶跃"></a>3.8.1 原因一：速率变化不是瞬时阶跃</h4><p>编码端设置 high 或 low 速率后，检测端看到的不是理想方波。实际过程更接近下面的链条：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">XON 速率建议发出</span><br><span class="line">-&gt; 中间 relay 转发与排队</span><br><span class="line">-&gt; HS 端流控状态更新</span><br><span class="line">-&gt; 应用数据重新排空</span><br><span class="line">-&gt; relay outbuf 写出</span><br><span class="line">-&gt; TCP/KIST 调度发送</span><br><span class="line">-&gt; Guard&#x27; 侧观测到速率变化</span><br></pre></td></tr></table></figure>
+
+<p>因此，一个 slot 内真正稳定体现目标速率的时间不是完整的 (T)，而是扣除恢复和传播后的净有效时间：</p>
+<p>$$
+T_e = T - \tau_0.
+$$</p>
+<p>根据当前 800 ms 与 1000 ms 的 bit accuracy 反推，(\tau_0) 大约在 0.56–0.61 s。于是：</p>
+<p>$$
+T_{e,800}\approx 0.20\text{--}0.24\ s,
+$$</p>
+<p>$$
+T_{e,1000}\approx 0.39\text{--}0.44\ s.
+$$</p>
+<p>也就是说，1000 ms 只比 800 ms 多 200 ms，但真正稳定可用于判决的时间几乎增加了一倍。这解释了为什么准确率不是线性提升。</p>
+<h4 id="3-8-2-原因二：slot-越短，边界误差占比越大"><a href="#3-8-2-原因二：slot-越短，边界误差占比越大" class="headerlink" title="3.8.2 原因二：slot 越短，边界误差占比越大"></a>3.8.2 原因二：slot 越短，边界误差占比越大</h4><p>设边界偏移为 (\delta)。如果 (|\delta|) 接近或超过半个 slot，当前窗口就会混入相邻状态的数据。对于中点判决器，关键临界条件是：</p>
+<p>$$
+|\delta| > \frac{T}{2}.
+$$</p>
+<p>单次边界越界概率近似为：</p>
+<p>$$
+p_{cross}(T)=2Q\left(\frac{T}{2\sigma_{eff}}\right).
+$$</p>
+<p>这个式子说明，(T) 变短时，越界概率不是线性增加，而是沿着正态尾部快速增加。以 (\sigma_{eff}\approx 190) ms 为例：</p>
+<p>$$
+p_{cross}(800ms)\approx 3.5\%,
+$$</p>
+<p>$$
+p_{cross}(1000ms)\approx 0.85\%.
+$$</p>
+<p>因此，从 800 ms 增加到 1000 ms 后，边界越界概率会下降约 4 倍。这是 bit accuracy 明显跃迁的主要数学原因。</p>
+<h4 id="3-8-3-原因三：一次边界错误可能造成连续错误"><a href="#3-8-3-原因三：一次边界错误可能造成连续错误" class="headerlink" title="3.8.3 原因三：一次边界错误可能造成连续错误"></a>3.8.3 原因三：一次边界错误可能造成连续错误</h4><p>短 slot 下，边界错误不一定只影响当前 chip。检测器如果把边界错认为下一个状态的开始，就可能发生相位失锁。失锁后需要等待后续明确的速率转换点才能重新对齐。</p>
+<p>因此，同步误差项不是简单的 (p_{cross})，而更接近：</p>
+<p>$$
+P_{sync}(T)\approx p_{cross}(T)\left(1+\frac{\tau_{recover}}{T}\right).
+$$</p>
+<p>其中 (\tau_{recover}) 是重新锁定相位所需的时间。slot 越短，(\tau_{recover}&#x2F;T) 越大，同一次越界事件影响的 chip 数越多。这解释了为什么 600 ms 会明显失效，也解释了为什么 800 ms 虽然能看到结构，但 payload&#x2F;chip 级别不稳。</p>
+<h4 id="3-8-4-原因四：短-slot-更容易被多跳平滑吞掉"><a href="#3-8-4-原因四：短-slot-更容易被多跳平滑吞掉" class="headerlink" title="3.8.4 原因四：短 slot 更容易被多跳平滑吞掉"></a>3.8.4 原因四：短 slot 更容易被多跳平滑吞掉</h4><p>Onion service rendezvous 路径由两段三跳 circuit 拼接而成。速率变化需要经过多个 relay 的 outbuf、kernel socket buffer 和 TCP 连接。KIST 机制会降低长期拥塞，但它并不会把短时速率变化原样传递到下一跳。对检测器来说，短 slot 的 high&#x2F;low 变化会被平滑成较缓的斜坡。</p>
+<p>当 slot 足够长时，窗口中仍有一段稳定 high 或 low 区间，检测端可以用平均速率判决。slot 过短时，窗口中的大部分时间都处于过渡区。此时 high 和 low 的均值差被压缩，模板相关性下降，错误会集中出现在切换边界附近。</p>
+<h4 id="3-8-5-原因五：低速并不能自动解决问题"><a href="#3-8-5-原因五：低速并不能自动解决问题" class="headerlink" title="3.8.5 原因五：低速并不能自动解决问题"></a>3.8.5 原因五：低速并不能自动解决问题</h4><p>一个容易产生的误解是：既然 slot 短时不稳定，那降低编码速率或降低发送强度是否能缓解。当前模型给出的结论是否定的。</p>
+<p>首先，主导误差来自边界抖动和失锁传播，而不是单纯 cell 数太多。降低速率并不会减少 relay 队列抖动、TCP 重传或 XON 生效延迟。其次，降低 low 或 high 速率会减少单窗口内可统计的 cell 数，反而会提高 Poisson 计数误差。最后，缩小 (R_H-R_L) 会降低速率转换可见性，使检测端更难定位边界。</p>
+<p>因此，降低速率不能替代增加 slot。更合理的方向是：保持足够清晰的 high&#x2F;low 差异，使用 1000 ms 左右的 slot，并通过短模板而不是复杂 payload 来控制总时长。</p>
+<h4 id="3-8-6-小结：slot-太小时的误差链条"><a href="#3-8-6-小结：slot-太小时的误差链条" class="headerlink" title="3.8.6 小结：slot 太小时的误差链条"></a>3.8.6 小结：slot 太小时的误差链条</h4><p>可以把准确率下降概括为下面这条链：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">slot 变短</span><br><span class="line">-&gt; XON 生效与数据排空占据更大比例</span><br><span class="line">-&gt; 检测端稳定判决窗口变小</span><br><span class="line">-&gt; 边界偏移更容易超过 T/2</span><br><span class="line">-&gt; 单个 chip 误判</span><br><span class="line">-&gt; 检测器相位失锁</span><br><span class="line">-&gt; 连续多个 chip 错误</span><br><span class="line">-&gt; payload CRC 或 template match 失败</span><br></pre></td></tr></table></figure>
+
+<p>因此，slot 下界不是由某一个固定延迟决定的，而是由“流控恢复时间、边界抖动、重同步时间”共同决定。当前实验中的 1000 ms 可以理解为：它已经让大多数 slot 跨过了稳定判决所需的最小净窗口；800 ms 仍位于临界区；600 ms 则大多落在过渡区内。</p>
+<hr>
+<h2 id="4-当前-slot-设置的研究价值"><a href="#4-当前-slot-设置的研究价值" class="headerlink" title="4. 当前 slot 设置的研究价值"></a>4. 当前 slot 设置的研究价值</h2><h3 id="4-1-与-DUSTER-的差异"><a href="#4-1-与-DUSTER-的差异" class="headerlink" title="4.1 与 DUSTER 的差异"></a>4.1 与 DUSTER 的差异</h3><p>DUSTER 的判定对象是 SENDME batch 诱导出来的短 burst。它的优势是窗口短，检测直观。但它也有局限。</p>
+<ol>
+<li>它依赖旧 SENDME 行为。现代 Tor 中 authenticated SENDME 已经削弱了相关路径。</li>
+<li>它主要检测 burst，而不是一个可组合的速率序列。</li>
+<li>burst 容易与自然网络 burst、ACK 压缩和短时拥塞混在一起，因此需要额外筛选。</li>
+<li>它的实验设置中需要一定规模的前置传输，典型参数对应约 750 KB 级别的数据后再开始嵌入。</li>
+</ol>
+<p>相比之下，当前 XON&#x2F;XOFF 方案的价值不是“更短”，而是：</p>
+<ul>
+<li>利用现代 stream-level flow control 的速率响应；</li>
+<li>可以形成连续、可组合、可统计检验的速率结构；</li>
+<li>可以把误报控制交给序列级模板，而不是单个 burst；</li>
+<li>更适合讨论新流控机制带来的安全边界。</li>
+</ul>
+<p>因此，可以向导师这样表述：</p>
+<blockquote>
+<p>DUSTER 证明了短时主动特征可以用于 onion service traceback。本文进一步关注的是：当旧 SENDME 路径被削弱后，新的 XON&#x2F;XOFF 流控反馈是否仍然能形成可识别的速率结构。</p>
+</blockquote>
+<h3 id="4-2-与-SDN-traceback-的差异"><a href="#4-2-与-SDN-traceback-的差异" class="headerlink" title="4.2 与 SDN traceback 的差异"></a>4.2 与 SDN traceback 的差异</h3><p>SDN traceback 与本文更接近。它也是速率调制。其做法是通过 server-side SDN switch 修改 TCP advertised window，在流量中嵌入 high&#x2F;low 变化。检测端根据每个 time interval 前后半窗口的速率关系恢复 bit。</p>
+<p>但二者的实验假设不同。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>SDN traceback</th>
+<th>当前 XON&#x2F;XOFF 方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>网络场景</td>
+<td>普通匿名通信，接近三跳 Tor 路径</td>
+<td>onion service rendezvous 双电路</td>
+</tr>
+<tr>
+<td>控制点</td>
+<td>两端附近 SDN switch</td>
+<td>Tor stream-level flow control</td>
+</tr>
+<tr>
+<td>调制对象</td>
+<td>TCP advertised window</td>
+<td>XON&#x2F;XOFF 建议速率与排空过程</td>
+</tr>
+<tr>
+<td>检测对象</td>
+<td>client-server 关系</td>
+<td>onion service 场景中的速率特征</td>
+</tr>
+<tr>
+<td>路径平滑</td>
+<td>较弱</td>
+<td>更强</td>
+</tr>
+</tbody></table>
+<p>所以，SDN traceback 中 800 ms 可行，并不说明本文也应使用 800 ms。更合理的解释是：</p>
+<blockquote>
+<p>SDN traceback 说明亚秒级速率结构在普通匿名通信中具有可识别性；本文的 1000 ms 是把这一思想迁移到更长、更平滑的 onion service rendezvous 路径后的经验放大。</p>
+</blockquote>
+<h3 id="4-3-总时长仍然可控"><a href="#4-3-总时长仍然可控" class="headerlink" title="4.3 总时长仍然可控"></a>4.3 总时长仍然可控</h3><p>虽然单个 slot 为 1000 ms，但如果不再追求复杂 payload，而只编码短 marker，总时长仍然可以控制在可接受范围。</p>
+<p>例如：</p>
+<ul>
+<li>40-slot template：约 40 s，加前后 guard 后约 44 s；</li>
+<li>48-slot template：约 48 s，加前后 guard 后约 52 s。</li>
+</ul>
+<p>相比之下，如果采用 SDN traceback 中类似 24-bit signal 与 6 次重复的思路，总时长约为：</p>
+<p>$$
+24\times6\times0.8=115.2\ s.
+$$</p>
+<p>因此，1000 ms slot 并不必然意味着更慢。关键在于：本文不传复杂消息，而是识别一个短、预注册、低误报的特征。</p>
+<hr>
+<h2 id="5-下一阶段编码与识别设计"><a href="#5-下一阶段编码与识别设计" class="headerlink" title="5. 下一阶段编码与识别设计"></a>5. 下一阶段编码与识别设计</h2><h3 id="5-1-设计原则"><a href="#5-1-设计原则" class="headerlink" title="5.1 设计原则"></a>5.1 设计原则</h3><p>下一阶段的目标不是提高 payload 吞吐，而是提高短特征识别的可靠性。建议目标如下。</p>
+<ol>
+<li><strong>短时完成</strong>：总时长控制在 40–60 s。</li>
+<li><strong>预注册模板</strong>：模板必须在检测前确定，不能后验挑选。</li>
+<li><strong>低误报可证明</strong>：使用 Hamming distance 与 union bound 给出误报上界。</li>
+<li><strong>不依赖复杂 payload</strong>：避免 Hamming74 frame 与 CRC 链路造成额外不稳定。</li>
+<li><strong>与现有分析链路兼容</strong>：沿用 lag scan、slot 聚合和 template correlation。</li>
+</ol>
+<h3 id="5-2-推荐方案：Keyed-Binary-Template"><a href="#5-2-推荐方案：Keyed-Binary-Template" class="headerlink" title="5.2 推荐方案：Keyed Binary Template"></a>5.2 推荐方案：Keyed Binary Template</h3><p>使用固定长度的二进制模板作为 marker：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">slot_ms = 1000</span><br><span class="line">1 = high slot</span><br><span class="line">0 = low slot</span><br></pre></td></tr></table></figure>
+
+<p>发送结构为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">low guard 2s</span><br><span class="line">keyed binary template</span><br><span class="line">low guard 2s</span><br></pre></td></tr></table></figure>
+
+<p>其中，前后 low guard 的作用是建立低速基线，并减少模板首尾被流控恢复过程污染。</p>
+<p>模板由密钥派生，检测前固定：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">raw = HMAC-SHA256(key, exp_id || context)</span><br><span class="line">T = select_bits(raw, L)</span><br></pre></td></tr></table></figure>
+
+<p>模板筛选条件如下。</p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th align="right">推荐值</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0&#x2F;1 平衡</td>
+<td align="right"><code>L=40</code> 时 high 数量在 <code>[18,22]</code></td>
+<td>避免模板均值偏置</td>
+</tr>
+<tr>
+<td>最大连续 run</td>
+<td align="right">不超过 4</td>
+<td>避免长平稳段被平滑吞掉</td>
+</tr>
+<tr>
+<td>自相关</td>
+<td align="right">非零 offset 下 normalized autocorrelation 不超过 0.25</td>
+<td>降低错误 lag 误锁概率</td>
+</tr>
+<tr>
+<td>反码区分度</td>
+<td align="right">反码不能同时高分</td>
+<td>排除趋势型伪匹配</td>
+</tr>
+<tr>
+<td>阈值固定</td>
+<td align="right">使用独立校准集固定</td>
+<td>避免后验调参放大误报</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-推荐参数"><a href="#5-3-推荐参数" class="headerlink" title="5.3 推荐参数"></a>5.3 推荐参数</h3><h4 id="默认主实验参数"><a href="#默认主实验参数" class="headerlink" title="默认主实验参数"></a>默认主实验参数</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">slot_ms = 1000</span><br><span class="line">template_length = 40</span><br><span class="line">allowed_errors = 3</span><br><span class="line">low_guard_before = 2000ms</span><br><span class="line">low_guard_after = 2000ms</span><br><span class="line">lag_scan = 0..5000ms, step = 100ms</span><br><span class="line">max_run_length = 4</span><br><span class="line">weight_range = [18, 22]</span><br></pre></td></tr></table></figure>
+
+<p>特点：</p>
+<ul>
+<li>总时长约 44 s；</li>
+<li>适合作为主实验；</li>
+<li>在 chip error rate 约 1.25%–1.73% 时，理论漏检率约 0.16%–0.50%；</li>
+<li>在 1000 个 lag&#x2F;offset 候选下，随机误报上界约为 (9.73\times10^{-6})。</li>
+</ul>
+<h4 id="高置信低误报参数"><a href="#高置信低误报参数" class="headerlink" title="高置信低误报参数"></a>高置信低误报参数</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">slot_ms = 1000</span><br><span class="line">template_length = 48</span><br><span class="line">allowed_errors = 4</span><br><span class="line">low_guard_before = 2000ms</span><br><span class="line">low_guard_after = 2000ms</span><br><span class="line">lag_scan = 0..5000ms, step = 100ms</span><br><span class="line">max_run_length = 4</span><br><span class="line">weight_range = [22, 26]</span><br></pre></td></tr></table></figure>
+
+<p>特点：</p>
+<ul>
+<li>总时长约 52 s；</li>
+<li>适合大规模 benign trace 误报评估；</li>
+<li>在 chip error rate 约 1.25%–1.73% 时，理论漏检率约 0.03%–0.14%；</li>
+<li>在 1000 个 lag&#x2F;offset 候选下，随机误报上界约为 (7.57\times10^{-7})。</li>
+</ul>
+<h4 id="短模板压力测试参数"><a href="#短模板压力测试参数" class="headerlink" title="短模板压力测试参数"></a>短模板压力测试参数</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">slot_ms = 1000</span><br><span class="line">template_length = 32</span><br><span class="line">allowed_errors = 2</span><br><span class="line">low_guard_before = 2000ms</span><br><span class="line">low_guard_after = 2000ms</span><br><span class="line">lag_scan = 0..5000ms, step = 100ms</span><br><span class="line">max_run_length = 4</span><br><span class="line">weight_range = [14, 18]</span><br></pre></td></tr></table></figure>
+
+<p>特点：</p>
+<ul>
+<li>总时长约 36 s；</li>
+<li>可用于验证更短 marker 的极限；</li>
+<li>误报上界相对较高，不建议作为最终方案。</li>
+</ul>
+<h3 id="5-4-误报上界"><a href="#5-4-误报上界" class="headerlink" title="5.4 误报上界"></a>5.4 误报上界</h3><p>对于长度为 (L)、允许错误数为 (e) 的固定模板，单候选随机误报概率为：</p>
+<p>$$
+P_{fp}^{single}\leq 2^{-L}\sum_{i=0}^{e}\binom{L}{i}.
+$$</p>
+<p>如果有 (N_{cand}) 个候选 lag 或候选窗口，则使用 union bound：</p>
+<p>$$
+P_{fp}^{family}\leq N_{cand}\cdot P_{fp}^{single}.
+$$</p>
+<p>取 (N_{cand}&#x3D;1000)，有：</p>
+<table>
+<thead>
+<tr>
+<th align="right">L</th>
+<th align="right">allowed errors</th>
+<th align="right">单候选误报</th>
+<th align="right">1000 候选误报</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">24</td>
+<td align="right">1</td>
+<td align="right">(1.49\times10^{-6})</td>
+<td align="right">(1.49\times10^{-3})</td>
+</tr>
+<tr>
+<td align="right">24</td>
+<td align="right">2</td>
+<td align="right">(1.79\times10^{-5})</td>
+<td align="right">(1.79\times10^{-2})</td>
+</tr>
+<tr>
+<td align="right">32</td>
+<td align="right">2</td>
+<td align="right">(1.23\times10^{-7})</td>
+<td align="right">(1.23\times10^{-4})</td>
+</tr>
+<tr>
+<td align="right">40</td>
+<td align="right">3</td>
+<td align="right">(9.73\times10^{-9})</td>
+<td align="right">(9.73\times10^{-6})</td>
+</tr>
+<tr>
+<td align="right">48</td>
+<td align="right">4</td>
+<td align="right">(7.57\times10^{-10})</td>
+<td align="right">(7.57\times10^{-7})</td>
+</tr>
+</tbody></table>
+<p>这说明 24-chip marker 虽然快，但在 lag scan 和大规模 benign trace 扫描下，family-wise 误报上界不够理想。40 slots 是较好的默认折中，48 slots 更适合低误报展示。</p>
+<p>如果 benign traffic 存在明显偏置，不能直接使用 (1&#x2F;2) 假设。需要用独立 benign calibration set 估计：</p>
+<p>$$
+p_{max}=\max P(slot\ matches\ template\ bit).
+$$</p>
+<p>然后使用更保守的上界：</p>
+<p>$$
+P_{fp}^{family}\leq N_{cand}\sum_{i=0}^{e}\binom{L}{i}p_{max}^{L-i}(1-p_{max})^i.
+$$</p>
+<h3 id="5-5-漏检率估计"><a href="#5-5-漏检率估计" class="headerlink" title="5.5 漏检率估计"></a>5.5 漏检率估计</h3><p>若单个 chip 的错误率为 (q)，模板长度为 (L)，允许错误数为 (e)，则漏检率为：</p>
+<p>$$
+P_{fn}=P(Binomial(L,q)>e).
+$$</p>
+<p>根据 1000 ms 的当前结果，可取：</p>
+<p>$$
+q\in[0.0125,0.0173].
+$$</p>
+<p>估算结果如下。</p>
+<table>
+<thead>
+<tr>
+<th align="right">L</th>
+<th align="right">allowed errors</th>
+<th align="right">(q&#x3D;1.25%) 漏检率</th>
+<th align="right">(q&#x3D;1.73%) 漏检率</th>
+<th align="right">(q&#x3D;2.00%) 保守漏检率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">32</td>
+<td align="right">2</td>
+<td align="right">0.739%</td>
+<td align="right">1.767%</td>
+<td align="right">2.577%</td>
+</tr>
+<tr>
+<td align="right">40</td>
+<td align="right">3</td>
+<td align="right">0.156%</td>
+<td align="right">0.498%</td>
+<td align="right">0.824%</td>
+</tr>
+<tr>
+<td align="right">48</td>
+<td align="right">4</td>
+<td align="right">0.033%</td>
+<td align="right">0.143%</td>
+<td align="right">0.268%</td>
+</tr>
+</tbody></table>
+<p>结论是：<code>L=40,e=3</code> 已经足以支撑主实验；<code>L=48,e=4</code> 更适合低误报和高置信展示。</p>
+<h3 id="5-6-检测流程"><a href="#5-6-检测流程" class="headerlink" title="5.6 检测流程"></a>5.6 检测流程</h3><p>检测端可以采用以下流程。</p>
+<ol>
+<li><p><strong>候选流筛选</strong><br>只检测持续时间足够长、cell 数充足、接近 bulk transfer 的候选流。过滤空闲流、小对象下载和连接建立&#x2F;结束阶段。</p>
+</li>
+<li><p><strong>lag scan</strong><br>在固定范围内扫描 lag，例如 <code>0..5000ms, step=100ms</code>。不要根据结果后验扩大搜索范围。</p>
+</li>
+<li><p><strong>slot 聚合与判决</strong><br>对每个候选 lag，将速率按 1000 ms slot 聚合。阈值使用独立校准集确定，或使用固定的 median&#x2F;MAD 规则。</p>
+</li>
+<li><p><strong>模板匹配</strong><br>计算观测序列 (X) 与模板 (T) 的 Hamming distance：</p>
+</li>
+</ol>
+<p>$$
+d=HammingDistance(X,T).
+$$</p>
+<p>   接收条件为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">L = 40: d &lt;= 3</span><br><span class="line">L = 48: d &lt;= 4</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li><strong>相关性与反码拒绝</strong><br>同时计算 template correlation。若反码或多个移位模板也能获得接近分数，则拒绝该命中。这可以降低自然周期流量导致的伪匹配。</li>
+</ol>
+<h3 id="5-7-为什么不继续使用完整-Hamming74-payload"><a href="#5-7-为什么不继续使用完整-Hamming74-payload" class="headerlink" title="5.7 为什么不继续使用完整 Hamming74 payload"></a>5.7 为什么不继续使用完整 Hamming74 payload</h3><p>当前 Hamming74 payload 仍有价值，但它更适合做“复杂信息恢复能力”的实验，不适合作为下一阶段主方案。原因如下。</p>
+<ul>
+<li>payload frame 会引入额外同步和 CRC 失败；</li>
+<li>需要更多 slot，增加总时长；</li>
+<li>解码链路复杂，误差来源更多；</li>
+<li>误报证明更难写，因为检测目标从“固定模板”变成“可解码内容”；</li>
+<li>当前 800 ms payload chip accuracy 和 CRC pass rate 已经显示复杂 payload 在临界区不稳。</li>
+</ul>
+<p>因此，下一阶段建议把实验目标从“传复杂 payload”改为“识别短特征”。这更符合当前系统能力，也更容易形成清晰的数学证明和实验闭环。</p>
+<hr>
+<h2 id="6-下一步实验计划"><a href="#6-下一步实验计划" class="headerlink" title="6. 下一步实验计划"></a>6. 下一步实验计划</h2><h3 id="6-1-Slot-sweep：验证下界模型"><a href="#6-1-Slot-sweep：验证下界模型" class="headerlink" title="6.1 Slot sweep：验证下界模型"></a>6.1 Slot sweep：验证下界模型</h3><p>建议补充以下点：</p>
+<p>$$
+T\in\{700,800,900,1000,1100,1200\}\ ms.
+$$</p>
+<p>每个点记录：</p>
+<ul>
+<li>bit accuracy；</li>
+<li>Wilson confidence interval；</li>
+<li>best lag 分布；</li>
+<li>high&#x2F;low separability；</li>
+<li>bit error 是否呈 burst；</li>
+<li>错误是否集中在切换边界后。</li>
+</ul>
+<p>主要目标不是单纯报告准确率，而是验证以下模型是否能拟合：</p>
+<p>$$
+A(T)=\Phi\left(\frac{T-\tau_0}{\sigma_T}\right).
+$$</p>
+<p>如果 900 ms 明显提升，1100&#x2F;1200 ms 进入平台区，就能进一步支持“1000 ms 位于临界区附近”的判断。</p>
+<h3 id="6-2-Template-level-主实验"><a href="#6-2-Template-level-主实验" class="headerlink" title="6.2 Template-level 主实验"></a>6.2 Template-level 主实验</h3><p>主实验固定使用 1000 ms。建议三组配置：</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th align="right">slot</th>
+<th align="right">template length</th>
+<th align="right">allowed errors</th>
+<th align="right">总时长</th>
+<th>目标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td align="right">1000 ms</td>
+<td align="right">32</td>
+<td align="right">2</td>
+<td align="right">约 36 s</td>
+<td>压力测试</td>
+</tr>
+<tr>
+<td>B</td>
+<td align="right">1000 ms</td>
+<td align="right">40</td>
+<td align="right">3</td>
+<td align="right">约 44 s</td>
+<td>主实验</td>
+</tr>
+<tr>
+<td>C</td>
+<td align="right">1000 ms</td>
+<td align="right">48</td>
+<td align="right">4</td>
+<td align="right">约 52 s</td>
+<td>低误报展示</td>
+</tr>
+</tbody></table>
+<p>记录指标包括：</p>
+<ul>
+<li>template TPR；</li>
+<li>raw bit accuracy；</li>
+<li>observed Hamming distance 分布；</li>
+<li>template correlation 分布；</li>
+<li>benign trace FPR；</li>
+<li>lag scan 是否误锁；</li>
+<li>不同对象大小和不同网络负载下的稳定性。</li>
+</ul>
+<h3 id="6-3-消融实验"><a href="#6-3-消融实验" class="headerlink" title="6.3 消融实验"></a>6.3 消融实验</h3><table>
+<thead>
+<tr>
+<th>消融项</th>
+<th>对照</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>template length</td>
+<td>32 &#x2F; 40 &#x2F; 48</td>
+<td>验证时长与误报的 trade-off</td>
+</tr>
+<tr>
+<td>allowed errors</td>
+<td>2 &#x2F; 3 &#x2F; 4</td>
+<td>验证 TPR&#x2F;FPR 曲线</td>
+</tr>
+<tr>
+<td>lag scan</td>
+<td>on &#x2F; off</td>
+<td>验证对齐是否关键</td>
+</tr>
+<tr>
+<td>threshold</td>
+<td>fixed &#x2F; calibrated &#x2F; median-MAD</td>
+<td>验证阈值对误报的影响</td>
+</tr>
+<tr>
+<td>template shape</td>
+<td>keyed balanced &#x2F; long-run &#x2F; periodic</td>
+<td>验证低自相关设计是否必要</td>
+</tr>
+<tr>
+<td>guard length</td>
+<td>0s &#x2F; 1s &#x2F; 2s</td>
+<td>验证前后保护段作用</td>
+</tr>
+<tr>
+<td>coding mode</td>
+<td>keyed template &#x2F; Hamming74 payload</td>
+<td>证明为何改用短特征</td>
+</tr>
+</tbody></table>
+<h3 id="6-4-Benign-trace-误报评估"><a href="#6-4-Benign-trace-误报评估" class="headerlink" title="6.4 Benign trace 误报评估"></a>6.4 Benign trace 误报评估</h3><p>建议使用离线 benign trace 评估误报。不要对第三方目标做主动部署。</p>
+<p>误报报告应分层给出：</p>
+<ul>
+<li>所有候选流；</li>
+<li>bulk 流；</li>
+<li>长流；</li>
+<li>高吞吐流；</li>
+<li>onion-service-like trace。</li>
+</ul>
+<p>同时报告：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">N_candidates</span><br><span class="line">L</span><br><span class="line">allowed_errors</span><br><span class="line">p_max or null model</span><br><span class="line">false_positive_upper_bound</span><br><span class="line">actual false positives</span><br></pre></td></tr></table></figure>
+
+<p>这样可以避免只在过弱候选集上报告低 FPR。</p>
+<hr>
+<h2 id="7-汇报结论"><a href="#7-汇报结论" class="headerlink" title="7. 汇报结论"></a>7. 汇报结论</h2><ol>
+<li><p>当前 1000 ms slot 有数学解释。根据 800 ms 约 87% 和 1000 ms 约 98%–99% 的 bit accuracy，反推 99% bit accuracy 的 slot 下界约为 1.00–1.06 s。</p>
+</li>
+<li><p>800 ms 和 1000 ms 的差距来自临界区效应。系统存在约 0.56–0.61 s 的有效恢复开销。slot 从 800 ms 增加到 1000 ms 后，净有效判决窗口接近翻倍，因此准确率会明显跃迁。</p>
+</li>
+<li><p>当前 slot 虽然不算小，但在 onion service 场景中仍然有价值。与 DUSTER 相比，它不依赖旧 SENDME burst；与 SDN traceback 相比，它不依赖两端 SDN switch，并且更贴近 Tor stream-level flow control 的安全分析。</p>
+</li>
+<li><p>下一阶段应从复杂 payload 转向短特征识别。推荐使用 1000 ms slot 的 keyed binary template。主实验参数为 <code>L=40,e=3</code>，高置信参数为 <code>L=48,e=4</code>。</p>
+</li>
+<li><p>后续重点是验证三件事：slot 下界曲线、template-level TPR&#x2F;FPR、benign trace 上的实际误报。这样可以形成从源码机制、数学模型到实验验证的完整闭环。</p>
+</li>
+</ol>
+<hr>
+<h2 id="8-后续补充材料"><a href="#8-后续补充材料" class="headerlink" title="8. 后续补充材料"></a>8. 后续补充材料</h2><table>
+<thead>
+<tr>
+<th>待补内容</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>900&#x2F;1100&#x2F;1200 ms 实验点</td>
+<td>验证 slot 下界曲线</td>
+</tr>
+<tr>
+<td>bit error burst 分布</td>
+<td>验证失锁传播模型</td>
+</tr>
+<tr>
+<td>best lag 分布</td>
+<td>证明对齐抖动是主导因素之一</td>
+</tr>
+<tr>
+<td>benign trace 误报评估</td>
+<td>支撑公网低误报结论</td>
+</tr>
+<tr>
+<td>Hamming74 vs keyed template 对比</td>
+<td>解释为何改变编码方案</td>
+</tr>
+<tr>
+<td>不同对象大小实验</td>
+<td>验证短访问可识别性</td>
+</tr>
+<tr>
+<td>不同负载状态实验</td>
+<td>验证鲁棒性</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li>DUSTER: active watermarking through SENDME-related burst detection.</li>
+<li>Novel and Practical SDN-based Traceback Technique for Malicious Traffic over Anonymous Networks.</li>
+<li>Tor Proposal 324: RTT-based Congestion Control for Tor.</li>
+<li>KIST: Kernel-Informed Socket Transport for Tor.</li>
+<li>Tor flow-control and relay-cell specifications.</li>
+<li>当前推导草稿：<code>proof_slot_lower_bound.md</code>。</li>
+<li>当前编码方案草稿：<code>fast_recognizable_feature_encoding_scheme.md</code>。</li>
+<li>当前组会草稿：<code>tor_slot_lower_bound_group_meeting_v2.md</code>。</li>
+</ol>
+</div>
+  
+
+  
+    <footer class="article-footer">
+      
+        <p>分类：<span class="taxonomy">research</span></p>
+      
+      
+    </footer>
+  
+</article>
+
+      </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>

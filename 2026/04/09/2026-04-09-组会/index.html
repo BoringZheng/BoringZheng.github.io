@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026-04-09 组会-基于持续高态时长的编码对齐实验分析 | Hexo</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+  <body>
+    <button class="nav-toggle" id="nav-toggle" aria-controls="site-sidebar" aria-expanded="false" aria-label="切换导航">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="shell">
+      
+<aside class="sidebar" id="site-sidebar">
+  <div class="sidebar-brand">
+    <a href="/">Hexo</a>
+    
+  </div>
+
+  <nav class="main-nav" aria-label="主导航">
+    
+      <a class="nav-link " href="/">首页</a>
+    
+      <a class="nav-link " href="/research/">研究</a>
+    
+      <a class="nav-link " href="/life/">生活</a>
+    
+      <a class="nav-link " href="/study/">学习</a>
+    
+  </nav>
+</aside>
+
+      <div class="overlay" id="nav-overlay"></div>
+      <main class="main-content">
+        
+<article class="article-page">
+  <header>
+    <p class="eyebrow">研究</p>
+    <h1>2026-04-09 组会-基于持续高态时长的编码对齐实验分析</h1>
+    <time datetime="2026-04-08T16:00:00.000Z">2026-04-09 00:00</time>
+  </header>
+
+  
+    <div class="article-content"><h1 id="2026-04-09-组会：基于持续高态时长的编码对齐实验分析"><a href="#2026-04-09-组会：基于持续高态时长的编码对齐实验分析" class="headerlink" title="2026-04-09-组会：基于持续高态时长的编码对齐实验分析"></a>2026-04-09-组会：基于持续高态时长的编码对齐实验分析</h1><h2 id="1-实验目标"><a href="#1-实验目标" class="headerlink" title="1. 实验目标"></a>1. 实验目标</h2><p>本实验的目标是在 A 端主动调制发送速率的条件下，从 B 端观测到的大量网络流量中恢复出对应的编码信息，并验证该编码是否能够稳定、准确地被识别。</p>
+<p>本报告采用当前框架的<strong>新口径</strong>进行分析，即：</p>
+<ul>
+<li>先完成 A&#x2F;B 两端时间对齐；</li>
+<li>再在 B 端原始速率采样中统计持续高于阈值的总时长；</li>
+<li>用该总时长除以 A 端对应码字的单个 <code>1</code> 槽位时长；</li>
+<li>最后四舍五入，反推出该码字中包含的 <code>1</code> 的数量。</li>
+</ul>
+<p>在本口径下，编码恢复的核心对象不再是“逐窗口 bit 判决”，而是“每个码字中 <code>1</code> 的数量恢复”。</p>
+<h2 id="2-当前框架的对齐与容错逻辑"><a href="#2-当前框架的对齐与容错逻辑" class="headerlink" title="2. 当前框架的对齐与容错逻辑"></a>2. 当前框架的对齐与容错逻辑</h2><h3 id="2-1-A-端编码定义"><a href="#2-1-A-端编码定义" class="headerlink" title="2.1 A 端编码定义"></a>2.1 A 端编码定义</h3><p>A 端控制日志中，最低 <code>adv_kbps</code> 档位记为 <code>0</code>，高于最低档位的控制窗口记为 <code>1</code>。将这些窗口按时间顺序拼接后，以 <code>0</code> 为分隔符，即可得到一系列码字。例如：</p>
+<ul>
+<li><code>01101111</code> 会被切分为两个码字：<code>11</code> 和 <code>1111</code></li>
+</ul>
+<p>因此，A 端不仅给出了发送时序，也给出了每个码字真实包含多少个 <code>1</code>。</p>
+<h3 id="2-2-时间对齐逻辑"><a href="#2-2-时间对齐逻辑" class="headerlink" title="2.2 时间对齐逻辑"></a>2.2 时间对齐逻辑</h3><p>框架首先使用 A 端 symbol window 与 B 端出口速率序列进行时延扫描，在候选时延范围内搜索最佳 <code>lag</code>，使得高态窗口与低态窗口在 B 端的统计量分离度最大。</p>
+<p>本次实验中：</p>
+<ul>
+<li>最佳时延 <code>best_lag_ms = 1300 ms</code></li>
+<li>窗口覆盖率 <code>window_coverage_rate = 1.000</code></li>
+<li>高低态分离度 <code>separation_score = 1.243</code></li>
+</ul>
+<p>这说明：</p>
+<ul>
+<li>A 端发送控制与 B 端观测速率之间存在稳定的传播时延；</li>
+<li>所有 A 端窗口都能在 B 端找到有效对应观测；</li>
+<li>高态与低态在 B 端统计上具有可分性，适合作为后续编码恢复的基础。</li>
+</ul>
+<h3 id="2-3-阈值选择逻辑"><a href="#2-3-阈值选择逻辑" class="headerlink" title="2.3 阈值选择逻辑"></a>2.3 阈值选择逻辑</h3><p>在完成时间对齐之后，框架并不直接使用固定阈值，而是对所有可能的单阈值进行搜索，选择最适合当前实验数据的阈值作为高态判定阈值。</p>
+<p>本次实验中：</p>
+<ul>
+<li>基线阈值 <code>baseline_threshold_kbps = 1062.792 kbps</code></li>
+<li>最终选中阈值 <code>classification_threshold_kbps = 960.971 kbps</code></li>
+<li>阈值选择策略 <code>code_f1_scan_v1</code></li>
+</ul>
+<p>该步骤的作用是尽可能使 B 端高态区间与真实编码结构相匹配，从而降低后续码字计数误差。</p>
+<h3 id="2-4-新口径下的码字恢复逻辑"><a href="#2-4-新口径下的码字恢复逻辑" class="headerlink" title="2.4 新口径下的码字恢复逻辑"></a>2.4 新口径下的码字恢复逻辑</h3><p>在新口径下，框架不再依赖逐窗口数 <code>1</code>，而是对每个 A 端码字单独构造一个 B 端对齐观察窗口，并执行如下流程：</p>
+<ol>
+<li>对每个 A 端码字，计算其在 A 端的真实持续时间与 <code>1</code> 的个数。</li>
+<li>用“码字总高态持续时间 &#x2F; <code>1</code> 个数”得到该码字的单个 <code>1</code> 槽位时长 <code>a_slot_ms</code>。</li>
+<li>将该码字整体平移到 B 端时间轴。</li>
+<li>在 B 端原始采样中统计该码字范围内持续高于阈值的时间。</li>
+<li>为增强容错能力，先把不超过 <code>400 ms</code> 的短回落视为抖动并合并。</li>
+<li>将合并后的总高态时长 <code>b_high_total_ms</code> 除以 <code>a_slot_ms</code>。</li>
+<li>对结果进行四舍五入，得到该码字在 B 端恢复出的 <code>1</code> 的数量。</li>
+</ol>
+<p>例如，当一个 A 端码字为 <code>11</code>，其单个 <code>1</code> 槽位时长约为 <code>2000 ms</code>，若 B 端统计到的高态总时长约为 <code>3800 ms</code>，则：</p>
+<ul>
+<li><code>3800 / 2000 = 1.9</code></li>
+<li>四舍五入后得到 <code>2</code></li>
+<li>因而该码字恢复为 <code>11</code></li>
+</ul>
+<h3 id="2-5-容错机制"><a href="#2-5-容错机制" class="headerlink" title="2.5 容错机制"></a>2.5 容错机制</h3><p>新口径的容错能力主要来自以下四点：</p>
+<ol>
+<li><p><strong>时间对齐容错</strong><br>通过 <code>lag</code> 扫描自动补偿 A&#x2F;B 之间的固定传播延迟，避免因整体时间偏移导致码字窗口错位。</p>
+</li>
+<li><p><strong>阈值自适应容错</strong><br>阈值不固定，而是根据当前实验数据反向搜索得到，降低了不同实验条件下阈值失配带来的误判。</p>
+</li>
+<li><p><strong>短间隙合并容错</strong><br>B 端高态区间之间若只出现不超过 <code>400 ms</code> 的短回落，则视为同一高态过程中的抖动，不将其错误切分为多个独立片段。</p>
+</li>
+<li><p><strong>基于持续时间而非单点判决的容错</strong><br>该方法关注“一个码字在 B 端持续了多久”，而不是每个局部窗口是否都恰好被判成 <code>1</code>。因此，即使局部采样存在短时起伏，只要总体持续时间保持稳定，仍可恢复出正确的 <code>1</code> 数量。</p>
+</li>
+</ol>
+<h2 id="3-实验结果"><a href="#3-实验结果" class="headerlink" title="3. 实验结果"></a>3. 实验结果</h2><h3 id="3-1-实验基本信息"><a href="#3-1-实验基本信息" class="headerlink" title="3.1 实验基本信息"></a>3.1 实验基本信息</h3><p>本次分析实验编号为：</p>
+<ul>
+<li><code>E20260408_002</code></li>
+</ul>
+<p>时间范围为：</p>
+<ul>
+<li>首个符号时间：<code>2026-04-08 09:06:48 -0400</code></li>
+<li>最后一个符号时间：<code>2026-04-08 09:55:06 -0400</code></li>
+</ul>
+<h3 id="3-2-码字恢复结果"><a href="#3-2-码字恢复结果" class="headerlink" title="3.2 码字恢复结果"></a>3.2 码字恢复结果</h3><p>在新口径下，本次实验的核心恢复结果为：</p>
+<ul>
+<li>A 端真实码字总数：<code>532</code></li>
+<li>B 端精确恢复正确的码字数：<code>482</code></li>
+<li>码字精确匹配率：<code>0.906</code></li>
+<li>平均码字计数绝对误差：<code>0.096</code></li>
+<li>高估码字数：<code>12</code></li>
+<li>低估码字数：<code>38</code></li>
+<li>完全未恢复出高态的码字数：<code>21</code></li>
+</ul>
+<p>这表明：</p>
+<ul>
+<li>超过 <code>90%</code> 的码字被完整恢复正确；</li>
+<li>平均每个码字在 <code>1</code> 数量上的偏差不到 <code>0.1</code>；</li>
+<li>大多数误差不是严重错码，而是少量码字发生了 <code>+1</code> 或 <code>-1</code> 的数量偏差。</li>
+</ul>
+<h3 id="3-3-结果含义解释"><a href="#3-3-结果含义解释" class="headerlink" title="3.3 结果含义解释"></a>3.3 结果含义解释</h3><p>本次结果说明，B 端观测到的编码信息主要体现在<strong>高态持续时间</strong>上，而不是逐个局部窗口的二值形态上。也就是说：</p>
+<ul>
+<li>旧方法容易受到局部窗口判决波动影响；</li>
+<li>新方法直接统计高态持续了多长时间，因此更贴近这类编码的物理表现；</li>
+<li>只要持续时间整体稳定，就能较准确地恢复出该码字中有多少个 <code>1</code>。</li>
+</ul>
+<p>从样例可见：</p>
+<ul>
+<li>对于单个 <code>1</code> 的码字，B 端统计到 <code>2200 ms</code> 至 <code>3000 ms</code> 左右的高态时间时，仍可稳定恢复为 <code>1</code>；</li>
+<li>对于 <code>11</code>、<code>111</code> 等较长码字，B 端恢复的持续时间与 A 端槽位长度具有较好的线性关系；</li>
+<li>错误主要出现在部分码字边界附近，其中少数码字被高估或低估一个 <code>1</code>，但整体比例较低。</li>
+</ul>
+<p>综上，新口径已能够较可靠地恢复本次实验中的编码结构。</p>
+<h2 id="4-如何在大量流量中找出对应流量"><a href="#4-如何在大量流量中找出对应流量" class="headerlink" title="4. 如何在大量流量中找出对应流量"></a>4. 如何在大量流量中找出对应流量</h2><p>在真实场景中，B 端通常不只有一条流量，而是同时存在大量背景流。为了在大量流量中找到真正承载编码的目标流量，当前框架应采用“分层筛选 + 对齐验证 + 编码验证”的方法。</p>
+<h3 id="4-1-第一步：候选流预筛选"><a href="#4-1-第一步：候选流预筛选" class="headerlink" title="4.1 第一步：候选流预筛选"></a>4.1 第一步：候选流预筛选</h3><p>首先从全部流量中筛出候选流，减少无关流量数量。可采用以下条件：</p>
+<ul>
+<li>时间范围与 A 端发送时间存在重叠；</li>
+<li>流量具有连续可观测的速率采样；</li>
+<li>在 A 端发送期间，流量的吞吐存在明显波动而非完全平稳；</li>
+<li>流量持续时间足够长，能够覆盖多个码字周期。</li>
+</ul>
+<p>这一阶段的目标不是直接识别编码，而是剔除明显不可能承载编码的背景流。</p>
+<h3 id="4-2-第二步：逐流执行对齐扫描"><a href="#4-2-第二步：逐流执行对齐扫描" class="headerlink" title="4.2 第二步：逐流执行对齐扫描"></a>4.2 第二步：逐流执行对齐扫描</h3><p>对每一条候选流，分别运行当前对齐框架，计算：</p>
+<ul>
+<li><code>best_lag_ms</code></li>
+<li><code>window_coverage_rate</code></li>
+<li><code>separation_score</code></li>
+</ul>
+<p>只有满足以下条件的流量，才进入下一步：</p>
+<ul>
+<li>覆盖率高；</li>
+<li>最佳时延存在明显峰值；</li>
+<li>高态与低态在该流上可分。</li>
+</ul>
+<p>如果某条流在 lag 扫描中无法形成稳定的最优时延，说明它与 A 端控制序列在时间上并不同步，应被排除。</p>
+<h3 id="4-3-第三步：执行-duration-based-码字恢复"><a href="#4-3-第三步：执行-duration-based-码字恢复" class="headerlink" title="4.3 第三步：执行 duration-based 码字恢复"></a>4.3 第三步：执行 duration-based 码字恢复</h3><p>对通过第二步筛选的候选流，使用本报告中的新口径恢复码字，并计算：</p>
+<ul>
+<li><code>duration_code_exact_match_count</code></li>
+<li><code>duration_code_exact_match_rate</code></li>
+<li><code>duration_code_mean_abs_error</code></li>
+<li><code>duration_code_overestimate_count</code></li>
+<li><code>duration_code_underestimate_count</code></li>
+</ul>
+<p>真正对应的目标流应表现为：</p>
+<ul>
+<li>精确匹配码字数明显更高；</li>
+<li>精确匹配率明显高于其他候选流；</li>
+<li>平均绝对误差明显更低；</li>
+<li>恢复出的码字长度分布与 A 端真实分布相近。</li>
+</ul>
+<h3 id="4-4-第四步：做唯一性确认"><a href="#4-4-第四步：做唯一性确认" class="headerlink" title="4.4 第四步：做唯一性确认"></a>4.4 第四步：做唯一性确认</h3><p>为了提高“在一大堆流量中找出对应流量”的可信度，应使用多指标联合排序，而不是只看单一分数。推荐排序优先级为：</p>
+<ol>
+<li><code>duration_code_exact_match_rate</code></li>
+<li><code>duration_code_exact_match_count</code></li>
+<li><code>duration_code_mean_abs_error</code>（越小越好）</li>
+<li><code>separation_score</code></li>
+<li><code>window_coverage_rate</code></li>
+</ol>
+<p>若某一条流在这些指标上同时显著优于其他流量，则可以把它判为目标流量。</p>
+<h3 id="4-5-如何进一步降低误识别风险"><a href="#4-5-如何进一步降低误识别风险" class="headerlink" title="4.5 如何进一步降低误识别风险"></a>4.5 如何进一步降低误识别风险</h3><p>为了在海量背景流中进一步提高唯一性，建议配合以下措施：</p>
+<ol>
+<li><p><strong>使用已知前导码或同步序列</strong><br>在正式编码前加入固定前导码，可以显著提高目标流在全体候选流中的可识别性。</p>
+</li>
+<li><p><strong>增大不同码字之间的时间结构差异</strong><br>若所有码字都很短且彼此相似，背景流更容易偶然拟合；增加码字长度差异有助于区分。</p>
+</li>
+<li><p><strong>增加实验重复次数</strong><br>对同一候选流重复多次恢复，如果其 <code>best_lag_ms</code>、阈值和码字恢复结果都稳定，则可信度更高。</p>
+</li>
+<li><p><strong>联合使用时延一致性和码字一致性</strong><br>只有同时满足“时延对齐合理”和“duration-based 恢复准确”的流量，才应被视为真正目标流。</p>
+</li>
+</ol>
+<p>需要强调的是，在复杂网络环境中很难用单一指标做“绝对保证”。当前框架的可靠性来自多层证据一致：</p>
+<ul>
+<li>时间上能够对齐；</li>
+<li>统计上能够分离；</li>
+<li>编码上能够恢复；</li>
+<li>结果上能够唯一优于其他候选流。</li>
+</ul>
+<p>只要这四层证据同时成立，就能在大量流量中较高置信度地定位出对应流量。</p>
+<h2 id="5-结论"><a href="#5-结论" class="headerlink" title="5. 结论"></a>5. 结论</h2><p>本次实验表明，基于<strong>持续高态时长</strong>的编码恢复方法能够有效恢复 A 端发送的码字结构。</p>
+<p>在实验 <code>E20260408_002</code> 中：</p>
+<ul>
+<li>框架成功找到稳定时延 <code>1300 ms</code></li>
+<li>自适应阈值为 <code>960.971 kbps</code></li>
+<li>共恢复 <code>532</code> 个真实码字中的 <code>482</code> 个</li>
+<li>码字精确匹配率达到 <code>90.6%</code></li>
+<li>平均码字计数绝对误差仅为 <code>0.096</code></li>
+</ul>
+<p>说明该方法已经能够较准确地从 B 端速率观测中重建编码信息。</p>
+<p>从方法上看，本框架的优势在于：</p>
+<ul>
+<li>通过时间对齐解决 A&#x2F;B 端传播时延问题；</li>
+<li>通过阈值搜索适应不同实验中的流量幅度变化；</li>
+<li>通过短间隙合并提高对抖动的容忍度；</li>
+<li>通过持续时间计数提高对码字数量恢复的准确性。</li>
+</ul>
+<p>因此，在后续工作中，应将该 duration-based 口径作为识别目标流量和评估编码恢复质量的主要分析方法。</p>
+</div>
+  
+
+  
+    <footer class="article-footer">
+      
+        <p>分类：<span class="taxonomy">research</span></p>
+      
+      
+    </footer>
+  
+</article>
+
+      </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>

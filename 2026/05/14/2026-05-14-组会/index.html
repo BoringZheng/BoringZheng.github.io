@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026-05-14 组会-TD2 指标体系与交替 XON 读侧瓶颈分析 | Hexo</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+  <body>
+    <button class="nav-toggle" id="nav-toggle" aria-controls="site-sidebar" aria-expanded="false" aria-label="切换导航">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="shell">
+      
+<aside class="sidebar" id="site-sidebar">
+  <div class="sidebar-brand">
+    <a href="/">Hexo</a>
+    
+  </div>
+
+  <nav class="main-nav" aria-label="主导航">
+    
+      <a class="nav-link " href="/">首页</a>
+    
+      <a class="nav-link " href="/research/">研究</a>
+    
+      <a class="nav-link " href="/life/">生活</a>
+    
+      <a class="nav-link " href="/study/">学习</a>
+    
+  </nav>
+</aside>
+
+      <div class="overlay" id="nav-overlay"></div>
+      <main class="main-content">
+        
+<article class="article-page">
+  <header>
+    <p class="eyebrow">研究</p>
+    <h1>2026-05-14 组会-TD2 指标体系与交替 XON 读侧瓶颈分析</h1>
+    <time datetime="2026-05-13T16:00:00.000Z">2026-05-14 00:00</time>
+  </header>
+
+  
+    <div class="article-content"><h1 id="2026-05-14-组会：TD2-指标体系与交替-XON-读侧瓶颈分析"><a href="#2026-05-14-组会：TD2-指标体系与交替-XON-读侧瓶颈分析" class="headerlink" title="2026-05-14 组会：TD2 指标体系与交替 XON 读侧瓶颈分析"></a>2026-05-14 组会：TD2 指标体系与交替 XON 读侧瓶颈分析</h1><h2 id="0-本次汇报要说明什么"><a href="#0-本次汇报要说明什么" class="headerlink" title="0. 本次汇报要说明什么"></a>0. 本次汇报要说明什么</h2><p>本周工作主要围绕两个问题展开：</p>
+<ol>
+<li>为什么 400 ms 交替 XON(100&#x2F;500) 场景下，Tor 外发速率无法在每个 400 ms 窗口内稳定形成理想方波。</li>
+<li>TD2（Trend Detection v2）指标体系应该如何解释，尤其是为什么 <code>trend_presence_search</code> 在低 slot 下显著优于 <code>internal_edge</code>，以及为什么 Hamming distance 能作为合适的块级可用性评估指标。</li>
+</ol>
+<p>核心结论：</p>
+<ul>
+<li><p>交替 XON 场景的瓶颈不在 XON 发送频率、SENDME&#x2F;circuit window 或 Tor bucket refill，而在 <strong>Tor 从本地 kernel socket 读数据这一侧</strong>。更具体地说，降速 <code>500→100</code> 是本地限读，能在 100 ms 窗口内快速生效；升速 <code>100→500</code> 需要 server 从 <code>rwnd_limited</code> 的低频发送状态恢复，必须经历 buffer 排空、window 打开、server 唤醒和重新填充 pipeline，因此存在 100-300 ms 的 ramp-up。</p>
+</li>
+<li><p>这个不对称性解释了为什么 400 ms 的 500 阶段常常还没建立稳态就被下一个 100 XON 切断。外发侧看到的不是理想方波，而是“100 阶段快速降到平底，500 阶段缓慢爬升形成尖顶”。</p>
+</li>
+<li><p>TD2 不再依赖绝对速率阈值，而是把 bit 编码在速率变化方向中：<code>1 = low→high</code>，<code>0 = high→low</code>。这使它更适合当前这种存在响应延迟、边界扩散和短时 buffer 记忆的信道。</p>
+</li>
+<li><p>在低 slot 下，固定窗口的 <code>internal_edge</code> 解码容易被响应 jitter 污染；<code>trend_presence_search</code> 在预期跳变附近做 ±200 ms 搜索，天然吸收响应时间抖动。实测中，300 ms slot 下 TP accuracy 达到 95.1%，而 internal_edge 只有 62.0%；200 ms slot 下 TP accuracy 仍有 93.2%，internal_edge 只有 59.3%。</p>
+</li>
+<li><p>对 8-bit pattern block 进一步使用 Hamming distance 和 signed margin 做块级纠错后，低 slot 的可用性显著提高。200 ms slot 下，<code>TP ≤1 = 85%</code>，<code>TP ≤2 = 96%</code>；300 ms slot 下，<code>TP ≤1 = 92%</code>，<code>TP ≤2 = 99%</code>。这说明即使逐 bit 判决仍有误差，块级恢复已经接近可用。</p>
+</li>
+</ul>
+<hr>
+<h2 id="1-交替-XON-场景与现象"><a href="#1-交替-XON-场景与现象" class="headerlink" title="1. 交替 XON 场景与现象"></a>1. 交替 XON 场景与现象</h2><h3 id="1-1-实验场景"><a href="#1-1-实验场景" class="headerlink" title="1.1 实验场景"></a>1.1 实验场景</h3><p>client 每 400 ms 交替发送 XON，建议速率在 100 KB&#x2F;s 和 500 KB&#x2F;s 之间跳变：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">t=0:      XON rate=100</span><br><span class="line">t=400ms:  XON rate=500</span><br><span class="line">t=800ms:  XON rate=100</span><br><span class="line">t=1200ms: XON rate=500</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>直觉预期是：Tor bucket refill 周期约为 100 ms，所以外发速率应在 1 个 refill 周期内跟随 XON 切换。实际现象是：外发速率无法在 400 ms 窗口内清晰地区分 100 和 500 阶段。</p>
+<p>此前已经排除的因素：</p>
+<table>
+<thead>
+<tr>
+<th>排除项</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SENDME &#x2F; circuit stop</td>
+<td>数量很少，不是 OR 侧窗口耗尽导致</td>
+</tr>
+<tr>
+<td>XOFF</td>
+<td>不频繁，不是流控关断导致</td>
+</tr>
+<tr>
+<td>Tor bucket refill</td>
+<td>100 ms 粒度足够细，不是 token 更新过慢</td>
+</tr>
+</tbody></table>
+<p>因此，问题集中到本地读侧：Tor 虽然已经改变 bucket rate，但 <code>read()</code> 能否读到足够数据取决于本地 socket receive buffer 和 server 侧补给。</p>
+<h3 id="1-2-关键纠正：慢方向是-100→500"><a href="#1-2-关键纠正：慢方向是-100→500" class="headerlink" title="1.2 关键纠正：慢方向是 100→500"></a>1.2 关键纠正：慢方向是 100→500</h3><p>直观上容易认为两个方向都很快——“少读”和“多读”不过是 Tor 本地改个 bucket 参数；另一种常见直觉是认为 <code>500→100</code> 反而慢，因为 buffer 里还有旧数据要“学会反压”。但对 Tor 外发速率而言，这两个直觉都不准。</p>
+<p>Tor 的 bucket rate 直接限制 <code>read()</code> 的字节数：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">降低速率 (500→100):</span><br><span class="line">  Tor 决定少读</span><br><span class="line">  -&gt; 本地立刻生效</span><br><span class="line">  -&gt; egress rate 快速下降</span><br><span class="line"></span><br><span class="line">提高速率 (100→500):</span><br><span class="line">  Tor 决定多读</span><br><span class="line">  -&gt; 但 receive buffer 可能很快读空</span><br><span class="line">  -&gt; 必须等待 server 补数据</span><br><span class="line">  -&gt; egress rate 缓慢爬升</span><br></pre></td></tr></table></figure>
+
+<p>所以真正的慢方向是 <strong>100→500</strong>，而不是 <strong>500→100</strong>。</p>
+<hr>
+<h2 id="2-读侧瓶颈机制"><a href="#2-读侧瓶颈机制" class="headerlink" title="2. 读侧瓶颈机制"></a>2. 读侧瓶颈机制</h2><h3 id="2-1-数据链路"><a href="#2-1-数据链路" class="headerlink" title="2.1 数据链路"></a>2.1 数据链路</h3><p>当前链路可以抽象为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Bucket rate (XON 控制)</span><br><span class="line">    -&gt; Tor read() 速率</span><br><span class="line">    -&gt; kernel TCP receive buffer (B_max)</span><br><span class="line">    -&gt; TCP advertised window</span><br><span class="line">    -&gt; server SO_SNDBUF (8KB) + 阻塞 send()</span><br><span class="line">    -&gt; server 文件读取 + 应用层调度</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li>数据流方向是 <code>server -&gt; Tor</code>。</li>
+<li>反压方向是 <code>Tor bucket/read -&gt; receive window -&gt; server</code>。</li>
+</ul>
+<p>这带来两个不同的响应路径：</p>
+<table>
+<thead>
+<tr>
+<th>方向</th>
+<th>控制方式</th>
+<th>主要瓶颈</th>
+<th>egress 响应</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>500→100</td>
+<td>Tor 直接减少 <code>read()</code></td>
+<td>bucket 本地限读</td>
+<td>约 100 ms 内下降</td>
+</tr>
+<tr>
+<td>100→500</td>
+<td>Tor 增加 <code>read()</code>，但依赖 server 补给</td>
+<td>数据供给链路</td>
+<td>需要 100-300 ms ramp-up</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-500→100：为什么可以快速下降"><a href="#2-2-500→100：为什么可以快速下降" class="headerlink" title="2.2 500→100：为什么可以快速下降"></a>2.2 500→100：为什么可以快速下降</h3><p>当 XON 从 500 切到 100 时，Tor bucket 从 <code>50KB/100ms</code> 变为 <code>10KB/100ms</code>。下一次 <code>read()</code> 直接按新限额读取，最多读约 10 KB。</p>
+<p>即使 receive buffer 里还有 500 阶段留下的旧数据，它们也只能以新的低速率被读出。因此旧数据会延迟 server 感受到反压的时间，但不会延迟 Tor 外发速率下降。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">t=400ms: XON=100 到达</span><br><span class="line"></span><br><span class="line">bucket: 10KB/100ms</span><br><span class="line">buffer: 可能仍有 32KB 旧数据</span><br><span class="line"></span><br><span class="line">400-500ms:</span><br><span class="line">  Tor read() &lt;= 10KB</span><br><span class="line">  egress ≈ 100KB/s</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-100→500：为什么爬不上去"><a href="#2-3-100→500：为什么爬不上去" class="headerlink" title="2.3 100→500：为什么爬不上去"></a>2.3 100→500：为什么爬不上去</h3><p>在 100 阶段稳定后，系统处于低位平衡：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Tor bucket rate:       10KB/100ms</span><br><span class="line">Tor 实际 read rate:    约 100KB/s</span><br><span class="line">receive buffer 水位:   接近 B_max (如 32KB)</span><br><span class="line">TCP advertised window: 很小或接近关闭</span><br><span class="line">server SO_SNDBUF:      接近满 (8KB)</span><br><span class="line">server send():         频繁阻塞或低频唤醒、进程处于 sleep 态</span><br></pre></td></tr></table></figure>
+
+<p>切换到 XON&#x3D;500 后，Tor 可以立刻把 bucket 提到 <code>50KB/100ms</code>，但这只表示“允许读更多”。从这一刻起需要区分两个阶段：</p>
+<p><strong>阶段 A（第一个 100 ms 窗口，旧数据 burst）：</strong></p>
+<p>buffer 里还有 100 阶段积累的 ≈B_max&#x3D;32 KB。Tor 在新 token 限额内一次读空这部分数据，耗时仅几个系统调用。这会产生一次 ≈32 KB &#x2F; 100 ms &#x3D; 320 KB&#x2F;s 的 burst——看似“快速响应”，但本质上是重放 100 阶段留下的库存，与 server 的当前产出无关。</p>
+<p><strong>阶段 B（从第二个 100 ms 窗口起，供给饥饿）：</strong></p>
+<p>旧数据读完后，buffer 接近为空。Tor 进入“有 token 但无数据可读”的状态，外发速率被 server 实际重新供给的速率限住。server 从“长期被阻塞”恢复到“以 500 KB&#x2F;s 稳定填满 pipeline”需要几个纲要环节：</p>
+<ol>
+<li>Tor 增量读出 → ACK 携带逐次括大的 rwnd（这一步在 loopback 上是 μs 级，<strong>不是瓶颈</strong>）。</li>
+<li>内核唤醒被 <code>send()</code> 阻塞的 server 进程。在朊齐压力或 Python GIL&#x2F;event loop 调度下，此调度延迟常在单位数到数十 ms 级。</li>
+<li>server 重新进入 <code>send()/fp.read(4096)</code> 循环，每轮填 8 KB 到 SO_SNDBUF。要让下游 egress 达到 50 KB&#x2F;100ms，需要连续许多轮 “send → read → send” 才能填满 pipeline。</li>
+<li><strong>Tor token bucket 本身的 100 ms 粒度</strong>是上限：即使 server 瞬间恢复，Tor 也只能在下一个 refill 边界上才能让该窗口跑满额度。</li>
+</ol>
+<p>主导这 100–300 ms ramp-up 的是第 2、3、4 项：<strong>调度唤醒 + 多轮 send-read 填满 pipeline + bucket refill 粒度</strong>。TCP rwnd 反馈本身不是瓶颈。对 400 ms 的高态窗口来说，这个 ramp-up 已经是主导开销。</p>
+<h3 id="2-4-小-buffer-的作用：更平稳但上升更真实"><a href="#2-4-小-buffer-的作用：更平稳但上升更真实" class="headerlink" title="2.4 小 buffer 的作用：更平稳但上升更真实"></a>2.4 小 buffer 的作用：更平稳但上升更真实</h3><p>小 receive buffer（如 32 KB）带来一个看似矛盾的现象：</p>
+<ul>
+<li>它会让 <code>100→500</code> 的 ramp-up 看起来更慢；</li>
+<li>但它让整个链路更平稳、更连续，也让 egress rate 更接近 server 当前真实产出。</li>
+</ul>
+<p>原因是 <code>B_max</code> 变成了硬性 burst cap：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">大 buffer:</span><br><span class="line">  Tor 可以一次读大量旧数据</span><br><span class="line">  -&gt; egress 看似快速响应</span><br><span class="line">  -&gt; 实际是在重放历史库存</span><br><span class="line">  -&gt; server 仍未真正感受到 XON=500</span><br><span class="line"></span><br><span class="line">小 buffer:</span><br><span class="line">  Tor 一次最多读约 32KB</span><br><span class="line">  -&gt; 很快读空并打开 window</span><br><span class="line">  -&gt; server 必须真实补给</span><br><span class="line">  -&gt; egress 反映新鲜数据</span><br></pre></td></tr></table></figure>
+
+<p>因此，小 buffer 下的“慢”反而更可信：它说明控制回路真正闭合了，而不是 buffer 在替 server 播放旧数据。</p>
+<h3 id="2-5-对-400-ms-交替-XON-的解释"><a href="#2-5-对-400-ms-交替-XON-的解释" class="headerlink" title="2.5 对 400 ms 交替 XON 的解释"></a>2.5 对 400 ms 交替 XON 的解释</h3><p>综合起来，交替 XON(100&#x2F;500) 的波形应表现为（横轴 ms，纵轴 KB&#x2F;s，每格约 100 ms 采样窗口）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">500KB/s |          .|         .|</span><br><span class="line">400KB/s |         / |        / |</span><br><span class="line">300KB/s |        /  |       /  |</span><br><span class="line">200KB/s |       /   |      /   |</span><br><span class="line">100KB/s |______/    |_____/    |____</span><br><span class="line">          0   400   800   1200  ms</span><br><span class="line">          ^XON=100  ^XON=100   ^XON=100</span><br><span class="line">             ^XON=500  ^XON=500</span><br></pre></td></tr></table></figure>
+
+<p>关键特征：</p>
+<ul>
+<li>下降沿极快：<code>500→100</code> 在 1 个 100 ms 采样窗口内完成（图中接近垂直跌落）。</li>
+<li>上升沿缓慢：<code>100→500</code> 需要 2-3 个 100 ms 窗口才接近目标（图中爬坡段）。</li>
+<li>500 阶段形成尖顶：刚接近高态就被下一个 100 XON 切断。</li>
+<li>100 阶段有平底：低态更容易稳定形成。</li>
+</ul>
+<hr>
+<h2 id="3-TD2-编码方案"><a href="#3-TD2-编码方案" class="headerlink" title="3. TD2 编码方案"></a>3. TD2 编码方案</h2><h3 id="3-1-核心思想"><a href="#3-1-核心思想" class="headerlink" title="3.1 核心思想"></a>3.1 核心思想</h3><p>TD2（Trend Detection v2）将信息编码在速率变化方向中，而不是编码在绝对速率值中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">逻辑 1 = LH = 低速率 -&gt; 高速率</span><br><span class="line">逻辑 0 = HL = 高速率 -&gt; 低速率</span><br></pre></td></tr></table></figure>
+
+<p>每个逻辑 bit 占用两个连续 slot，称为一个 trend pair。信息位于 pair 内部的跳变方向。</p>
+<h3 id="3-2-为什么使用趋势而不是绝对阈值"><a href="#3-2-为什么使用趋势而不是绝对阈值" class="headerlink" title="3.2 为什么使用趋势而不是绝对阈值"></a>3.2 为什么使用趋势而不是绝对阈值</h3><p>传统阈值判定在短 slot 下不稳定，主要因为：</p>
+<ul>
+<li>Tor flowctl 的控制响应存在约数百毫秒延迟；</li>
+<li>B 端采样粒度会平滑掉边界；</li>
+<li>burst、队列记忆和 TCP buffer 会污染绝对速率；</li>
+<li>400 ms 交替 XON 场景本身就证明了高态&#x2F;低态并非理想方波。</li>
+</ul>
+<p>但是，即使响应形状被拉宽或延迟，上升&#x2F;下降趋势通常仍能保留。因此 TD2 的重点从“这个窗口是否高于阈值”转向“这个边界附近是否存在预期方向的变化”。</p>
+<h3 id="3-3-基本参数"><a href="#3-3-基本参数" class="headerlink" title="3.3 基本参数"></a>3.3 基本参数</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>当前典型值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>TD2_BITS</code></td>
+<td>基础 pattern</td>
+<td><code>10101010</code></td>
+</tr>
+<tr>
+<td><code>TD2_REPEAT</code></td>
+<td>pattern 重复次数</td>
+<td><code>100</code></td>
+</tr>
+<tr>
+<td><code>td2_bit_count</code></td>
+<td>bit 总数</td>
+<td><code>len(bits) * repeat = 800</code></td>
+</tr>
+<tr>
+<td><code>td2_chip_count</code></td>
+<td>物理 slot 总数</td>
+<td><code>bit_count * 2 = 1600</code></td>
+</tr>
+<tr>
+<td><code>ENCODER_SLOT_MS</code></td>
+<td>物理 slot 时长</td>
+<td><code>200 / 300 / 400 / 600 / 800 ms</code></td>
+</tr>
+<tr>
+<td><code>ENCODER_CODE_GAP_MS</code></td>
+<td>pattern 间隔</td>
+<td><code>2000 ms</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="4-解码器与指标体系"><a href="#4-解码器与指标体系" class="headerlink" title="4. 解码器与指标体系"></a>4. 解码器与指标体系</h2><h3 id="4-1-解码器分层"><a href="#4-1-解码器分层" class="headerlink" title="4.1 解码器分层"></a>4.1 解码器分层</h3><p>当前 TD2 框架中包含以下几类解码器，按从硬判决到软判决、从固定窗口到自适应搜索的顺序排列：</p>
+<table>
+<thead>
+<tr>
+<th>解码器</th>
+<th>核心思想</th>
+<th>适用性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>slot_diff</code></td>
+<td>比较 pair 内两个 slot 平均速率</td>
+<td>简单，但对边界污染敏感</td>
+</tr>
+<tr>
+<td><code>internal_edge</code></td>
+<td>在 pair 内部边界两侧取窗口做差</td>
+<td>旧推荐 bit 解码器</td>
+</tr>
+<tr>
+<td><code>transition_pattern</code></td>
+<td>直接在 chip transition 上判断方向</td>
+<td>用于更细粒度边界分析</td>
+</tr>
+<tr>
+<td><code>isi_bit_diaglda</code></td>
+<td>用 25 维采样特征做 Diagonal LDA</td>
+<td>ML 辅助解码</td>
+</tr>
+<tr>
+<td><code>phase_regularized</code></td>
+<td>用重复 pattern 的相位均值正则化</td>
+<td>稳定重复结构</td>
+</tr>
+<tr>
+<td><code>trend_presence_search</code></td>
+<td>在预期跳变附近 ±200 ms 搜索最佳趋势</td>
+<td>当前低 slot 推荐</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-internal-edge-的问题"><a href="#4-2-internal-edge-的问题" class="headerlink" title="4.2 internal_edge 的问题"></a>4.2 <code>internal_edge</code> 的问题</h3><p><code>internal_edge</code> 在固定 lag&#x2F;gap&#x2F;window 下比较边界前后速率：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">center = 第二 slot 起始时间 + lag_ms</span><br><span class="line">before = aggregate(center - gap_ms - window_ms, center - gap_ms)</span><br><span class="line">after  = aggregate(center + gap_ms, center + gap_ms + window_ms)</span><br><span class="line">score  = after - before</span><br></pre></td></tr></table></figure>
+
+<p>它的问题是：当 B 端响应存在 jitter 时，固定窗口容易错过真实跳变，或者把边界扩散区纳入两侧窗口，导致 score 被污染。</p>
+<h3 id="4-3-trend-presence-search-的优势"><a href="#4-3-trend-presence-search-的优势" class="headerlink" title="4.3 trend_presence_search 的优势"></a>4.3 <code>trend_presence_search</code> 的优势</h3><p><code>trend_presence_search</code> 不强行假设跳变落在唯一固定位置，而是在 A 端预期跳变附近以固定步长（当前实现为 20 ms）扫描一段窗口：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">for shift_ms in range(-200, +201, step=20):</span><br><span class="line">    center = A_transition_ts + lag_ms + shift_ms</span><br><span class="line">    signed_score = expected_sign * (after_rate - before_rate)</span><br><span class="line">best_signed_score = max(signed_score over all shifts)</span><br><span class="line">match = best_signed_score &gt; 0</span><br></pre></td></tr></table></figure>
+
+<p>这相当于把短时相位抖动显式纳入解码过程。因此它在 200-400 ms slot 下明显优于固定窗口 <code>internal_edge</code>。</p>
+<h3 id="4-4-核心指标口径"><a href="#4-4-核心指标口径" class="headerlink" title="4.4 核心指标口径"></a>4.4 核心指标口径</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>td2_accuracy</code></td>
+<td>逐 bit 判定准确率</td>
+</tr>
+<tr>
+<td><code>td2_trend_presence_accuracy</code></td>
+<td>趋势存在检测准确率</td>
+</tr>
+<tr>
+<td><code>td2_soft_sum_accuracy</code></td>
+<td>每个 pattern position 的 soft score 累加后准确率</td>
+</tr>
+<tr>
+<td><code>td2_tp_hamming_mean_raw_hd</code></td>
+<td>TP 预测到已知 pattern 的平均汉明距离</td>
+</tr>
+<tr>
+<td><code>td2_tp_hamming_raw_hamming_le_1_rate</code></td>
+<td>每个 8-bit block 最多错 1 bit 的比例</td>
+</tr>
+<tr>
+<td><code>td2_tp_hamming_raw_hamming_le_2_rate</code></td>
+<td>每个 8-bit block 最多错 2 bit 的比例</td>
+</tr>
+<tr>
+<td><code>td2_tp_hamming_median_correction_cost_kbps</code></td>
+<td>用 signed margin 纠错的代价中位数</td>
+</tr>
+<tr>
+<td><code>td2_tp_hamming_correctable_error_block_rate</code></td>
+<td>有错误 block 中可被纠正的比例</td>
+</tr>
+</tbody></table>
+<p>对汇报而言，最值得强调的是：<strong>逐 bit accuracy 不是唯一目标，块级 Hamming distance 更直接对应 pattern&#x2F;template 是否可用。</strong></p>
+<hr>
+<h2 id="5-实验结果：TP-Hamming-显著改善低-slot-可用性"><a href="#5-实验结果：TP-Hamming-显著改善低-slot-可用性" class="headerlink" title="5. 实验结果：TP + Hamming 显著改善低 slot 可用性"></a>5. 实验结果：TP + Hamming 显著改善低 slot 可用性</h2><h3 id="5-1-trend-presence-search-vs-internal-edge"><a href="#5-1-trend-presence-search-vs-internal-edge" class="headerlink" title="5.1 trend_presence_search vs internal_edge"></a>5.1 <code>trend_presence_search</code> vs <code>internal_edge</code></h3><table>
+<thead>
+<tr>
+<th align="right">Slot</th>
+<th align="right">internal_edge</th>
+<th align="right">trend_presence_search</th>
+<th align="right">提升</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">800 ms</td>
+<td align="right">98.1%</td>
+<td align="right">99.9%</td>
+<td align="right">+1.8 pp</td>
+</tr>
+<tr>
+<td align="right">600 ms</td>
+<td align="right">98.9%</td>
+<td align="right">100.0%</td>
+<td align="right">+1.1 pp</td>
+</tr>
+<tr>
+<td align="right">400 ms</td>
+<td align="right">62.1%</td>
+<td align="right">80.4%</td>
+<td align="right">+18.3 pp</td>
+</tr>
+<tr>
+<td align="right">300 ms</td>
+<td align="right">62.0%</td>
+<td align="right">95.1%</td>
+<td align="right">+33.1 pp</td>
+</tr>
+<tr>
+<td align="right">200 ms</td>
+<td align="right">59.3%</td>
+<td align="right">93.2%</td>
+<td align="right">+33.9 pp</td>
+</tr>
+</tbody></table>
+<p>可以看到，在 600-800 ms 下两者都能工作；真正的差异出现在 200-400 ms。低 slot 下固定窗口解码器失效较快，而 TP 搜索仍能捕获趋势方向。</p>
+<h3 id="5-2-平均汉明距离对比"><a href="#5-2-平均汉明距离对比" class="headerlink" title="5.2 平均汉明距离对比"></a>5.2 平均汉明距离对比</h3><table>
+<thead>
+<tr>
+<th>实验</th>
+<th align="right">Slot</th>
+<th align="right">TP Acc</th>
+<th align="right">TP Mean HD</th>
+<th align="right">IE Acc</th>
+<th align="right">IE Mean HD</th>
+<th align="right">TP 优势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>E20260507_002</td>
+<td align="right">800 ms</td>
+<td align="right">99.9%</td>
+<td align="right">0.01</td>
+<td align="right">98.1%</td>
+<td align="right">0.15</td>
+<td align="right">HD 降 93%</td>
+</tr>
+<tr>
+<td>E20260507_003</td>
+<td align="right">600 ms</td>
+<td align="right">100.0%</td>
+<td align="right">0.00*</td>
+<td align="right">98.9%</td>
+<td align="right">0.09</td>
+<td align="right">HD ≈ 0</td>
+</tr>
+<tr>
+<td>E20260508_001</td>
+<td align="right">400 ms</td>
+<td align="right">99.9%</td>
+<td align="right">0.01</td>
+<td align="right">78.6%</td>
+<td align="right">1.71</td>
+<td align="right">HD 降 99%</td>
+</tr>
+<tr>
+<td>E20260510_004</td>
+<td align="right">400 ms</td>
+<td align="right">80.4%</td>
+<td align="right">1.57</td>
+<td align="right">62.1%</td>
+<td align="right">3.03</td>
+<td align="right">HD 降 48%</td>
+</tr>
+<tr>
+<td>E20260511_006</td>
+<td align="right">300 ms</td>
+<td align="right">95.1%</td>
+<td align="right">0.39</td>
+<td align="right">62.0%</td>
+<td align="right">3.04</td>
+<td align="right">HD 降 87%</td>
+</tr>
+<tr>
+<td>E20260511_008</td>
+<td align="right">200 ms</td>
+<td align="right">93.2%</td>
+<td align="right">0.54</td>
+<td align="right">59.3%</td>
+<td align="right">3.26</td>
+<td align="right">HD 降 83%</td>
+</tr>
+</tbody></table>
+<p>（*注：0.00 为四舍五入到两位小数，实际 HD ≤ 0.005。）</p>
+<p>即使在最差的 400 ms 实验中，TP 的 mean HD 仍从 3.03 降到 1.57。对于 8-bit block 来说，这意味着需要纠错的 bit 数已经从接近半个 block 降到约 1-2 个。</p>
+<h3 id="5-3-Hamming-≤1-≤2：块级可用性"><a href="#5-3-Hamming-≤1-≤2：块级可用性" class="headerlink" title="5.3 Hamming ≤1 &#x2F; ≤2：块级可用性"></a>5.3 Hamming ≤1 &#x2F; ≤2：块级可用性</h3><table>
+<thead>
+<tr>
+<th>实验</th>
+<th align="right">Slot</th>
+<th align="right">TP Acc</th>
+<th align="right">TP Mean HD</th>
+<th align="right">TP ≤1</th>
+<th align="right">TP ≤2</th>
+<th align="right">TP ≤3</th>
+<th align="right">IE ≤1</th>
+<th align="right">IE ≤3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>E20260507_002</td>
+<td align="right">800 ms</td>
+<td align="right">99.9%</td>
+<td align="right">0.01</td>
+<td align="right">100%</td>
+<td align="right">100%</td>
+<td align="right">100%</td>
+<td align="right">94%</td>
+<td align="right">100%</td>
+</tr>
+<tr>
+<td>E20260507_003</td>
+<td align="right">600 ms</td>
+<td align="right">100.0%</td>
+<td align="right">0.00</td>
+<td align="right">100%</td>
+<td align="right">100%</td>
+<td align="right">100%</td>
+<td align="right">99%</td>
+<td align="right">100%</td>
+</tr>
+<tr>
+<td>E20260508_001</td>
+<td align="right">400 ms</td>
+<td align="right">99.9%</td>
+<td align="right">0.01</td>
+<td align="right">100%</td>
+<td align="right">100%</td>
+<td align="right">100%</td>
+<td align="right">55%</td>
+<td align="right">89%</td>
+</tr>
+<tr>
+<td>E20260508_002</td>
+<td align="right">400 ms</td>
+<td align="right">95.6%</td>
+<td align="right">0.35</td>
+<td align="right">88%</td>
+<td align="right">100%</td>
+<td align="right">100%</td>
+<td align="right">54%</td>
+<td align="right">98%</td>
+</tr>
+<tr>
+<td>E20260510_004</td>
+<td align="right">400 ms</td>
+<td align="right">80.4%</td>
+<td align="right">1.57</td>
+<td align="right">50%</td>
+<td align="right">85%</td>
+<td align="right">96%</td>
+<td align="right">16%</td>
+<td align="right">63%</td>
+</tr>
+<tr>
+<td>E20260511_006</td>
+<td align="right">300 ms</td>
+<td align="right">95.1%</td>
+<td align="right">0.39</td>
+<td align="right">92%</td>
+<td align="right">99%</td>
+<td align="right">100%</td>
+<td align="right">12%</td>
+<td align="right">61%</td>
+</tr>
+<tr>
+<td>E20260511_008</td>
+<td align="right">200 ms</td>
+<td align="right">93.2%</td>
+<td align="right">0.54</td>
+<td align="right">85%</td>
+<td align="right">96%</td>
+<td align="right">99%</td>
+<td align="right">9%</td>
+<td align="right">56%</td>
+</tr>
+</tbody></table>
+<p>这组结果说明：</p>
+<ul>
+<li>600-800 ms 下，TP block 基本无需纠错。</li>
+<li>多数 300-400 ms 实验中，<code>TP ≤1</code> 已达到 87-100%，<code>TP ≤2</code> 达到 99-100%。</li>
+<li>200 ms 下仍有 <code>TP ≤2 = 96%</code>，说明块级纠错后仍有较强可用性。</li>
+<li>IE 的 <code>≤1</code> 和 <code>≤3</code> 全面落后，说明固定窗口解码在低 slot 下不是稳定基线。</li>
+</ul>
+<h3 id="5-4-Hamming-distance-阈值的误报率分析与下界"><a href="#5-4-Hamming-distance-阈值的误报率分析与下界" class="headerlink" title="5.4 Hamming distance 阈值的误报率分析与下界"></a>5.4 Hamming distance 阈值的误报率分析与下界</h3><p>实际部署中<strong>每条目标流只注入 1 个（必要时 2 个）8-bit pattern block</strong>，不是 100 次重复。因此判决面对的就是单 block（或最多 2 block）的命中事件，无法靠 $\sqrt R$ 平均把 FP 拉下来。下面把这个口径下的 FP 算清楚，并讨论文献中已有的降 FP 手段。</p>
+<h4 id="5-4-1-模型"><a href="#5-4-1-模型" class="headerlink" title="5.4.1 模型"></a>5.4.1 模型</h4><p>设：</p>
+<ul>
+<li>已知 pattern 为固定的 8-bit 串 $\mathbf{p}\in{0,1}^8$（如 <code>10101010</code>）。</li>
+<li>benign 流量解码出的 block $\mathbf{x}\in{0,1}^8$ 在零假设下服从均匀分布，即每个 bit 独立同分布 $\Pr[x_i&#x3D;0]&#x3D;\Pr[x_i&#x3D;1]&#x3D;1&#x2F;2$。</li>
+<li>判决规则：当 $d_H(\mathbf{x},\mathbf{p})\le d$ 时判定为水印命中。</li>
+</ul>
+<h4 id="5-4-2-单-block-FP（-R-1-）"><a href="#5-4-2-单-block-FP（-R-1-）" class="headerlink" title="5.4.2 单 block FP（$R&#x3D;1$）"></a>5.4.2 单 block FP（$R&#x3D;1$）</h4><p>由 Hamming 球体积（<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Hamming_bound">Hamming bound</a>）：</p>
+<p>$$
+P_{\mathrm{FP}}(n, d) \;=\; \frac{|B_d|}{2^{n}}
+\;=\; \frac{\sum_{k=0}^{d}\binom{n}{k}}{2^{n}}.
+$$</p>
+<p>当前 $n&#x3D;8$ 时：</p>
+<table>
+<thead>
+<tr>
+<th align="right">$d$</th>
+<th align="right">$\sum_{k\le d}\binom{8}{k}$</th>
+<th align="right">$P_{\mathrm{FP}}$</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.391%</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">9</td>
+<td align="right">3.516%</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">37</td>
+<td align="right">14.453%</td>
+</tr>
+</tbody></table>
+<p>$P_{\mathrm{FP}}(8,1)\approx 3.5%$ 在水印检测语境下确实<strong>偏高</strong>——典型流量水印工作（RAINBOW [^rainbow]、SWIRL [^swirl]）追求的 FP 量级是 $10^{-3}$ 到 $10^{-6}$。</p>
+<h4 id="5-4-3-双-block-FP（-R-2-）"><a href="#5-4-3-双-block-FP（-R-2-）" class="headerlink" title="5.4.3 双 block FP（$R&#x3D;2$）"></a>5.4.3 双 block FP（$R&#x3D;2$）</h4><p>注入 2 个 block 时，常见两种判决：</p>
+<ul>
+<li><strong>OR 规则</strong>（任一命中即报警，灵敏度优先）：$P_{\mathrm{FP}}^{\text{OR}} &#x3D; 1-(1-P_{\mathrm{FP}})^2 \approx 2P_{\mathrm{FP}}$，<strong>FP 变高</strong>。</li>
+<li><strong>AND 规则</strong>（两个都要命中，特异性优先）：$P_{\mathrm{FP}}^{\text{AND}} &#x3D; P_{\mathrm{FP}}^{2}$，<strong>FP 平方</strong>。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="right">$d$</th>
+<th align="right">$P_{\mathrm{FP}}$ ($R&#x3D;1$)</th>
+<th align="right">OR ($R&#x3D;2$)</th>
+<th align="right">AND ($R&#x3D;2$)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">1</td>
+<td align="right">3.516%</td>
+<td align="right">6.91%</td>
+<td align="right">0.124%</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">14.45%</td>
+<td align="right">26.8%</td>
+<td align="right">2.09%</td>
+</tr>
+</tbody></table>
+<p>如果走 AND，注入 2 个 block 就能把 $d&#x3D;1$ 的 FP 压到 $\sim 10^{-3}$ 量级，$d&#x3D;2$ 压到 $\sim 2%$。AND 规则相当于把有效码字长度延长到 $n&#x3D;16$，符合下一节的核心结论。</p>
+<h4 id="5-4-4-文献中降低单-block-FP-的方案"><a href="#5-4-4-文献中降低单-block-FP-的方案" class="headerlink" title="5.4.4 文献中降低单 block FP 的方案"></a>5.4.4 文献中降低单 block FP 的方案</h4><p>Hamming bound 直接告诉我们：FP 仅取决于 $V_d(n)&#x2F;2^n$。要降只能 (a) 减小 $d$，或 (b) 增大 $n$，或 (c) 让 $\mathbf{x}$ 在 $H_0$ 下的分布偏离均匀（用辅助统计量）。流量水印社区围绕这三条提出过若干方案：</p>
+<p><strong>方案 A：增大码字长度 $n$（最直接、最有效）</strong></p>
+<table>
+<thead>
+<tr>
+<th align="right">$n$</th>
+<th align="right">$d&#x3D;1$ FP</th>
+<th align="right">$d&#x3D;2$ FP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">8 (现状)</td>
+<td align="right">3.52%</td>
+<td align="right">14.45%</td>
+</tr>
+<tr>
+<td align="right">12</td>
+<td align="right">0.32%</td>
+<td align="right">2.27%</td>
+</tr>
+<tr>
+<td align="right">16</td>
+<td align="right">0.026%</td>
+<td align="right">0.21%</td>
+</tr>
+<tr>
+<td align="right">24</td>
+<td align="right">$1.5\times 10^{-6}$</td>
+<td align="right">$1.9\times 10^{-5}$</td>
+</tr>
+<tr>
+<td align="right">32</td>
+<td align="right">$7.7\times 10^{-9}$</td>
+<td align="right">$1.2\times 10^{-7}$</td>
+</tr>
+</tbody></table>
+<p>代价是注入时间变长 $n&#x2F;8$ 倍。$n&#x3D;16$ 注入时长翻倍但 $d&#x3D;1$ FP 直接降两个数量级到 0.026%，是性价比最高的一档。SWIRL 默认采用 $n&#x3D;32$ 量级的码字 [^swirl]。</p>
+<p><strong>方案 B：换用 PN &#x2F; m-sequence 替代 <code>10101010</code>（避免结构化共谋）</strong></p>
+<p>零假设里”每 bit 独立 $\mathrm{Bernoulli}(1&#x2F;2)$”是理想假设。真实 benign 流量在 trend pair 尺度上往往有正自相关（突发持续多个 slot），而 <code>10101010</code> 是周期 2 的极端结构化序列——它最容易和真实流量里的周期成分（轮询、视频 keyframe、TCP RTT 振荡等）发生<strong>结构性共谋</strong>，使实测 FP 显著高于 $9&#x2F;256$ 的理论值。</p>
+<p>DSSS 类水印（Yu et al. 2007 [^dsss]）和 RAINBOW [^rainbow] 都明确用伪随机&#x2F;m-sequence 作为载波，理由就是：m-sequence 的自相关除零滞后外恒为 $-1&#x2F;n$，与任何低频周期信号在统计上正交。建议把 <code>TD2_BITS</code> 从 <code>10101010</code> 改成长度匹配的 m-sequence（如 $n&#x3D;15$ 的 m-sequence 或 $n&#x3D;8$ 的 Gold 序列），即使保持 $n&#x3D;8$ 也能让实测 FP 更接近理论值。</p>
+<p><strong>方案 C：复合统计检验（HD + 第二统计量 AND 化）</strong></p>
+<p>SWIRL [^swirl] 的设计思路：在 Hamming 类匹配之外再加一个独立的统计检验（SWIRL 用的是基于 packet timing centroid 的 KS test），最终判决要求<strong>两个检验都通过</strong>，FP 相乘。</p>
+<p>我们当前指标体系里已有现成可用的”第二统计量”——$\mathtt{td2_tp_hamming_signed_margin}$。signed margin 在 $H_0$ 下近似零均高斯，水印流下显著为正。用它做一次单尾检验（如 $\sum \mathrm{margin}_i &gt; \tau_m$），独立性近似成立，则：</p>
+<p>$$
+P_{\mathrm{FP}}^{\mathrm{HD}\,\wedge\,\mathrm{margin}} \approx P_{\mathrm{FP}}^{\mathrm{HD}}\cdot P_{\mathrm{FP}}^{\mathrm{margin}}.
+$$</p>
+<p>只要 margin 阈值取在水印流分布的左尾内、benign 分布的右尾外，第二项即可 $\le 10^{-2}$，复合后 $d&#x3D;1$ 的 FP 就可降到 $\sim 10^{-4}$ 量级。</p>
+<p><strong>方案 D（不推荐）：BCH&#x2F;Reed-Solomon 等 ECC 编码</strong></p>
+<p>直觉上”用 ECC 让码字更稀疏”听起来能降 FP，但对<strong>单码字水印</strong>反而无效。因为：(i) 我们只有 1 个固定码字，不存在多个有效码字摊开来；(ii) 真正起作用的还是 $V_d(n)&#x2F;2^n$ 的球体积。ECC 适合多码字纠错（如发送多 bit 信息时），而不是为了降 FP。所以这条路不应该走。</p>
+<h4 id="5-4-5-这些方案对识别率（TPR）的影响"><a href="#5-4-5-这些方案对识别率（TPR）的影响" class="headerlink" title="5.4.5 这些方案对识别率（TPR）的影响"></a>5.4.5 这些方案对识别率（TPR）的影响</h4><p>降 FP 不是免费的。设 per-bit 错误率为 $p$，由表 5.1 反推：300 ms slot $p\approx 0.049$，200 ms slot $p\approx 0.068$。在独立 bit 误差近似下，单 block 命中概率为：</p>
+<p>$$
+\mathrm{TPR}(n,d,p) \;=\; \sum_{k=0}^{d}\binom{n}{k}\,p^{k}(1-p)^{n-k}.
+$$</p>
+<p>把现状 $(n&#x3D;8, d&#x3D;1)$ 与各方案在 200&#x2F;300 ms slot 下的 TPR、FP 同时列出（TPR 由上式估算，FP 由 $V_d(n)&#x2F;2^n$ 算）：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>配置</th>
+<th align="right">TPR @300ms</th>
+<th align="right">TPR @200ms</th>
+<th align="right">FP</th>
+<th align="right">注入时长</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>现状</td>
+<td>$n{&#x3D;}8,d{&#x3D;}1$</td>
+<td align="right">94%</td>
+<td align="right">85%</td>
+<td align="right">3.52%</td>
+<td align="right">1×</td>
+</tr>
+<tr>
+<td>A. 加长 + 同比 $d$</td>
+<td>$n{&#x3D;}16, d{&#x3D;}2$</td>
+<td align="right"><strong>96%</strong></td>
+<td align="right"><strong>92%</strong></td>
+<td align="right"><strong>0.21%</strong></td>
+<td align="right">2×</td>
+</tr>
+<tr>
+<td>A. 加长 + 同比 $d$</td>
+<td>$n{&#x3D;}16, d{&#x3D;}3$</td>
+<td align="right">99%</td>
+<td align="right">98%</td>
+<td align="right">1.07%</td>
+<td align="right">2×</td>
+</tr>
+<tr>
+<td>A. 加长 + 固定 $d$</td>
+<td>$n{&#x3D;}16, d{&#x3D;}1$</td>
+<td align="right">81%</td>
+<td align="right">70%</td>
+<td align="right">0.026%</td>
+<td align="right">2×</td>
+</tr>
+<tr>
+<td>A. 加长 + 同比 $d$</td>
+<td>$n{&#x3D;}24, d{&#x3D;}3$</td>
+<td align="right">98%</td>
+<td align="right">92%</td>
+<td align="right">0.012%</td>
+<td align="right">3×</td>
+</tr>
+<tr>
+<td>B. AND $R{&#x3D;}2$</td>
+<td>$n{&#x3D;}8, d{&#x3D;}1$, AND</td>
+<td align="right">88%</td>
+<td align="right">72%</td>
+<td align="right">0.124%</td>
+<td align="right">2×</td>
+</tr>
+<tr>
+<td>C. HD ∧ margin</td>
+<td>$n{&#x3D;}8, d{&#x3D;}1$ ∧ margin</td>
+<td align="right">$\approx 0.99\cdot$TPR</td>
+<td align="right">$\approx 0.99\cdot$TPR</td>
+<td align="right">$\sim 10^{-4}$</td>
+<td align="right">1×</td>
+</tr>
+<tr>
+<td>D. PN&#x2F;m-sequence</td>
+<td>同 $n&#x3D;8$</td>
+<td align="right">与现状同</td>
+<td align="right">与现状同</td>
+<td align="right">让实测贴近理论</td>
+<td align="right">1×</td>
+</tr>
+</tbody></table>
+<p>可以看到：</p>
+<ul>
+<li><strong>A（加长 + 同比 $d$）是少数能在 TPR 不降甚至略升的同时把 FP 砍 1–2 个数量级的方案</strong>。$n&#x3D;16, d&#x3D;2$ 在 200 ms slot 下 TPR 反而从 85% 升到 92%，FP 从 3.52% 降到 0.21%。代价仅是注入时长翻倍。</li>
+<li><strong>A（加长 + 固定 $d&#x3D;1$）会显著掉 TPR</strong>：$n&#x3D;16, d&#x3D;1$ 在 200 ms slot 下 TPR 跌到 70%。所以加长 $n$ 必须同时按比例放大 $d$，保持 $d&#x2F;n \approx 1&#x2F;8\sim 1&#x2F;5$ 的容错预算。这是 SWIRL 论文里反复强调的”码字长度和容错半径要联调”。</li>
+<li><strong>B（AND $R{&#x3D;}2$）TPR 损失最大</strong>：等价于 $\mathrm{TPR}^2$，200 ms slot 下从 85% 掉到 72%。等效 $n$ 翻倍但 $d$ 没翻倍，所以 TPR 退化得比 A 厉害。注入时长一样的话，A 严格优于 B。</li>
+<li><strong>C（HD ∧ signed margin）TPR 损失最小</strong>：margin 阈值通常可以选在水印分布的 1%-tail 之外，只损失约 1% TPR；FP 却能再降 1–2 个数量级。是”零注入开销”的优选。</li>
+<li><strong>D（PN&#x2F;m-sequence）对 TPR 没有副作用</strong>：解码端知道 pattern，相关检测仍然成立；它只解决”实测 FP 高于理论”的结构性偏差问题。<strong>任何时候都建议做</strong>。</li>
+</ul>
+<p>可组合的推荐配置（按部署优先级）：</p>
+<ol>
+<li><strong>D 立即做</strong>：把 <code>TD2_BITS</code> 从 <code>10101010</code> 换成长度 8 的 m-sequence&#x2F;Gold 序列，无任何代价。</li>
+<li><strong>A 中期推</strong>：升到 $n&#x3D;16, d&#x3D;2$，TPR 持平、FP 降 17×、注入时长 2×。</li>
+<li><strong>C 长期叠</strong>：再加 signed margin 复合检验，FP 再降 $1$–$2$ 个数量级、TPR 损失 ~1%。</li>
+</ol>
+<p>三者叠加后，单 block &#x2F; 单注入场景下可把 FP 拉到 $10^{-5}$ 以下，同时维持 TPR 在 90% 以上。</p>
+<h4 id="5-4-6-为什么-n-16-d-2-是-sweet-spot"><a href="#5-4-6-为什么-n-16-d-2-是-sweet-spot" class="headerlink" title="5.4.6 为什么 $n{&#x3D;}16, d{&#x3D;}2$ 是 sweet spot"></a>5.4.6 为什么 $n{&#x3D;}16, d{&#x3D;}2$ 是 sweet spot</h4><p>把 $H_0$（benign）和 $H_1$（水印）下解码到的 Hamming distance 都看成两个二项分布，就能解释为什么这一档同时在 FP 和 TPR 上都赢：</p>
+<p><strong>$H_0$ 侧</strong>：random block 与已知 pattern 的 Hamming distance 服从</p>
+<p>$$
+D \mid H_0 \sim \mathrm{Bin}(n, 1/2), \qquad \mu_0 = n/2, \quad \sigma_0 = \tfrac{1}{2}\sqrt{n}.
+$$</p>
+<p><strong>$H_1$ 侧</strong>：水印 block 的 bit 误差独立同分布，HD 等于错位个数：</p>
+<p>$$
+D \mid H_1 \sim \mathrm{Bin}(n, p), \qquad \mu_1 = np, \quad \sigma_1 = \sqrt{np(1-p)}.
+$$</p>
+<p>判决阈值 $d$ 把数轴一分为二：左边判水印命中，右边判背景。FP 是 $H_0$ 在 $[0,d]$ 的左尾，1−TPR 是 $H_1$ 在 $(d, n]$ 的右尾。两个量分别由 $d$ 到两个均值的“标准化距离”决定：</p>
+<p>$$
+z_0(n,d) = \frac{\mu_0 - d}{\sigma_0} = \frac{n/2 - d}{\sqrt{n}/2}, \qquad z_1(n,d) = \frac{d - \mu_1}{\sigma_1} = \frac{d - np}{\sqrt{np(1-p)}}.
+$$</p>
+<p>$z_0$ 越大 FP 越小，$z_1$ 越大 TPR 越大。代入 $p\approx 0.068$（200 ms slot）：</p>
+<table>
+<thead>
+<tr>
+<th>$(n, d)$</th>
+<th align="right">$\mu_0$</th>
+<th align="right">$z_0$ （越大↔FP↓）</th>
+<th align="right">$\mu_1$</th>
+<th align="right">$z_1$ （越大↔TPR↑）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>$(8, 1)$</td>
+<td align="right">4</td>
+<td align="right">$(4{-}1)&#x2F;1.41&#x3D;2.12$</td>
+<td align="right">0.54</td>
+<td align="right">$(1{-}0.54)&#x2F;0.71&#x3D;0.65$</td>
+</tr>
+<tr>
+<td>$(16, 1)$</td>
+<td align="right">8</td>
+<td align="right">$(8{-}1)&#x2F;2.00&#x3D;3.50$</td>
+<td align="right">1.09</td>
+<td align="right">$(1{-}1.09)&#x2F;1.00&#x3D;-0.09$</td>
+</tr>
+<tr>
+<td>$(16, 2)$</td>
+<td align="right">8</td>
+<td align="right">$(8{-}2)&#x2F;2.00&#x3D;3.00$</td>
+<td align="right">1.09</td>
+<td align="right">$(2{-}1.09)&#x2F;1.00&#x3D;0.91$</td>
+</tr>
+<tr>
+<td>$(16, 3)$</td>
+<td align="right">8</td>
+<td align="right">$(8{-}3)&#x2F;2.00&#x3D;2.50$</td>
+<td align="right">1.09</td>
+<td align="right">$(3{-}1.09)&#x2F;1.00&#x3D;1.91$</td>
+</tr>
+</tbody></table>
+<p>可以看到三件事：</p>
+<ol>
+<li><p><strong>加长 $n$ 让 $z_0$ 自动放大</strong>：从 $(8,1)$ 的 $z_0&#x3D;2.12$ 升到 $(16,2)$ 的 $z_0&#x3D;3.00$。这是因为 $\mu_0&#x3D;n&#x2F;2$ 线性增长、$\sigma_0&#x3D;\sqrt{n}&#x2F;2$ 仅以 $\sqrt n$ 增长，<strong>$H_0$ 分布“远离原点”的速度比它“展宽”的速度快</strong>。这就是 FP 随 $n$ 指数级下降的几何原因。</p>
+</li>
+<li><p><strong>加长 $n$ 必须同步放大 $d$ 才能保住 $z_1$</strong>：$\mu_1&#x3D;np$ 线性增长，$d$ 不动则 $d-\mu_1$ 会变成负数。$(16,1)$ 下 $z_1&#x3D;-0.09$（$d$ 落在 $H_1$ 均值以下），所以 TPR 反而崩盘到 70%。把 $d$ 同比放到 2，$z_1$ 重回正区间 $0.91$，与 $(8,1)$ 的 $0.65$ 相当甚至更好。</p>
+</li>
+<li><p><strong>$d&#x3D;2$ 而非 $d&#x3D;3$ 是最优档</strong>：$d$ 继续放大到 3 虽然 $z_1$ 升到 $1.91$（TPR 99%），但 $z_0$ 跌回 $2.50$，FP 又升到 1.07%。$d&#x3D;2$ 同时让 $z_0\ge 3$、$z_1\ge 0.9$，<strong>两个尾概率同时取到这一档配置可达的最佳</strong>。</p>
+</li>
+</ol>
+<p>直观上：$n{&#x3D;}16, d{&#x3D;}2$ 的几何含义是<strong>判决阈值 $d$ 同时位于 $H_0$ 均值左侧 $3\sigma_0$ 和 $H_1$ 均值右侧 $\sim 1\sigma_1$</strong>。前者保证 benign 几乎不可能落入，后者保证水印的典型噪声仍被覆盖。这正是 Hamming bound 的几何画面：随 $n$ 增长，单位 Hamming 球占据的相对体积 $V_d(n)&#x2F;2^n$ 以指数速率收缩，而水印 bit 误差的“典型集”半径仅以 $\sqrt n$ 速率扩张——两者剪刀差给出了这个 sweet spot。</p>
+<p>可推广的设计法则（与 SWIRL 一致）：</p>
+<ul>
+<li>保持 $d \approx np + c\sqrt{np(1-p)}$，$c\in[0.5, 1.5]$。即 $d$ 紧贴 $H_1$ 均值的右侧 $\sim 1\sigma_1$。</li>
+<li>在此约束下尽量加大 $n$，因为 FP 几乎只随 $n$ 指数下降，而 TPR 维持。</li>
+<li>注入时长是唯一硬约束：$n$ 翻倍、注入时间翻倍，决定了上限。</li>
+</ul>
+<h4 id="5-4-7-小结与建议"><a href="#5-4-7-小结与建议" class="headerlink" title="5.4.7 小结与建议"></a>5.4.7 小结与建议</h4><ul>
+<li>当前 $n&#x3D;8$、$R&#x3D;1$、$d\le 1$ 配置下，单流 FP $\approx 3.5%$；$d\le 2$ 时 $\approx 14.5%$。这两个数对水印检测都偏高。</li>
+<li>短期可控的改动有三个，按性价比排序：<ol>
+<li><strong>加大码字长度</strong>：$n&#x3D;8\to 16$，$d&#x3D;1$ FP 从 3.5% 降到 0.026%（约 $135\times$）。代价是注入时长翻倍。</li>
+<li><strong>AND 复合多注入</strong>：注入 2 个 block 并要求都命中，等价于 $n&#x3D;16$，$d&#x3D;1$ FP 降到 0.124%。</li>
+<li><strong>复合统计量</strong>：HD ∧ signed margin 联合判决，FP 相乘，可在不改注入长度的前提下再降 1–2 个数量级。</li>
+</ol>
+</li>
+<li>长期建议把 pattern 换成 PN&#x2F;m-sequence，使理论 FP 与实测 FP 更一致（避免 <code>10101010</code> 与真实周期信号共谋）。</li>
+<li>BCH 这类 ECC 不适用于单码字水印的 FP 降低。</li>
+</ul>
+<p>[^rainbow]: A. Houmansadr, N. Kiyavash, N. Borisov. <em>RAINBOW: A Robust And Invisible Non-Blind Watermark for Network Flows</em>. NDSS 2009.<br>[^swirl]: A. Houmansadr, N. Borisov. <em>SWIRL: A Scalable Watermark to Detect Correlated Network Flows</em>. NDSS 2011.<br>[^dsss]: W. Yu, X. Fu, S. Graham, D. Xuan, W. Zhao. <em>DSSS-Based Flow Marking Technique for Invisible Traceback</em>. IEEE S&amp;P 2007.</p>
+<h3 id="5-5-Soft-sum-与-pattern-检测"><a href="#5-5-Soft-sum-与-pattern-检测" class="headerlink" title="5.5 Soft sum 与 pattern 检测"></a>5.5 Soft sum 与 pattern 检测</newString></h3></invoke>
+
+<p>TD2 的另一个重要特性是重复 pattern 的 soft sum：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">soft_sum[pos] = sum(score_i for all repeats at position pos)</span><br><span class="line">pred[pos] = 1 if soft_sum[pos] &gt; 0 else 0</span><br></pre></td></tr></table></figure>
+
+<p>在当前 pattern&#x3D;<code>10101010</code>, repeat&#x3D;100 的设置中，多个实验下 <code>td2_soft_sum_accuracy</code> 均达到 100%。这说明即使单个 bit 有误差，重复结构仍能在 pattern position 维度上形成强信号。</p>
+<p>因此，TD2 的能力可以分层理解：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>目标</th>
+<th>当前结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Bit 级</td>
+<td>每个 trend pair 独立恢复</td>
+<td>低 slot 下需要 TP 搜索</td>
+</tr>
+<tr>
+<td>Block 级</td>
+<td>每个 8-bit pattern block 是否可纠错</td>
+<td>TP + Hamming 显著改善</td>
+</tr>
+<tr>
+<td>Pattern 级</td>
+<td>重复后整体 pattern 是否存在</td>
+<td>soft sum 很强</td>
+</tr>
+<tr>
+<td>Detection 级</td>
+<td>流中是否存在水印</td>
+<td>可用 single pattern trend &#x2F; phase locked 指标</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-两项工作之间的关系"><a href="#6-两项工作之间的关系" class="headerlink" title="6. 两项工作之间的关系"></a>6. 两项工作之间的关系</h2><p>交替 XON 分析解释了为什么短 slot 下速率响应不是理想阶跃；TD2 指标体系则给出了在非理想响应下如何重新定义可检测信号。</p>
+<p>二者的关系可以概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">交替 XON 实验:</span><br><span class="line">  证明短窗口内绝对高低速不稳定</span><br><span class="line">  -&gt; 主要误差来自读侧供给、buffer 和边界 ramp-up</span><br><span class="line"></span><br><span class="line">TD2:</span><br><span class="line">  不再依赖绝对高低速</span><br><span class="line">  -&gt; 改为检测速率变化方向</span><br><span class="line">  -&gt; 用 TP 搜索吸收响应 jitter</span><br><span class="line">  -&gt; 用 Hamming distance 提升 block 级可靠性</span><br></pre></td></tr></table></figure>
+
+<p>换句话说，交替 XON 的“失败”并不是无效结果，而是为 TD2 的设计提供了机制依据：既然 400 ms 内难以稳定形成高低态方波，就应该把检测对象从“状态值”转向“趋势边界”。</p>
+<hr>
+<h2 id="7-汇报结论"><a href="#7-汇报结论" class="headerlink" title="7. 汇报结论"></a>7. 汇报结论</h2><ol>
+<li><p>400 ms 交替 XON 的核心问题是读侧供给链路不对称。<code>500→100</code> 是本地限读，响应快；<code>100→500</code> 在第一个 100 ms 窗口有一次“旧 buffer 重放”的伪响应，随后需要 server 从阻塞状态恢复并多轮填满 pipeline，叠加 bucket refill 粒度，合计产生 100-300 ms ramp-up；TCP rwnd 反馈本身不是瓶颈。</p>
+</li>
+<li><p>小 receive buffer 会让上升沿看起来更慢，但它让 egress rate 反映 server 的真实当前产出，而不是大 buffer 中旧数据的历史重放。因此它对系统稳定性和机制解释是有益的。</p>
+</li>
+<li><p>TD2 选择趋势方向作为编码载体，是对非理想速率响应的直接适配。它规避了短窗口下绝对阈值被 buffer、jitter 和边界平滑污染的问题。</p>
+</li>
+<li><p><code>trend_presence_search</code> 是当前低 slot 下更合适的 bit 解码器。它通过 ±200 ms 搜索处理响应时间抖动，在 200&#x2F;300 ms slot 下仍分别达到 93.2% 和 95.1%。</p>
+</li>
+<li><p>Hamming distance 应作为 TD2 的核心块级指标。200 ms 下 <code>TP ≤2 = 96%</code>，300 ms 下 <code>TP ≤2 = 99%</code>，说明低 slot 的逐 bit 噪声可以通过块级结构和 signed margin 被有效吸收。</p>
+</li>
+<li><p>后续汇报和论文表述中，建议把指标层次分清：bit accuracy 用于说明局部判决能力，Hamming ≤1&#x2F;≤2 用于说明 block 可用性，soft sum &#x2F; single pattern trend 用于说明整体检测能力。</p>
+</li>
+</ol>
+<hr>
+<h2 id="8-后续工作"><a href="#8-后续工作" class="headerlink" title="8. 后续工作"></a>8. 后续工作</h2><table>
+<thead>
+<tr>
+<th>工作</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>对交替 XON 采集 egress_rate.csv 的 100 ms 窗口序列</td>
+<td>验证 100→500 的 ramp-up 曲线</td>
+</tr>
+<tr>
+<td>同步记录 <code>HSFC_DIAG_READ_POST</code></td>
+<td>证明 Tor 在高态早期“有 token 但读不到数据”</td>
+</tr>
+<tr>
+<td>用 <code>ss -tin sport = :8080</code> 观察 server 侧</td>
+<td>验证 <code>rwnd_limited</code> 和 Send-Q 恢复过程</td>
+</tr>
+<tr>
+<td>对比 16KB &#x2F; 32KB &#x2F; 64KB receive buffer</td>
+<td>定量验证 buffer 大小对 ramp-up 与平稳性的影响</td>
+</tr>
+<tr>
+<td>固化 TD2 指标表</td>
+<td>将 bit、block、pattern、detection 指标分层进入论文</td>
+</tr>
+<tr>
+<td>扩展 benign trace 误报评估</td>
+<td>验证 pattern detection 的实际 false positive risk</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="参考材料"><a href="#参考材料" class="headerlink" title="参考材料"></a>参考材料</h2><ol>
+<li>本周草稿：<code>TD2_METRICS_GUIDE.md</code>。</li>
+<li>本周草稿：<code>XON_ALTERNATING_RATE_ANALYSIS.md</code>。</li>
+<li>Tor stream-level flow control &#x2F; XON-XOFF 相关源码与实验日志。</li>
+<li>当前 TD2 全量实验 metrics 与 hamming 汇总表。</li>
+</ol>
+</div>
+  
+
+  
+    <footer class="article-footer">
+      
+        <p>分类：<span class="taxonomy">research</span></p>
+      
+      
+    </footer>
+  
+</article>
+
+      </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>
